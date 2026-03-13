@@ -6,10 +6,10 @@ export default defineNuxtConfig({
   css: ["~/assets/css/main.css"],
   googleFonts: {
     families: {
-      Nunito: [400, 700, 900], // 900 — для тих самих жирних заголовків
+      Nunito: [400, 700, 900],
     },
     display: "swap",
-    download: true, // Завантажує шрифт локально при збірці (краще для швидкості)
+    download: true,
   },
   i18n: {
     langDir: "locales",
