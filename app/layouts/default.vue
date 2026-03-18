@@ -4,5 +4,6 @@
     <UMain>
       <slot />
     </UMain>
+    <Footer />
   </div>
 </template>

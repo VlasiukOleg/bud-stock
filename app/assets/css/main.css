@@ -1,12 +1,27 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-
 body {
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
 }
 
-h1, h2, h3, .font-black {
-  font-weight: 900;
-  letter-spacing: -0.02em;
+@theme {
+  --color-brand-50: #fff7f2;
+  --color-brand-100: #ffece0;
+  --color-brand-200: #ffd5c2;
+  --color-brand-300: #ffb48f;
+  --color-brand-400: #ff844d;
+  --color-brand-500: #f54a00; /* ТВІЙ ОСНОВНИЙ */
+  --color-brand-600: #d43f00; /* HOVER */
+  --color-brand-700: #b33500;
+  --color-brand-800: #8f2b00;
+  --color-brand-900: #752500;
+  --color-brand-950: #401100;
+
+  --color-grid-light: #e5e7eb;
+  --color-grid-dark: rgba(245, 74, 0, 0.2);
+
+  /* Шрифти */
+  --font-montserrat: "Montserrat Alternates", sans-serif;
+  --font-wix: "Wix Madefor Text", sans-serif;
 }
