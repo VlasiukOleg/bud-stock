@@ -23,5 +23,6 @@ body {
 
   /* Шрифти */
   --font-montserrat: "Montserrat Alternates", sans-serif;
-  --font-wix: "Wix Madefor Text", sans-serif;
+  --font-nunito: "Nunito", sans-serif;
+  --font-public: "Public Sans", sans-serif;
 }

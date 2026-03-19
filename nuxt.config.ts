@@ -7,6 +7,7 @@ export default defineNuxtConfig({
   googleFonts: {
     families: {
       Nunito: [400, 700, 900],
+      "Public Sans": [400, 700, 900],
     },
     display: "swap",
     download: true,

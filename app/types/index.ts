@@ -4,3 +4,11 @@ export interface SliderItem {
   title: string;
   desc: string;
 }
+
+export interface FeatureItem {
+  id: number;
+  icon: string;
+  colorClass: string;
+  title: string;
+  desc: string;
+}

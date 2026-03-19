@@ -4,16 +4,12 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
 </script>
 
 <template>
-  <div
-    class="relative overflow-hidden bg-white dark:bg-neutral-950 pt-6 pb-12 lg:py-12"
-  >
-    <div class="absolute inset-0 bd-grid-pattern" />
-
-    <UContainer class="relative z-10">
+  <section class="pt-6 pb-12 lg:py-12">
+    <UContainer>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         <div class="text-center lg:text-left">
           <h1
-            class="text-4xl sm:text-5xl xl:text-6xl font-bold tracking-tight text-neutral-900 dark:text-white space-y-3 md:space-y-4"
+            class="text-4xl sm:text-5xl xl:text-6xl font-bold tracking-tight text-neutral-900 font-public dark:text-white space-y-3 md:space-y-4"
           >
             <span class="block">{{ $t("hero.title.line1") }}</span>
             <span
@@ -65,6 +61,11 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
         </div>
 
         <div class="flex flex-col lg:flex-row justify-center gap-4 lg:gap-0">
+          <h2
+            class="lg:hidden text-center text-3xl sm:text-3xl xl:text-4xl font-bold font-public text-neutral-900 mb-6"
+          >
+            {{ $t("howItWorks.title") }}
+          </h2>
           <div class="relative lg:mr-4">
             <div
               class="absolute z-10 -top-6 left-2 lg:left-18 font-bold text-blue-500 dark:text-brand-400 text-sm uppercase tracking-wider"
@@ -147,23 +148,7 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
         </div>
       </div>
     </UContainer>
-  </div>
+  </section>
 </template>
 
-<style scoped>
-.bd-grid-pattern {
-  width: 100%;
-  height: 100%;
-  background-image:
-    linear-gradient(var(--grid-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-  background-size: 40px 40px;
-  --grid-color: var(--color-grid-light);
-  opacity: 0.5;
-}
-
-.dark .bd-grid-pattern {
-  --grid-color: var(--color-grid-dark);
-  opacity: 1;
-}
-</style>
+<style scoped></style>
