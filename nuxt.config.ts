@@ -2,7 +2,12 @@
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/ui", "@nuxtjs/google-fonts", "@nuxtjs/i18n"],
+  modules: [
+    "@nuxt/ui",
+    "@nuxtjs/google-fonts",
+    "@nuxtjs/i18n",
+    "@nuxtjs/leaflet",
+  ],
   css: ["~/assets/css/main.css"],
   googleFonts: {
     families: {
@@ -21,5 +26,9 @@ export default defineNuxtConfig({
     ],
     defaultLocale: "uk",
     strategy: "no_prefix",
+  },
+  routeRules: {
+    // Якщо твоя сторінка називається pages/catalog.vue
+    "/catalog": { ssr: false },
   },
 });
