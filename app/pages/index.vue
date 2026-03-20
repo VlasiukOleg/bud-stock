@@ -4,9 +4,13 @@
     <div class="relative z-10">
       <Hero />
       <Features />
+      <LatestProductList />
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+</script>
 
 <style scoped>
 .bd-grid-pattern {
