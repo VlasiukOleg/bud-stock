@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import L from "leaflet";
 import type { PointTuple } from "leaflet";
+import { useGeolocation } from "@vueuse/core";
 
 import { MOCK_PRODUCTS } from "~/constants/products/products";
 // Тимчасові координати Києва для центру карти
 const center = ref<PointTuple>([50.4501, 30.5234]);
 const zoom = ref(12);
+
+const { coords, locatedAt, error, resume, pause } = useGeolocation();
 
 interface LocationItem {
   id: number;
@@ -14,6 +17,8 @@ interface LocationItem {
   price: string;
   title: string;
 }
+
+watchEffect(() => console.log(coords.value));
 
 const locations = ref<LocationItem[]>([
   { id: 1, lat: 50.46, lng: 30.51, price: "850", title: "Ламінат" },
@@ -56,7 +61,7 @@ const createPriceIcon = (price: string): any => {
 
     <div class="flex flex-1 overflow-hidden">
       <aside
-        class="hidden lg:block w-[450px] overflow-y-auto p-4 bg-neutral-50 dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800"
+        class="hidden lg:block w-112.5 overflow-y-auto p-4 bg-neutral-50 dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800"
       >
         <div class="grid grid-cols-1 gap-4">
           <CommonProductCard
@@ -97,8 +102,10 @@ const createPriceIcon = (price: string): any => {
               </div>
             </LPopup>
           </LMarker>
+          <LMarker :lat-lng="[coords?.latitude, coords?.longitude]" />
         </LMap>
       </main>
+      <button v-on:click="resume">Hello</button>
     </div>
   </div>
 </template>
