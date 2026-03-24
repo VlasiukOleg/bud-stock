@@ -23,7 +23,9 @@ export interface Product {
   status: string;
   location: {
     address: string;
+    lat: number;
+    lng: number;
   };
-  sellerName: string;
+  sellerName?: string;
   sellerRating: number;
 }
