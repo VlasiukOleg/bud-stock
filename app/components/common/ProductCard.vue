@@ -5,10 +5,8 @@ const props = defineProps<{
   product: Product;
 }>();
 
-// Імітація дистанції, як у твоєму прикладі
 const distance = Math.floor(Math.random() * 5) + 1;
 
-// Форматування ціни
 const formattedPrice = computed(() => {
   return new Intl.NumberFormat("uk-UA").format(props.product.price);
 });
@@ -27,6 +25,16 @@ const formattedPrice = computed(() => {
         :alt="product.title"
         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
+      <div class="absolute top-2 right-2">
+        <UButton
+          icon="i-heroicons-map"
+          variant="solid"
+          size="xs"
+          class="shadow-md bg-brand-400 hover:bg-brand-500"
+          @click.prevent=""
+          >Переглянути на мапі</UButton
+        >
+      </div>
       <div class="absolute top-2 left-2">
         <UBadge size="sm" color="primary">
           {{ product.status }}
@@ -44,7 +52,9 @@ const formattedPrice = computed(() => {
       </div>
 
       <div class="flex items-baseline gap-1 mb-3">
-        <span class="text-sm sm:text-xl font-bold text-green-600 dark:text-green-400">
+        <span
+          class="text-sm sm:text-xl font-bold text-green-600 dark:text-green-400"
+        >
           {{ formattedPrice }}
         </span>
         <span

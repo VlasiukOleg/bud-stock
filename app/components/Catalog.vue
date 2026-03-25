@@ -48,12 +48,18 @@
             v-for="product in filteredProducts"
             :key="product.id"
             :product="product"
+            @click="handleZoomToProduct(product)"
           />
         </div>
       </aside>
 
       <main class="flex-1 relative z-10">
-        <LMap :zoom="zoom" :center="center" :use-global-leaflet="true">
+        <LMap
+          :zoom="zoom"
+          :center="center"
+          :use-global-leaflet="true"
+          ref="map"
+        >
           <LTileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
@@ -100,7 +106,7 @@
               :icon-size="[25, 25]"
               :icon-anchor="[20, 20]"
               class-name="bg-transparent border-none"
-              >s
+            >
               <div
                 class="bg-blue-600 rounded-full size-8 flex items-center justify-center shadow-lg border-2 border-white"
               >
@@ -114,8 +120,28 @@
             <LPopup>Ви тут</LPopup>
           </LMarker>
         </LMap>
+        <Transition name="fade">
+          <div
+            v-if="isLocating"
+            class="absolute inset-0 z-2000 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm flex flex-col items-center justify-center"
+          >
+            <UIcon
+              name="i-heroicons-arrow-path"
+              class="w-8 h-8 animate-spin text-primary-500 mb-2"
+            />
+            <p class="text-sm font-medium">Шукаємо вас на карті...</p>
+          </div>
+        </Transition>
+        <div class="absolute top-4 right-4 z-1000 flex flex-col gap-2">
+          <UButton
+            icon="i-heroicons-map-pin"
+            square
+            class="shadow-lg"
+            @click="handleUserLocationCenter"
+          />
+        </div>
         <div
-          class="absolute bottom-8 left-1/2 -translate-x-1/2 z-[1001] lg:hidden"
+          class="absolute bottom-8 left-1/2 -translate-x-1/2 z-1001 lg:hidden"
         >
           <UButton
             icon="i-heroicons-list-bullet"
@@ -132,7 +158,7 @@
       <USlideover
         v-model:open="isProductsSliderOpen"
         side="bottom"
-        :title="`У радіусі ${searchRadius / 1000} км знайдено: ${filteredProducts.length} карток`"
+        :title="`У радіусі ${searchRadius / 1000} км знайдено: ${filteredProducts.length} товарів`"
       >
         <template #body>
           <UCarousel
@@ -164,27 +190,18 @@ import type { PointTuple } from "leaflet";
 import { useGeolocation } from "@vueuse/core";
 import { isPointWithinRadius } from "geolib";
 
+import type { Product } from "~/types";
+
 import { MOCK_PRODUCTS } from "~/constants/products/products";
+
 const center = ref<PointTuple>([50.4501, 30.5234]);
 const zoom = ref(12);
 const searchRadius = ref(2000);
 const isProductsSliderOpen = ref(false);
+const isInitialCenterSet = ref(false);
+const map = ref<any>(null);
 
 const { coords, locatedAt, error, resume, pause } = useGeolocation();
-
-interface LocationItem {
-  id: number;
-  lat: number;
-  lng: number;
-  price: string;
-  title: string;
-}
-
-const locations = ref<LocationItem[]>([
-  { id: 1, lat: 50.46, lng: 30.51, price: "850", title: "Ламінат" },
-  { id: 2, lat: 50.44, lng: 30.54, price: "1200", title: "Плитка" },
-  { id: 3, lat: 50.48, lng: 30.49, price: "450", title: "Фарба" },
-]);
 
 const createPriceIcon = (price: number): any => {
   return L.divIcon({
@@ -204,6 +221,10 @@ const userLocation = computed<PointTuple | null>(() => {
   return null;
 });
 
+const isLocating = computed(
+  () => coords.value.latitude === Infinity && !error.value,
+);
+
 const filteredProducts = computed(() => {
   if (!userLocation.value) return []; // Поки немає локації — список порожній
 
@@ -218,12 +239,47 @@ const filteredProducts = computed(() => {
   });
 });
 
+const handleUserLocationCenter = () => {
+  if (userLocation.value && map.value?.leafletObject) {
+    map.value.leafletObject.flyTo(userLocation.value, 12, {
+      duration: 1.5,
+    });
+
+    center.value = [...userLocation.value];
+    zoom.value = 12;
+  }
+};
+
+const handleZoomToProduct = (product: Product) => {
+  if (
+    product.location?.lat &&
+    product.location?.lng &&
+    map.value?.leafletObject
+  ) {
+    map.value.leafletObject.flyTo(
+      [product.location.lat, product.location.lng],
+      15,
+      { duration: 1.2 },
+    );
+  }
+};
+
 watch(
   coords,
   (newCoords) => {
     if (newCoords.latitude !== Infinity && newCoords.longitude !== Infinity) {
-      center.value = [newCoords.latitude, newCoords.longitude];
-      zoom.value = 13;
+      if (!isInitialCenterSet.value) {
+        const lat = newCoords.latitude;
+        const lng = newCoords.longitude;
+        center.value = [lat, lng];
+
+        if (map.value?.leafletObject) {
+          map.value.leafletObject.flyTo([lat, lng], 12, {
+            duration: 1.5,
+          });
+          isInitialCenterSet.value = true;
+        }
+      }
     }
   },
   { immediate: true },
