@@ -14,7 +14,7 @@ const formattedPrice = computed(() => {
 
 <template>
   <NuxtLink
-    :to="`/product/${product.id}`"
+    to="/"
     class="group block bg-white dark:bg-neutral-900 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-neutral-200 dark:border-neutral-800"
   >
     <div

@@ -45,7 +45,7 @@
       >
         <div class="grid grid-cols-1 gap-4">
           <CommonProductCard
-            v-for="product in filteredProducts"
+            v-for="product in productsInRadius"
             :key="product.id"
             :product="product"
             @click="handleZoomToProduct(product)"
@@ -59,6 +59,8 @@
           :center="center"
           :use-global-leaflet="true"
           ref="map"
+          @update:zoom="zoom = $event"
+          @update:bounds="mapBounds = $event"
         >
           <LTileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -75,10 +77,12 @@
           />
 
           <LMarker
-            v-for="product in filteredProducts"
+            v-for="product in productsOnScreen"
             :key="product.id"
             :lat-lng="[product.location.lat!, product.location.lng!]"
-            :icon="createPriceIcon(product.price)"
+            :icon="
+              zoom > 13 ? createPriceIcon(product.price) : createSimpleDotIcon()
+            "
           >
             <LPopup>
               <div class="w-40">
@@ -90,11 +94,7 @@
                 <p class="text-primary-600 font-bold">
                   {{ product.price }} грн
                 </p>
-                <UButton
-                  size="xs"
-                  block
-                  class="mt-2"
-                  :to="`/product/${product.id}`"
+                <UButton size="xs" block class="mt-2" to="#"
                   >Переглянути</UButton
                 >
               </div>
@@ -150,7 +150,7 @@
             class="shadow-2xl px-6 py-3 ring-4 ring-white dark:ring-neutral-950"
             @click="isProductsSliderOpen = true"
           >
-            Список ({{ filteredProducts.length }})
+            Список ({{ productsInRadius.length }})
           </UButton>
         </div>
       </main>
@@ -158,26 +158,45 @@
       <USlideover
         v-model:open="isProductsSliderOpen"
         side="bottom"
-        :title="`У радіусі ${searchRadius / 1000} км знайдено: ${filteredProducts.length} товарів`"
+        :title="`Знайдено: ${productsInRadius.length}`"
+        :ui="{
+          content: 'h-[75%]',
+        }"
       >
         <template #body>
-          <UCarousel
-            v-slot="{ item }"
-            :items="filteredProducts"
-            :ui="{ item: 'basis-1/3' }"
+          <div
+            class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10"
           >
-            <div>
-              <img
-                :src="item.images[0]"
-                class="w-full object-cover rounded mb-2"
-              />
-              <p class="font-bold text-xs truncate">{{ item.title }}</p>
-              <p class="text-primary-600 font-bold">{{ item.price }} грн</p>
-              <UButton size="xs" block class="mt-2" :to="`/product/${item.id}`"
-                >Переглянути</UButton
-              >
+            <div
+              v-for="item in productsInRadius"
+              :key="item.id"
+              class="flex flex-col bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden shadow-sm"
+            >
+              <div class="aspect-square w-full relative">
+                <img
+                  :src="item.images[0]"
+                  class="absolute inset-0 w-full h-full object-cover"
+                />
+              </div>
+
+              <div class="p-2 flex flex-col flex-1 justify-between">
+                <div>
+                  <p
+                    class="font-bold text-[13px] leading-tight line-clamp-2 mb-1"
+                  >
+                    {{ item.title }}
+                  </p>
+                  <p class="text-primary-600 font-bold text-sm">
+                    {{ item.price }} ₴
+                  </p>
+                </div>
+
+                <UButton size="xs" block class="mt-2" variant="soft" to="#">
+                  Дивитись
+                </UButton>
+              </div>
             </div>
-          </UCarousel>
+          </div>
         </template>
       </USlideover>
     </div>
@@ -200,6 +219,7 @@ const searchRadius = ref(2000);
 const isProductsSliderOpen = ref(false);
 const isInitialCenterSet = ref(false);
 const map = ref<any>(null);
+const mapBounds = ref<any>(null);
 
 const { coords, locatedAt, error, resume, pause } = useGeolocation();
 
@@ -214,6 +234,15 @@ const createPriceIcon = (price: number): any => {
   });
 };
 
+const createSimpleDotIcon = () => {
+  return L.divIcon({
+    className: "simple-dot",
+    html: `<div class="w-2 h-2 bg-brand-600 rounded-full"></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
+};
+
 const userLocation = computed<PointTuple | null>(() => {
   if (coords.value.latitude !== Infinity) {
     return [coords.value.latitude, coords.value.longitude];
@@ -225,12 +254,13 @@ const isLocating = computed(
   () => coords.value.latitude === Infinity && !error.value,
 );
 
-const filteredProducts = computed(() => {
-  if (!userLocation.value) return []; // Поки немає локації — список порожній
+const productsInRadius = computed(() => {
+  if (!userLocation.value) return [];
 
   return MOCK_PRODUCTS.filter((product) => {
     if (!product.location?.lat || !product.location?.lng) return false;
 
+    // Тут можна додати ще фільтрацію за назвою (product.title), якщо є пошуковий запит
     return isPointWithinRadius(
       { latitude: userLocation.value![0], longitude: userLocation.value![1] },
       { latitude: product.location.lat, longitude: product.location.lng },
@@ -239,11 +269,22 @@ const filteredProducts = computed(() => {
   });
 });
 
+const productsOnScreen = computed(() => {
+  if (!mapBounds.value) return productsInRadius.value;
+
+  const sw = mapBounds.value._southWest;
+  const ne = mapBounds.value._northEast;
+
+  return productsInRadius.value.filter((product) => {
+    const lat = product.location!.lat;
+    const lng = product.location!.lng;
+    return lat >= sw.lat && lat <= ne.lat && lng >= sw.lng && lng <= ne.lng;
+  });
+});
+
 const handleUserLocationCenter = () => {
   if (userLocation.value && map.value?.leafletObject) {
-    map.value.leafletObject.flyTo(userLocation.value, 12, {
-      duration: 1.5,
-    });
+    map.value.leafletObject.flyTo(userLocation.value, 12);
 
     center.value = [...userLocation.value];
     zoom.value = 12;
@@ -258,9 +299,9 @@ const handleZoomToProduct = (product: Product) => {
   ) {
     map.value.leafletObject.flyTo(
       [product.location.lat, product.location.lng],
-      15,
-      { duration: 1.2 },
+      12,
     );
+    zoom.value = 12;
   }
 };
 

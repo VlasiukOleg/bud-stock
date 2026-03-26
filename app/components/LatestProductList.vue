@@ -23,7 +23,7 @@
 
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-6">
         <CommonProductCard
-          v-for="product in MOCK_PRODUCTS"
+          v-for="product in filteredProductsById"
           :key="product.id"
           :product="product"
         />
@@ -46,4 +46,8 @@
 
 <script setup lang="ts">
 import { MOCK_PRODUCTS } from '~/constants/products/products';
+
+console.log(MOCK_PRODUCTS);
+
+const filteredProductsById = MOCK_PRODUCTS.filter(product => Number(product.id) < 15);
 </script>
