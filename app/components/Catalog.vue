@@ -41,15 +41,24 @@
 
     <div class="flex flex-1 overflow-hidden">
       <aside
-        class="hidden lg:block w-100 overflow-y-auto p-4 bg-neutral-50 dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800"
+        class="hidden lg:block w-100 overflow-y-auto p-4 bg-neutral-50 dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 scroll-smooth"
       >
-        <div class="grid grid-cols-1 gap-4">
+        <div class="grid grid-cols-1 gap-4" v-if="productsInRadius.length > 0">
+          <div>{{ `Знайдено: ${productsInRadius.length} позицій` }}</div>
           <CommonProductCard
             v-for="product in productsInRadius"
             :key="product.id"
+            :id="`product-${product.id}`"
             :product="product"
+            :class="[
+              'transition-all duration-300 rounded-xl',
+              selectedProductOnMap === product.id ? 'ring-2 ring-brand-500 shadow-lg' : ''
+            ]"
             @click="handleZoomToProduct(product)"
           />
+        </div>
+        <div v-else>
+          Не знайдено жодного матеріалу. Спробуйте збільшити радіус пошуку.
         </div>
       </aside>
 
@@ -60,15 +69,17 @@
           :use-global-leaflet="true"
           ref="map"
           @update:zoom="zoom = $event"
+          @update:center="center = $event"
           @update:bounds="mapBounds = $event"
+          @click="selectedProductOnMap = null"
         >
           <LTileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
           <LCircle
-            v-if="userLocation"
-            :lat-lng="userLocation"
+            v-if="initialUserLocation"
+            :lat-lng="initialUserLocation"
             :radius="searchRadius"
             color="#3b82f6"
             :fill-opacity="0.1"
@@ -81,8 +92,15 @@
             :key="product.id"
             :lat-lng="[product.location.lat!, product.location.lng!]"
             :icon="
-              zoom > 13 ? createPriceIcon(product.price) : createSimpleDotIcon()
+              zoom > 13
+                ? createPriceIcon(
+                    product.price,
+                    selectedProductOnMap === product.id,
+                  )
+                : createSimpleDotIcon(selectedProductOnMap === product.id)
             "
+            :z-index-offset="selectedProductOnMap === product.id ? 1000 : 0"
+            @click="handleClickProductMarker(product.id)"
           >
             <LPopup>
               <div class="w-40">
@@ -101,7 +119,7 @@
             </LPopup>
           </LMarker>
 
-          <LMarker v-if="userLocation" :lat-lng="userLocation">
+          <LMarker v-if="initialUserLocation" :lat-lng="initialUserLocation">
             <LIcon
               :icon-size="[25, 25]"
               :icon-anchor="[20, 20]"
@@ -116,14 +134,14 @@
                 />
               </div>
             </LIcon>
-
             <LPopup>Ви тут</LPopup>
           </LMarker>
         </LMap>
+
         <Transition name="fade">
           <div
             v-if="isLocating"
-            class="absolute inset-0 z-2000 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm flex flex-col items-center justify-center"
+            class="absolute inset-0 z-[2000] bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm flex flex-col items-center justify-center"
           >
             <UIcon
               name="i-heroicons-arrow-path"
@@ -132,22 +150,23 @@
             <p class="text-sm font-medium">Шукаємо вас на карті...</p>
           </div>
         </Transition>
-        <div class="absolute top-4 right-4 z-1000 flex flex-col gap-2">
+
+        <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
           <UButton
             icon="i-heroicons-map-pin"
             square
-            class="shadow-lg"
+            class="bg-brand-400 hover:bg-brand-500 shadow-lg"
             @click="handleUserLocationCenter"
           />
         </div>
+
         <div
-          class="absolute bottom-8 left-1/2 -translate-x-1/2 z-1001 lg:hidden"
+          class="absolute bottom-8 left-1/2 -translate-x-1/2 z-[1001] lg:hidden"
         >
           <UButton
             icon="i-heroicons-list-bullet"
             size="md"
-            color="primary"
-            class="shadow-2xl px-6 py-3 ring-4 ring-white dark:ring-neutral-950"
+            class="ring-3 ring-white bg-brand-500 dark:ring-neutral-950 hover:bg-brand-600"
             @click="isProductsSliderOpen = true"
           >
             Список ({{ productsInRadius.length }})
@@ -158,19 +177,26 @@
       <USlideover
         v-model:open="isProductsSliderOpen"
         side="bottom"
-        :title="`Знайдено: ${productsInRadius.length}`"
+        :title="`Знайдено: ${productsInRadius.length} позицій`"
         :ui="{
           content: 'h-[75%]',
         }"
       >
         <template #body>
           <div
-            class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10"
+            class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10 scroll-smooth"
+            
           >
             <div
               v-for="item in productsInRadius"
               :key="item.id"
-              class="flex flex-col bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden shadow-sm"
+              :id="`mobile-product-${item.id}`"
+              :class="[
+                'flex flex-col rounded-xl border overflow-hidden shadow-sm transition-all duration-300',
+                selectedProductOnMap === item.id 
+                  ? 'border-brand-500 ring-2 ring-brand-500 bg-brand-50 dark:bg-brand-900/20' 
+                  : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
+              ]"
             >
               <div class="aspect-square w-full relative">
                 <img
@@ -191,8 +217,14 @@
                   </p>
                 </div>
 
-                <UButton size="xs" block class="mt-2" variant="soft" to="#">
-                  Дивитись
+                <UButton
+                  size="xs"
+                  block
+                  class="mt-2"
+                  variant="soft"
+                  @click="handleZoomToProduct(item)"
+                >
+                  Показати на мапі
                 </UButton>
               </div>
             </div>
@@ -208,25 +240,29 @@ import L from "leaflet";
 import type { PointTuple } from "leaflet";
 import { useGeolocation } from "@vueuse/core";
 import { isPointWithinRadius } from "geolib";
+import { ref, computed, watch, nextTick } from "vue"; // Не забудь імпорти, якщо використовуєш auto-imports, то ок
 
 import type { Product } from "~/types";
-
 import { MOCK_PRODUCTS } from "~/constants/products/products";
 
-const center = ref<PointTuple>([50.4501, 30.5234]);
+// 1. РОЗДІЛЯЄМО ЛОКАЦІЮ І ЦЕНТР КАРТИ
+const initialUserLocation = ref<PointTuple | null>(null); // Де стоїть юзер
+const center = ref<PointTuple>([50.4501, 30.5234]);       // Куди дивиться камера
 const zoom = ref(12);
 const searchRadius = ref(2000);
+
 const isProductsSliderOpen = ref(false);
-const isInitialCenterSet = ref(false);
 const map = ref<any>(null);
 const mapBounds = ref<any>(null);
+const selectedProductOnMap = ref<string | number | null>(null);
 
-const { coords, locatedAt, error, resume, pause } = useGeolocation();
+const { coords, error, pause } = useGeolocation();
 
-const createPriceIcon = (price: number): any => {
+const createPriceIcon = (price: number, isSelected: boolean): any => {
+  const bgClass = isSelected ? "bg-green-500 scale-110" : "bg-brand-500";
   return L.divIcon({
     className: "custom-price-marker",
-    html: `<div class="bg-brand-500 text-white px-2 py-1 rounded-lg font-bold shadow-md text-xs border border-white">
+    html: `<div class="${bgClass} text-white px-2 py-1 rounded-lg text-xs">
             ${price} ₴
            </div>`,
     iconSize: [50, 25],
@@ -234,35 +270,28 @@ const createPriceIcon = (price: number): any => {
   });
 };
 
-const createSimpleDotIcon = () => {
+const createSimpleDotIcon = (isSelected: boolean) => {
+  const bgClass = isSelected ? "bg-orange-600 scale-150 ring-2 ring-white" : "bg-brand-600";
   return L.divIcon({
     className: "simple-dot",
-    html: `<div class="w-2 h-2 bg-brand-600 rounded-full"></div>`,
+    html: `<div class="w-2 h-2 ${bgClass} rounded-full shadow-md transition-all duration-300"></div>`,
     iconSize: [12, 12],
     iconAnchor: [6, 6],
   });
 };
 
-const userLocation = computed<PointTuple | null>(() => {
-  if (coords.value.latitude !== Infinity) {
-    return [coords.value.latitude, coords.value.longitude];
-  }
-  return null;
-});
-
-const isLocating = computed(
-  () => coords.value.latitude === Infinity && !error.value,
-);
+// Показуємо лоадер, поки не отримаємо координати АБО помилку
+const isLocating = computed(() => !initialUserLocation.value && !error.value);
 
 const productsInRadius = computed(() => {
-  if (!userLocation.value) return [];
+  if (!initialUserLocation.value) return [];
 
   return MOCK_PRODUCTS.filter((product) => {
     if (!product.location?.lat || !product.location?.lng) return false;
 
-    // Тут можна додати ще фільтрацію за назвою (product.title), якщо є пошуковий запит
+    // Відраховуємо радіус від статичної точки користувача
     return isPointWithinRadius(
-      { latitude: userLocation.value![0], longitude: userLocation.value![1] },
+      { latitude: initialUserLocation.value![0], longitude: initialUserLocation.value![1] },
       { latitude: product.location.lat, longitude: product.location.lng },
       searchRadius.value,
     );
@@ -282,45 +311,57 @@ const productsOnScreen = computed(() => {
   });
 });
 
+// Кнопка центрування тепер завжди повертає до зафіксованої точки
 const handleUserLocationCenter = () => {
-  if (userLocation.value && map.value?.leafletObject) {
-    map.value.leafletObject.flyTo(userLocation.value, 12);
-
-    center.value = [...userLocation.value];
-    zoom.value = 12;
+  if (initialUserLocation.value && map.value?.leafletObject) {
+    map.value.leafletObject.flyTo(initialUserLocation.value, 13);
   }
 };
 
 const handleZoomToProduct = (product: Product) => {
-  if (
-    product.location?.lat &&
-    product.location?.lng &&
-    map.value?.leafletObject
-  ) {
-    map.value.leafletObject.flyTo(
-      [product.location.lat, product.location.lng],
-      12,
-    );
-    zoom.value = 12;
+  selectedProductOnMap.value = product.id;
+  if (product.location?.lat && product.location?.lng && map.value?.leafletObject) {
+    isProductsSliderOpen.value = false;
+    map.value.leafletObject.flyTo([product.location.lat, product.location.lng], 14);
   }
 };
 
-watch(
+// Обробка кліку на маркер (Виділення та Скрол)
+const handleClickProductMarker = async (productId: string | number) => {
+  selectedProductOnMap.value = productId;
+  const isMobile = window.innerWidth < 1024;
+
+  if (isMobile) {
+    isProductsSliderOpen.value = true;
+    setTimeout(() => {
+      const el = document.getElementById(`mobile-product-${productId}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 300);
+  } else {
+    const el = document.getElementById(`product-${productId}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+};
+
+// ОДНОРАЗОВИЙ ВОТЧЕР ГЕОЛОКАЦІЇ
+const unwatch = watch(
   coords,
   (newCoords) => {
     if (newCoords.latitude !== Infinity && newCoords.longitude !== Infinity) {
-      if (!isInitialCenterSet.value) {
-        const lat = newCoords.latitude;
-        const lng = newCoords.longitude;
-        center.value = [lat, lng];
+      const latLng: PointTuple = [newCoords.latitude, newCoords.longitude];
+      
+      // Фіксуємо точку
+      initialUserLocation.value = latLng;
+      // Ставимо початковий центр
+      center.value = latLng;
 
-        if (map.value?.leafletObject) {
-          map.value.leafletObject.flyTo([lat, lng], 12, {
-            duration: 1.5,
-          });
-          isInitialCenterSet.value = true;
-        }
+      if (map.value?.leafletObject) {
+         map.value.leafletObject.flyTo(latLng, 13, { duration: 1.5 });
       }
+
+      // Вимикаємо подальше прослуховування GPS, щоб економити ресурси
+      pause();
+      unwatch(); 
     }
   },
   { immediate: true },
@@ -335,9 +376,6 @@ watch(
 }
 
 /* Виправляємо баг з відображенням контролів Leaflet у темній темі */
-.leaflet-container {
-  background: #171717 !important; /* neutral-900 */
-}
 .leaflet-control-zoom a {
   background-color: white !important;
   color: black !important;
