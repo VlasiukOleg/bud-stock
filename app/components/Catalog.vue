@@ -52,7 +52,9 @@
             :product="product"
             :class="[
               'transition-all duration-300 rounded-xl',
-              selectedProductOnMap === product.id ? 'ring-2 ring-brand-500 shadow-lg' : ''
+              selectedProductOnMap === product.id
+                ? 'ring-2 ring-brand-500 shadow-lg'
+                : '',
             ]"
             @click="handleZoomToProduct(product)"
           />
@@ -102,7 +104,7 @@
             :z-index-offset="selectedProductOnMap === product.id ? 1000 : 0"
             @click="handleClickProductMarker(product.id)"
           >
-            <LPopup>
+            <!-- <LPopup>
               <div class="w-40">
                 <img
                   :src="product.images[0]"
@@ -116,10 +118,15 @@
                   >Переглянути</UButton
                 >
               </div>
-            </LPopup>
+            </LPopup> -->
           </LMarker>
 
-          <LMarker v-if="initialUserLocation" :lat-lng="initialUserLocation">
+          <LMarker
+            v-if="initialUserLocation"
+            :lat-lng="initialUserLocation"
+            draggable
+            @update:latLng="handleDraggableMarker"
+          >
             <LIcon
               :icon-size="[25, 25]"
               :icon-anchor="[20, 20]"
@@ -185,7 +192,6 @@
         <template #body>
           <div
             class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10 scroll-smooth"
-            
           >
             <div
               v-for="item in productsInRadius"
@@ -193,9 +199,9 @@
               :id="`mobile-product-${item.id}`"
               :class="[
                 'flex flex-col rounded-xl border overflow-hidden shadow-sm transition-all duration-300',
-                selectedProductOnMap === item.id 
-                  ? 'border-brand-500 ring-2 ring-brand-500 bg-brand-50 dark:bg-brand-900/20' 
-                  : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
+                selectedProductOnMap === item.id
+                  ? 'border-brand-500 ring-2 ring-brand-500 bg-brand-50 dark:bg-brand-900/20'
+                  : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700',
               ]"
             >
               <div class="aspect-square w-full relative">
@@ -247,7 +253,7 @@ import { MOCK_PRODUCTS } from "~/constants/products/products";
 
 // 1. РОЗДІЛЯЄМО ЛОКАЦІЮ І ЦЕНТР КАРТИ
 const initialUserLocation = ref<PointTuple | null>(null); // Де стоїть юзер
-const center = ref<PointTuple>([50.4501, 30.5234]);       // Куди дивиться камера
+const center = ref<PointTuple>([50.4501, 30.5234]); // Куди дивиться камера
 const zoom = ref(12);
 const searchRadius = ref(2000);
 
@@ -270,8 +276,13 @@ const createPriceIcon = (price: number, isSelected: boolean): any => {
   });
 };
 
+console.log("error", error.value);
+console.log("coords", coords.value);
+
 const createSimpleDotIcon = (isSelected: boolean) => {
-  const bgClass = isSelected ? "bg-orange-600 scale-150 ring-2 ring-white" : "bg-brand-600";
+  const bgClass = isSelected
+    ? "bg-orange-600 scale-150 ring-2 ring-white"
+    : "bg-brand-600";
   return L.divIcon({
     className: "simple-dot",
     html: `<div class="w-2 h-2 ${bgClass} rounded-full shadow-md transition-all duration-300"></div>`,
@@ -291,7 +302,10 @@ const productsInRadius = computed(() => {
 
     // Відраховуємо радіус від статичної точки користувача
     return isPointWithinRadius(
-      { latitude: initialUserLocation.value![0], longitude: initialUserLocation.value![1] },
+      {
+        latitude: initialUserLocation.value![0],
+        longitude: initialUserLocation.value![1],
+      },
       { latitude: product.location.lat, longitude: product.location.lng },
       searchRadius.value,
     );
@@ -320,9 +334,16 @@ const handleUserLocationCenter = () => {
 
 const handleZoomToProduct = (product: Product) => {
   selectedProductOnMap.value = product.id;
-  if (product.location?.lat && product.location?.lng && map.value?.leafletObject) {
+  if (
+    product.location?.lat &&
+    product.location?.lng &&
+    map.value?.leafletObject
+  ) {
     isProductsSliderOpen.value = false;
-    map.value.leafletObject.flyTo([product.location.lat, product.location.lng], 14);
+    map.value.leafletObject.flyTo(
+      [product.location.lat, product.location.lng],
+      14,
+    );
   }
 };
 
@@ -343,25 +364,31 @@ const handleClickProductMarker = async (productId: string | number) => {
   }
 };
 
+const handleDraggableMarker = (newLatLng: any) => {
+  initialUserLocation.value = [newLatLng.lat, newLatLng.lng];
+};
+
+watchEffect(() => console.log(initialUserLocation.value));
+
 // ОДНОРАЗОВИЙ ВОТЧЕР ГЕОЛОКАЦІЇ
 const unwatch = watch(
   coords,
   (newCoords) => {
     if (newCoords.latitude !== Infinity && newCoords.longitude !== Infinity) {
       const latLng: PointTuple = [newCoords.latitude, newCoords.longitude];
-      
+
       // Фіксуємо точку
       initialUserLocation.value = latLng;
       // Ставимо початковий центр
       center.value = latLng;
 
       if (map.value?.leafletObject) {
-         map.value.leafletObject.flyTo(latLng, 13, { duration: 1.5 });
+        map.value.leafletObject.flyTo(latLng, 13, { duration: 1.5 });
       }
 
       // Вимикаємо подальше прослуховування GPS, щоб економити ресурси
       pause();
-      unwatch(); 
+      unwatch();
     }
   },
   { immediate: true },
