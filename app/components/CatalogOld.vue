@@ -74,7 +74,6 @@
           @update:center="center = $event"
           @update:bounds="mapBounds = $event"
           @click="selectedProductOnMap = null"
-          @ready="onMapReady"
         >
           <LTileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -89,6 +88,39 @@
             :weight="2"
             dash-array="5, 10"
           />
+
+          <LMarker
+            v-for="product in productsOnScreen"
+            :key="product.id"
+            :lat-lng="[product.location.lat!, product.location.lng!]"
+            :icon="
+              zoom > 13
+                ? createPriceIcon(
+                    product.price,
+                    selectedProductOnMap === product.id,
+                  )
+                : createSimpleDotIcon(selectedProductOnMap === product.id)
+            "
+            :z-index-offset="selectedProductOnMap === product.id ? 1000 : 0"
+            @click="handleClickProductMarker(product.id)"
+          >
+            <!-- <LPopup>
+              <div class="w-40">
+                <img
+                  :src="product.images[0]"
+                  class="w-full h-20 object-cover rounded mb-2"
+                />
+                <p class="font-bold text-xs truncate">{{ product.title }}</p>
+                <p class="text-primary-600 font-bold">
+                  {{ product.price }} грн
+                </p>
+                <UButton size="xs" block class="mt-2" to="#"
+                  >Переглянути</UButton
+                >
+              </div>
+            </LPopup> -->
+          </LMarker>
+
           <LMarker
             v-if="initialUserLocation"
             :lat-lng="initialUserLocation"
@@ -123,59 +155,6 @@
               class="w-8 h-8 animate-spin text-primary-500 mb-2"
             />
             <p class="text-sm font-medium">Шукаємо вас на карті...</p>
-          </div>
-        </Transition>
-
-        <Transition
-          enter-active-class="transition duration-500 ease-out"
-          enter-from-class="transform -translate-y-10 opacity-0"
-          enter-to-class="transform translate-y-0 opacity-100"
-          leave-active-class="transition duration-300 ease-in"
-          leave-from-class="opacity-100"
-          leave-to-class="opacity-0"
-        >
-          <div
-            v-if="showDragHint && initialUserLocation"
-            class="absolute top-20 left-1/2 -translate-x-1/2 z-[1001] w-[90%] max-w-[340px]"
-          >
-            <div
-              class="bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 p-3 rounded-2xl shadow-2xl flex items-start gap-3"
-            >
-              <div
-                class="bg-brand-50 dark:bg-brand-900/30 p-2 rounded-xl mt-0.5"
-              >
-                <UIcon
-                  name="i-heroicons-hand-raised"
-                  class="w-5 h-5 text-brand-600 dark:text-brand-400 animate-bounce"
-                />
-              </div>
-
-              <div class="flex-1">
-                <p
-                  class="text-[13px] leading-tight text-neutral-700 dark:text-neutral-200"
-                >
-                  Ви можете перетягувати маркер
-                  <span
-                    class="inline-flex items-center justify-center bg-blue-600 rounded-full size-4 align-middle mx-0.5 border border-white shadow-sm"
-                  >
-                    <UIcon
-                      name="i-heroicons-user-solid"
-                      class="size-2.5 text-white"
-                    />
-                  </span>
-                  у будь-яке місце, щоб змінити точку пошуку матеріалів.
-                </p>
-              </div>
-
-              <UButton
-                color="neutral"
-                variant="ghost"
-                icon="i-heroicons-x-mark"
-                size="xs"
-                class="-mr-1 -mt-1 text-neutral-400"
-                @click="showDragHint = false"
-              />
-            </div>
           </div>
         </Transition>
 
@@ -269,26 +248,19 @@ import { useGeolocation } from "@vueuse/core";
 import { isPointWithinRadius } from "geolib";
 import { ref, computed, watch, nextTick } from "vue"; // Не забудь імпорти, якщо використовуєш auto-imports, то ок
 
-import "leaflet.markercluster";
-import "leaflet.markercluster/dist/MarkerCluster.css";
-import "leaflet.markercluster/dist/MarkerCluster.Default.css";
-
 import type { Product } from "~/types";
 import { MOCK_PRODUCTS } from "~/constants/products/products";
 
 // 1. РОЗДІЛЯЄМО ЛОКАЦІЮ І ЦЕНТР КАРТИ
-
+const initialUserLocation = ref<PointTuple | null>(null); // Де стоїть юзер
 const center = ref<PointTuple>([50.4501, 30.5234]); // Куди дивиться камера
-const initialUserLocation = ref<PointTuple | null>(null);
 const zoom = ref(12);
-const searchRadius = ref(5000);
+const searchRadius = ref(2000);
 
 const isProductsSliderOpen = ref(false);
 const map = ref<any>(null);
 const mapBounds = ref<any>(null);
 const selectedProductOnMap = ref<string | number | null>(null);
-const isMapReady = ref<boolean>(false);
-const showDragHint = ref<boolean>(false);
 
 const { coords, error, pause } = useGeolocation();
 
@@ -296,52 +268,26 @@ const createPriceIcon = (price: number, isSelected: boolean): any => {
   const bgClass = isSelected ? "bg-green-500 scale-110" : "bg-brand-500";
   return L.divIcon({
     className: "custom-price-marker",
-    html: `<div class="${bgClass} text-white px-2 py-1 rounded-md text-xs">
+    html: `<div class="${bgClass} text-white px-2 py-1 rounded-lg text-xs">
             ${price} ₴
            </div>`,
-    iconSize: [55, 25],
+    iconSize: [50, 25],
     iconAnchor: [25, 25],
   });
 };
 
-const refreshClusters = async () => {
-  if (!map.value?.leafletObject || !isMapReady.value) return;
+console.log("error", error.value);
+console.log("coords", coords.value);
 
-  const leafletMap = map.value.leafletObject;
-
-  // Очистка
-  leafletMap.eachLayer((layer: any) => {
-    if (layer instanceof (L as any).MarkerClusterGroup) {
-      leafletMap.removeLayer(layer);
-    }
-  });
-
-  // Нова група з анімаціями
-  const { markers } = await useLMarkerCluster({
-    leafletObject: leafletMap,
-    markers: clusterMarkersData.value,
-    options: {
-      maxClusterRadius: 80,
-      // ГАРАНТІЯ АНІМАЦІЇ:
-      animate: true,
-      animateAddingMarkers: true,
-      // Коли зум > 13, кластери зникають, з'являються ціни:
-      disableClusteringAtZoom: 14,
-      spiderfyOnMaxZoom: false,
-      showCoverageOnHover: false,
-    },
-  });
-
-  markers.forEach((marker) => {
-    marker.on("click", () => {
-      const productId = (marker.options as any).id;
-
-      if (productId) {
-        handleClickProductMarker(productId);
-      } else {
-        console.warn("Не вдалося знайти ID для цього маркера", marker);
-      }
-    });
+const createSimpleDotIcon = (isSelected: boolean) => {
+  const bgClass = isSelected
+    ? "bg-orange-600 scale-150 ring-2 ring-white"
+    : "bg-brand-600";
+  return L.divIcon({
+    className: "simple-dot",
+    html: `<div class="w-2 h-2 ${bgClass} rounded-full shadow-md transition-all duration-300"></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
   });
 };
 
@@ -366,10 +312,23 @@ const productsInRadius = computed(() => {
   });
 });
 
+const productsOnScreen = computed(() => {
+  if (!mapBounds.value) return productsInRadius.value;
+
+  const sw = mapBounds.value._southWest;
+  const ne = mapBounds.value._northEast;
+
+  return productsInRadius.value.filter((product) => {
+    const lat = product.location!.lat;
+    const lng = product.location!.lng;
+    return lat >= sw.lat && lat <= ne.lat && lng >= sw.lng && lng <= ne.lng;
+  });
+});
+
 // Кнопка центрування тепер завжди повертає до зафіксованої точки
 const handleUserLocationCenter = () => {
   if (initialUserLocation.value && map.value?.leafletObject) {
-    map.value.leafletObject.flyTo(initialUserLocation.value, 12);
+    map.value.leafletObject.flyTo(initialUserLocation.value, 13);
   }
 };
 
@@ -407,93 +366,33 @@ const handleClickProductMarker = async (productId: string | number) => {
 
 const handleDraggableMarker = (newLatLng: any) => {
   initialUserLocation.value = [newLatLng.lat, newLatLng.lng];
-
-  showDragHint.value = false;
-
-  if (map.value?.leafletObject) {
-    mapBounds.value = map.value.leafletObject.getBounds();
-  }
 };
 
-const clusterMarkersData = computed(() => {
-  return productsInRadius.value.map((product) => ({
-    lat: product.location.lat,
-    lng: product.location.lng,
-    options: {
-      id: product.id,
-      icon: createPriceIcon(
-        product.price,
-        selectedProductOnMap.value === product.id,
-      ),
-    },
-  }));
-});
+watchEffect(() => console.log(initialUserLocation.value));
 
-// const onMapReady = async () => {
-//   isMapReady.value = true;
-
-//   // if (!initialUserLocation.value) {
-//   //   initialUserLocation.value = center.value;
-//   // }
-
-//   refreshClusters();
-// };
-
-const onMapReady = async () => {
-  isMapReady.value = true;
-
-  // Якщо координати вже прийшли раніше, ніж карта була готова
-  if (initialUserLocation.value) {
-    map.value?.leafletObject?.flyTo(initialUserLocation.value, 12);
-  }
-
-  refreshClusters();
-};
-
-watch(
-  () => [productsInRadius.value, selectedProductOnMap.value],
-  () => {
-    refreshClusters();
-  },
-  { deep: false }, // deep: true тут не потрібен, якщо ми слідкуємо за посиланнями
-);
-
-watch(
+// ОДНОРАЗОВИЙ ВОТЧЕР ГЕОЛОКАЦІЇ
+const unwatch = watch(
   coords,
   (newCoords) => {
     if (newCoords.latitude !== Infinity && newCoords.longitude !== Infinity) {
       const latLng: PointTuple = [newCoords.latitude, newCoords.longitude];
 
+      // Фіксуємо точку
       initialUserLocation.value = latLng;
-
+      // Ставимо початковий центр
       center.value = latLng;
 
-      showDragHint.value = true;
-
       if (map.value?.leafletObject) {
-        map.value.leafletObject.flyTo(latLng, 12);
+        map.value.leafletObject.flyTo(latLng, 13, { duration: 1.5 });
       }
 
+      // Вимикаємо подальше прослуховування GPS, щоб економити ресурси
       pause();
+      unwatch();
     }
   },
   { immediate: true },
 );
-
-watch(error, (newError) => {
-  if (newError) {
-    console.warn("Геолокація недоступна:", newError.message);
-
-    initialUserLocation.value = [...center.value];
-
-    showDragHint.value = true;
-
-    if (map.value?.leafletObject) {
-      map.value.leafletObject.flyTo(center.value, 12);
-    }
-    pause();
-  }
-});
 </script>
 
 <style>

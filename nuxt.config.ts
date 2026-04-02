@@ -31,4 +31,7 @@ export default defineNuxtConfig({
     // Якщо твоя сторінка називається pages/catalog.vue
     "/catalog": { ssr: false },
   },
+  leaflet: {
+    markerCluster: true,
+  },
 });

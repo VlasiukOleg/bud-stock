@@ -1,3 +1,5 @@
 <template>
-  <Catalog />
+  <ClientOnly>
+    <Catalog />
+  </ClientOnly>
 </template>

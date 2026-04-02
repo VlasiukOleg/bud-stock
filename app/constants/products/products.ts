@@ -36,4 +36,4 @@ export const generateMockProducts = (count: number): Product[] => {
   });
 };
 
-export const MOCK_PRODUCTS = generateMockProducts(100);
+export const MOCK_PRODUCTS = generateMockProducts(500);
