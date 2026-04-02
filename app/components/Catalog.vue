@@ -6,6 +6,7 @@
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-end">
         <div class="flex-1 w-full flex gap-2">
           <UInput
+            v-model="searchQuery"
             icon="i-heroicons-magnifying-glass"
             placeholder="Шукати матеріали..."
             class="w-full max-w-sm"
@@ -46,7 +47,7 @@
         <div class="grid grid-cols-1 gap-4" v-if="productsInRadius.length > 0">
           <div>{{ `Знайдено: ${productsInRadius.length} позицій` }}</div>
           <CommonProductCard
-            v-for="product in productsInRadius"
+            v-for="product in displayedProducts"
             :key="product.id"
             :id="`product-${product.id}`"
             :product="product"
@@ -58,6 +59,18 @@
             ]"
             @click="handleZoomToProduct(product)"
           />
+          <UButton
+            v-if="hasMoreProducts"
+            color="primary"
+            variant="soft"
+            block
+            size="lg"
+            class="mt-2"
+            @click="loadMoreProducts"
+          >
+            Показати ще 20 (Залишилось:
+            {{ productsInRadius.length - displayLimit }})
+          </UButton>
         </div>
         <div v-else>
           Не знайдено жодного матеріалу. Спробуйте збільшити радіус пошуку.
@@ -215,7 +228,7 @@
             class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10 scroll-smooth"
           >
             <div
-              v-for="item in productsInRadius"
+              v-for="item in displayedProducts"
               :key="item.id"
               :id="`mobile-product-${item.id}`"
               :class="[
@@ -256,6 +269,17 @@
               </div>
             </div>
           </div>
+          <div v-if="hasMoreProducts" class="col-span-full mt-2">
+            <UButton
+              color="primary"
+              variant="soft"
+              block
+              size="md"
+              @click="loadMoreProducts"
+            >
+              Показати ще ({{ productsInRadius.length - displayLimit }})
+            </UButton>
+          </div>
         </template>
       </USlideover>
     </div>
@@ -289,14 +313,16 @@ const mapBounds = ref<any>(null);
 const selectedProductOnMap = ref<string | number | null>(null);
 const isMapReady = ref<boolean>(false);
 const showDragHint = ref<boolean>(false);
+const displayLimit = ref(20);
+const searchQuery = ref("");
 
 const { coords, error, pause } = useGeolocation();
 
 const createPriceIcon = (price: number, isSelected: boolean): any => {
-  const bgClass = isSelected ? "bg-green-500 scale-110" : "bg-brand-500";
+  const bgClass = isSelected ? "bg-green-500 scale-110 text-white" : "bg-white";
   return L.divIcon({
     className: "custom-price-marker",
-    html: `<div class="${bgClass} text-white px-2 py-1 rounded-md text-xs">
+    html: `<div class="${bgClass} text-neutral-800 px-2 py-1 rounded-md text-xs border border-brand-500">
             ${price} ₴
            </div>`,
     iconSize: [55, 25],
@@ -354,8 +380,8 @@ const productsInRadius = computed(() => {
   return MOCK_PRODUCTS.filter((product) => {
     if (!product.location?.lat || !product.location?.lng) return false;
 
-    // Відраховуємо радіус від статичної точки користувача
-    return isPointWithinRadius(
+    // 1. Фільтр по радіусу
+    const isWithin = isPointWithinRadius(
       {
         latitude: initialUserLocation.value![0],
         longitude: initialUserLocation.value![1],
@@ -363,6 +389,17 @@ const productsInRadius = computed(() => {
       { latitude: product.location.lat, longitude: product.location.lng },
       searchRadius.value,
     );
+
+    if (!isWithin) return false;
+
+    // 2. Фільтр по назві (searchQuery)
+    if (searchQuery.value.trim()) {
+      const query = searchQuery.value.toLowerCase();
+      return product.title.toLowerCase().includes(query);
+      // Можна додати ще пошук по опису: || product.description.toLowerCase().includes(query)
+    }
+
+    return true;
   });
 });
 
@@ -371,6 +408,36 @@ const handleUserLocationCenter = () => {
   if (initialUserLocation.value && map.value?.leafletObject) {
     map.value.leafletObject.flyTo(initialUserLocation.value, 12);
   }
+};
+
+const displayedProducts = computed(() => {
+  const all = productsInRadius.value;
+  const limit = displayLimit.value;
+
+  // 1. Беремо перші N товарів
+  const visible = [...all.slice(0, limit)];
+
+  // 2. Розумний трюк: якщо є вибраний товар на карті, і його зараз немає у видимому списку
+  if (selectedProductOnMap.value) {
+    const isVisible = visible.some((p) => p.id === selectedProductOnMap.value);
+
+    if (!isVisible) {
+      const selected = all.find((p) => p.id === selectedProductOnMap.value);
+      if (selected) {
+        visible.push(selected); // Додаємо його просто в кінець списку!
+      }
+    }
+  }
+
+  return visible;
+});
+
+const hasMoreProducts = computed(
+  () => productsInRadius.value.length > displayLimit.value,
+);
+
+const loadMoreProducts = () => {
+  displayLimit.value += 20;
 };
 
 const handleZoomToProduct = (product: Product) => {
@@ -391,6 +458,9 @@ const handleZoomToProduct = (product: Product) => {
 // Обробка кліку на маркер (Виділення та Скрол)
 const handleClickProductMarker = async (productId: string | number) => {
   selectedProductOnMap.value = productId;
+
+  await nextTick();
+
   const isMobile = window.innerWidth < 1024;
 
   if (isMobile) {
@@ -429,16 +499,6 @@ const clusterMarkersData = computed(() => {
   }));
 });
 
-// const onMapReady = async () => {
-//   isMapReady.value = true;
-
-//   // if (!initialUserLocation.value) {
-//   //   initialUserLocation.value = center.value;
-//   // }
-
-//   refreshClusters();
-// };
-
 const onMapReady = async () => {
   isMapReady.value = true;
 
@@ -449,6 +509,13 @@ const onMapReady = async () => {
 
   refreshClusters();
 };
+
+watch(
+  () => productsInRadius.value,
+  () => {
+    displayLimit.value = 20;
+  },
+);
 
 watch(
   () => [productsInRadius.value, selectedProductOnMap.value],
