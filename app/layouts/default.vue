@@ -1,9 +1,14 @@
 <template>
   <div>
-    <Header />
+    <Header :class="route.path === '/' ? 'block' : 'hidden lg:block'" />
     <UMain>
       <slot />
     </UMain>
-    <!-- <Footer /> -->
+    <Footer :class="route.path === '/' ? 'block' : 'hidden lg:block'" />
+    <UiMobileMenu v-if="route.path !== '/'" class="lg:hidden"/>
   </div>
 </template>
+
+<script setup lang="ts">
+const route = useRoute()
+</script>

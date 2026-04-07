@@ -20,11 +20,9 @@
         </div>
 
         <div class="w-full md:w-64 space-y-1">
-          <div class="flex justify-between items-center">
-            <span class="text-xs font-medium text-neutral-500"
-              >Радіус пошуку</span
-            >
-            <UBadge size="xs" color="primary" variant="soft"
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-medium text-neutral-500">Радіус пошуку</span>
+            <UBadge size="md" class="bg-brand-100 text-neutral-800" variant="soft"
               >{{ searchRadius / 1000 }} км</UBadge
             >
           </div>
@@ -33,8 +31,11 @@
             :min="1000"
             :max="50000"
             :step="1000"
-            color="primary"
-            size="sm"
+            size="md"
+            :ui="{
+              range: 'bg-brand-400',
+              thumb: 'ring-brand-400 focus-visible:outline-brand-400/50',
+            }"
           />
         </div>
       </div>
