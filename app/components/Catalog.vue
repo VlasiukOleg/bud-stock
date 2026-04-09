@@ -1,5 +1,7 @@
 <template>
-  <div class="flex flex-col h-[100dvh] pb-[64px] md:h-[calc(100vh-64px)] md:pb-0 overflow-hidden relative">
+  <div
+    class="flex flex-col h-[100dvh] pb-[64px] md:h-[calc(100vh-64px)] md:pb-0 overflow-hidden relative"
+  >
     <header
       class="p-4 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 z-20"
     >
@@ -22,7 +24,10 @@
         <div class="w-full md:w-64 space-y-1">
           <div class="flex justify-between items-center mb-2">
             <span class="font-medium text-neutral-500">Радіус пошуку</span>
-            <UBadge size="md" class="bg-brand-100 text-neutral-800" variant="soft"
+            <UBadge
+              size="md"
+              class="bg-brand-100 text-neutral-800"
+              variant="soft"
               >{{ searchRadius / 1000 }} км</UBadge
             >
           </div>
@@ -200,6 +205,13 @@
             class="bg-brand-400 hover:bg-brand-500 shadow-lg"
             @click="handleUserLocationCenter"
           />
+          <UButton
+            icon="i-heroicons-paper-airplane"
+            square
+            class="bg-brand-400 hover:bg-brand-500 shadow-lg text-white"
+            title="Знайти мене по GPS"
+            @click="handleForceUpdateLocation"
+          />
         </div>
 
         <div
@@ -290,7 +302,7 @@
 <script setup lang="ts">
 import L from "leaflet";
 import type { PointTuple } from "leaflet";
-import { useGeolocation } from "@vueuse/core";
+import { useGeolocation, useStorage } from "@vueuse/core";
 import { isPointWithinRadius } from "geolib";
 import { ref, computed, watch, nextTick } from "vue"; // Не забудь імпорти, якщо використовуєш auto-imports, то ок
 
@@ -304,7 +316,19 @@ import { MOCK_PRODUCTS } from "~/constants/products/products";
 // 1. РОЗДІЛЯЄМО ЛОКАЦІЮ І ЦЕНТР КАРТИ
 
 const center = ref<PointTuple>([50.4501, 30.5234]); // Куди дивиться камера
-const initialUserLocation = ref<PointTuple | null>(null);
+// const initialUserLocation = ref<PointTuple | null>(null);
+
+const initialUserLocation = useStorage<PointTuple | null>(
+  "budstock-user-location",
+  null,
+  sessionStorage,
+  {
+    serializer: {
+      read: (v: string) => (v ? JSON.parse(v) : null),
+      write: (v: any) => JSON.stringify(v),
+    },
+  },
+);
 const zoom = ref(12);
 const searchRadius = ref(5000);
 
@@ -317,7 +341,7 @@ const showDragHint = ref<boolean>(false);
 const displayLimit = ref(20);
 const searchQuery = ref("");
 
-const { coords, error, pause } = useGeolocation();
+const { coords, error, pause, resume } = useGeolocation();
 
 const createPriceIcon = (price: number, isSelected: boolean): any => {
   const bgClass = isSelected ? "bg-green-500 scale-110 text-white" : "bg-white";
@@ -409,6 +433,11 @@ const handleUserLocationCenter = () => {
   if (initialUserLocation.value && map.value?.leafletObject) {
     map.value.leafletObject.flyTo(initialUserLocation.value, 12);
   }
+};
+
+const handleForceUpdateLocation = () => {
+  initialUserLocation.value = null;
+  resume(); // Відновлюємо прослуховування геолокації
 };
 
 const displayedProducts = computed(() => {
@@ -529,6 +558,10 @@ watch(
 watch(
   coords,
   (newCoords) => {
+    console.log("initialUserLocation", initialUserLocation.value);
+    if (initialUserLocation.value) {
+      return;
+    }
     if (newCoords.latitude !== Infinity && newCoords.longitude !== Infinity) {
       const latLng: PointTuple = [newCoords.latitude, newCoords.longitude];
 
