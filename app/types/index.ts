@@ -29,3 +29,9 @@ export interface Product {
   sellerName?: string;
   sellerRating: number;
 }
+
+export interface MobileMenuItem {
+  to: string;
+  iconName: string;
+  linkLabel: string;
+}

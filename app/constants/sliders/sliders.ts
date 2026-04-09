@@ -1,4 +1,3 @@
-// constants/hero.ts
 import type { SliderItem } from "~/types/index";
 
 export const SELLER_STEPS: SliderItem[] = [

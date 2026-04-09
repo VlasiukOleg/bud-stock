@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-[calc(100vh-64px)] overflow-hidden relative">
+  <div class="flex flex-col h-[100dvh] pb-[64px] md:h-[calc(100vh-64px)] md:pb-0 overflow-hidden relative">
     <header
       class="p-4 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 z-20"
     >
@@ -193,7 +193,7 @@
           </div>
         </Transition>
 
-        <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+        <div class="absolute top-4 right-4 z-1000 flex flex-col gap-2">
           <UButton
             icon="i-heroicons-map-pin"
             square
@@ -203,7 +203,7 @@
         </div>
 
         <div
-          class="absolute bottom-8 left-1/2 -translate-x-1/2 z-[1001] lg:hidden"
+          class="absolute bottom-6 left-1/2 -translate-x-1/2 z-1001 lg:hidden"
         >
           <UButton
             icon="i-heroicons-list-bullet"

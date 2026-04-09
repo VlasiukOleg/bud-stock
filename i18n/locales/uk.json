@@ -79,5 +79,13 @@
   },
   "howItWorks": {
     "title": "Як це працює"
+  },
+  "mobileMenu": {
+    "list": {
+      "main": "Головна",
+      "buy": "Купити",
+      "sell": "Продати",
+      "profile": "profile"
+    }
   }
 }

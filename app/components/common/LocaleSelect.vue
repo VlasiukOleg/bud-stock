@@ -1,3 +1,18 @@
+<template>
+  <USelectMenu
+    :model-value="locale"
+    :items="supportedLocales"
+    value-key="code"
+    label-key="code"
+    size="sm"
+    variant="ghost"
+    :avatar="currentAvatar"
+    class="w-auto"
+    @update:model-value="onLocaleChange"
+  >
+  </USelectMenu>
+</template>
+
 <script setup lang="ts">
 import { en, uk, ru } from "@nuxt/ui/locale";
 
@@ -25,18 +40,3 @@ const currentAvatar = computed(() => ({
   loading: "lazy" as const,
 }));
 </script>
-
-<template>
-  <USelectMenu
-    :model-value="locale"
-    :items="supportedLocales"
-    value-key="code"
-    label-key="code"
-    size="sm"
-    variant="ghost"
-    :avatar="currentAvatar"
-    class="w-auto"
-    @update:model-value="onLocaleChange"
-  >
-  </USelectMenu>
-</template>

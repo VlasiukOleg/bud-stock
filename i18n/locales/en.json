@@ -1,3 +1,91 @@
 {
-  "logo": { "subtitle": "building materials nearby" }
+  "logo": {
+    "subtitle": "building materials nearby"
+  },
+  "hero": {
+    "title": {
+      "line1": "Fast. Convenient.",
+      "line2": "Sell or Buy",
+      "line3": "Leftover building materials"
+    },
+    "description": "BudStock is a platform where extra materials find new owners. Save time and money by buying cheaper, or free up your space.",
+    "buttons": {
+      "buy": "I want to buy",
+      "sell": "Sell leftovers"
+    },
+    "sliderSeller": {
+      "label": "For the Seller"
+    },
+    "sliderBuyer": {
+      "label": "For the Buyer"
+    },
+    "steps": {
+      "seller": {
+        "1": {
+          "title": "Take a photo",
+          "desc": "Photograph the leftover materials in good lighting."
+        },
+        "2": {
+          "title": "Add description",
+          "desc": "Specify characteristics, quantity, and a fair price."
+        },
+        "3": {
+          "title": "Set location",
+          "desc": "Buyers will find you on the map right in their neighborhood."
+        },
+        "4": {
+          "title": "Sell and earn",
+          "desc": "Clear your space and get funds for new ideas."
+        }
+      },
+      "buyer": {
+        "1": {
+          "title": "Search on the map",
+          "desc": "Find the materials you need right in your area."
+        },
+        "2": {
+          "title": "Save money",
+          "desc": "Buy quality items significantly cheaper than in stores."
+        },
+        "3": {
+          "title": "Chat to agree",
+          "desc": "Discuss details and meeting time with the seller."
+        },
+        "4": {
+          "title": "Choose the best",
+          "desc": "Compare prices and item conditions among listings."
+        }
+      }
+    }
+  },
+  "features": {
+    "title": "Why you should use BudStock",
+    "smartAlert": {
+      "title": "Smart Alert",
+      "desc": "Get notified about new materials near you"
+    },
+    "secure": {
+      "title": "Safe",
+      "desc": "Direct meetings and item inspection before payment"
+    },
+    "fast": {
+      "title": "Fast",
+      "desc": "Find what you need in 30 seconds in the neighboring house"
+    },
+    "eco": {
+      "title": "Profitable",
+      "desc": "Save up to 70% on materials left over after renovation"
+    }
+  },
+  "howItWorks": {
+    "title": "How it works"
+  },
+  "mobileMenu": {
+    "list": {
+      "main": "Home",
+      "buy": "Buy",
+      "sell": "Sell",
+      "profile": "Profile"
+    }
+  }
 }
