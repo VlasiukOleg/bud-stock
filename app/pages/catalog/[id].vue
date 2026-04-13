@@ -157,11 +157,54 @@
                 variant="link"
                 color="primary"
                 icon="i-heroicons-arrow-top-right-on-square-20-solid"
-                :to="`/catalog?id=${product.id}&lat=${product.location.lat}&lng=${product.location.lng}&zoom=15`"
+                @click="isOpenMapDrawer = true"
               >
                 Переглянути на карті
               </UButton>
             </div>
+            <USlideover
+              v-model:open="isOpenMapDrawer"
+              title="Розташування товару"
+            >
+              <template #body>
+                <div class="h-full flex flex-col">
+                  <div
+                    class="flex-1 rounded-xl overflow-hidden border border-neutral-200"
+                  >
+                    <LMap
+                      :zoom="15"
+                      :center="[product.location.lat, product.location.lng]"
+                    >
+                      <LTileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <LMarker
+                        :lat-lng="[product.location.lat, product.location.lng]"
+                      />
+                    </LMap>
+                  </div>
+
+                  <div class="p-4 space-y-4">
+                    <div>
+                      <p class="text-sm text-neutral-500">Адреса самовивозу:</p>
+                      <p class="font-bold text-lg">
+                        {{ product.location.address }}
+                      </p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                      <UButton
+                        color="primary"
+                        :to="googleMapsUrl"
+                        target="_blank"
+                        icon="i-heroicons-map"
+                        label="Прокласти маршрут"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </USlideover>
 
             <p class="text-sm text-neutral-500 mb-4">
               {{ product.location.address }}
@@ -331,10 +374,19 @@ const router = useRouter();
 
 const currentImageIndex = ref(0);
 const showPhone = ref(false);
+const isOpenMapDrawer = ref(false);
 
 // В майбутньому тут буде useFetch
 const product = computed(() => {
   return MOCK_PRODUCTS.find((p) => String(p.id) === String(route.params.id));
+});
+
+const googleMapsUrl = computed(() => {
+  if (!product.value?.location) return "";
+
+  const { lat, lng } = product.value.location;
+
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 });
 
 // SEO Мета-теги
