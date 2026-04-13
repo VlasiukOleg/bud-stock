@@ -200,18 +200,49 @@
 
         <div class="absolute top-4 right-4 z-1000 flex flex-col gap-2">
           <UButton
-            icon="i-heroicons-map-pin"
+            icon="i-heroicons-viewfinder-circle"
             square
             class="bg-brand-400 hover:bg-brand-500 shadow-lg"
             @click="handleUserLocationCenter"
           />
-          <UButton
-            icon="i-heroicons-paper-airplane"
-            square
-            class="bg-brand-400 hover:bg-brand-500 shadow-lg text-white"
-            title="Знайти мене по GPS"
-            @click="handleForceUpdateLocation"
-          />
+          <UPopover
+            v-model:open="isGeolocationErrorPopoverOpen"
+            :popper="{ placement: 'left' }"
+          >
+            <UButton
+              icon="i-heroicons-map-pin"
+              square
+              class="bg-brand-400 hover:bg-brand-500 shadow-lg text-white"
+              :loading="isLocating && !error"
+              @click="handleForceUpdateLocation"
+            />
+
+            <template #content>
+              <div class="p-3 w-64">
+                <div class="flex items-start gap-2 text-error-600 mb-1">
+                  <UIcon
+                    name="i-heroicons-exclamation-triangle"
+                    class="size-5 shrink-0"
+                  />
+                  <p class="font-bold text-sm text-red-500">
+                    Доступ заборонено
+                  </p>
+                </div>
+                <p class="text-xs text-neutral-600 dark:text-neutral-400">
+                  Будь ласка, дозвольте доступ до вашої геопозиції у
+                  налаштуваннях браузера.
+                </p>
+                <UButton
+                  size="xs"
+                  variant="ghost"
+                  label="Зрозумів"
+                  block
+                  class="mt-2"
+                  @click="isGeolocationErrorPopoverOpen = false"
+                />
+              </div>
+            </template>
+          </UPopover>
         </div>
 
         <div
@@ -340,6 +371,7 @@ const isMapReady = ref<boolean>(false);
 const showDragHint = ref<boolean>(false);
 const displayLimit = ref(20);
 const searchQuery = ref("");
+const isGeolocationErrorPopoverOpen = ref(false);
 
 const { coords, error, pause, resume } = useGeolocation();
 
@@ -428,7 +460,6 @@ const productsInRadius = computed(() => {
   });
 });
 
-// Кнопка центрування тепер завжди повертає до зафіксованої точки
 const handleUserLocationCenter = () => {
   if (initialUserLocation.value && map.value?.leafletObject) {
     map.value.leafletObject.flyTo(initialUserLocation.value, 12);
@@ -436,15 +467,22 @@ const handleUserLocationCenter = () => {
 };
 
 const handleForceUpdateLocation = () => {
+  console.log("errorhandleForceUpdateLocation", error.value?.message);
+  isGeolocationErrorPopoverOpen.value = false;
+
+  if (error.value?.message) {
+    isGeolocationErrorPopoverOpen.value = true;
+    return;
+  }
+
   initialUserLocation.value = null;
-  resume(); // Відновлюємо прослуховування геолокації
+  resume();
 };
 
 const displayedProducts = computed(() => {
   const all = productsInRadius.value;
   const limit = displayLimit.value;
 
-  // 1. Беремо перші N товарів
   const visible = [...all.slice(0, limit)];
 
   // 2. Розумний трюк: якщо є вибраний товар на карті, і його зараз немає у видимому списку
@@ -578,19 +616,26 @@ watch(
       pause();
     }
   },
-  { immediate: true },
+  // { immediate: true },
 );
 
 watch(error, (newError) => {
   if (newError) {
+    console.log("newError", newError);
     console.warn("Геолокація недоступна:", newError.message);
+
+    if (initialUserLocation.value) {
+      return;
+    }
+
+    console.log("center", center.value);
 
     initialUserLocation.value = [...center.value];
 
     showDragHint.value = true;
 
     if (map.value?.leafletObject) {
-      map.value.leafletObject.flyTo(center.value, 12);
+      map.value.leafletObject.flyTo(initialUserLocation.value, 12);
     }
     pause();
   }
