@@ -271,8 +271,9 @@
           <div
             class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10 scroll-smooth"
           >
-            <div
+            <NuxtLink
               v-for="item in displayedProducts"
+              :to="`/catalog/${item.id}`"
               :key="item.id"
               :id="`mobile-product-${item.id}`"
               :class="[
@@ -311,7 +312,7 @@
                   Показати на мапі
                 </UButton>
               </div>
-            </div>
+            </NuxtLink>
           </div>
           <div v-if="hasMoreProducts" class="col-span-full mt-2">
             <UButton

@@ -21,6 +21,7 @@ export interface Product {
   quantity: number;
   unit: string;
   status: string;
+  description?: string;
   location: {
     address: string;
     lat: number;
@@ -28,6 +29,11 @@ export interface Product {
   };
   sellerName?: string;
   sellerRating: number;
+  views?: number;
+  delivery?: string;
+  deliveryDetails?: string;
+  category?: string;
+  sellerPhone?: string;
 }
 
 export interface MobileMenuItem {
