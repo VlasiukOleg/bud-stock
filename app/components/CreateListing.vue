@@ -230,7 +230,7 @@ import * as yup from "yup";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
 // --- CONSTANTS ---
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MIN_DIMENSIONS = { width: 200, height: 200 };
 const MAX_DIMENSIONS = { width: 4096, height: 4096 };
