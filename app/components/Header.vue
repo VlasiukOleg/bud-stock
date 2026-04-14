@@ -6,13 +6,13 @@ const route = useRoute();
 const items = computed<NavigationMenuItem[]>(() => [
   {
     label: "Продати матеріал",
-    to: "/docs/getting-started",
+    to: "/catalog",
     icon: "i-streamline-emojis:money-bag",
     active: route.path.startsWith("/docs/getting-started"),
   },
   {
     label: "Купити матеріал",
-    to: "/docs/components",
+    to: "/sell",
     icon: "i-streamline-ultimate-color:e-commerce-touch-buy",
     active: route.path.startsWith("/docs/components"),
   },

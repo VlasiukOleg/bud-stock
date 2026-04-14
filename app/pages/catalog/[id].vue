@@ -191,16 +191,13 @@
                         {{ product.location.address }}
                       </p>
                     </div>
-
-                    <div class="grid grid-cols-2 gap-2">
-                      <UButton
-                        color="primary"
-                        :to="googleMapsUrl"
-                        target="_blank"
-                        icon="i-heroicons-map"
-                        label="Прокласти маршрут"
-                      />
-                    </div>
+                    <UButton
+                      color="primary"
+                      :to="googleMapsUrl"
+                      target="_blank"
+                      icon="i-heroicons-map"
+                      label="Прокласти маршрут"
+                    />
                   </div>
                 </div>
               </template>

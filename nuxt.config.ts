@@ -34,4 +34,8 @@ export default defineNuxtConfig({
   leaflet: {
     markerCluster: true,
   },
+  runtimeConfig: {
+    geminiApiKey: '', // Nuxt сам підставить сюди значення з NUXT_GEMINI_API_KEY
+    public: { /* твої інші налаштування */ }
+  }
 });
