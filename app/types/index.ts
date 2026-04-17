@@ -41,3 +41,10 @@ export interface MobileMenuItem {
   iconName: string;
   linkLabel: string;
 }
+
+export interface CategoryItem {
+  id: string;
+  name: string;
+  icon: string;
+  subcategories: { id: string; name: string }[];
+}
