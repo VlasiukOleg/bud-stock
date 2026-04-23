@@ -8,10 +8,14 @@ const { locale } = useI18n();
 const currentUiLocale = computed(
   () => locales[locale.value as keyof typeof locales],
 );
+
+const toaster = {
+  position: "top-right",
+} as const;
 </script>
 
 <template>
-  <UApp :locale="currentUiLocale">
+  <UApp :locale="currentUiLocale" :toaster="toaster">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

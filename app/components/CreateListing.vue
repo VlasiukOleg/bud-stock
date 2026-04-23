@@ -335,6 +335,8 @@ const formData = reactive({
   description: "",
 });
 
+const toast = useToast();
+
 // Обчислюємо красивий шлях для відображення в інпуті форми
 const selectedCategoryLabel = computed(() => {
   if (!formData.categoryId) return "";
@@ -404,8 +406,14 @@ const handleInitialUpload = async (event: FormSubmitEvent<any>) => {
 
     activeStep.value = 2;
   } catch (e) {
-    console.error("Аналіз не вдався");
+    console.error("Аналіз не вдався", e);
     activeStep.value = 2;
+
+    toast.add({
+      title: "Помилка! Аналіз не вдався",
+      description: "Спробуйте пізніше чи заповніть поля вручну",
+      color: "error",
+    });
   }
 };
 

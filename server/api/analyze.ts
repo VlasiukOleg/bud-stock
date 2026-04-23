@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
     const response = await ai.models.generateContent({
       // Використовуємо рекомендовану модель з твого файлу
       model: "gemini-2.5-flash",
+      // model: "gemini-3.1-flash-lite",
       contents: [
         {
           inlineData: {
@@ -90,8 +91,20 @@ export default defineEventHandler(async (event) => {
       });
     }
     return JSON.parse(resultText);
-  } catch (e) {
+  } catch (e: any) {
     console.error("Gemini API Error:", e);
-    throw createError({ statusCode: 500, message: "Помилка аналізу" });
+
+    if (e.status === 429) {
+      throw createError({
+        statusCode: 429,
+        message:
+          "Ліміт запитів вичерпано. Спробуйте іншу модель або зачекайте.",
+      });
+    }
+
+    throw createError({
+      statusCode: e.status || 500,
+      message: "Помилка ШІ: " + (e.message || "Unknown error"),
+    });
   }
 });

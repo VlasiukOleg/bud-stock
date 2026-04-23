@@ -6,15 +6,15 @@ const route = useRoute();
 const items = computed<NavigationMenuItem[]>(() => [
   {
     label: "Продати матеріал",
-    to: "/catalog",
+    to: "/sell",
     icon: "i-streamline-emojis:money-bag",
-    active: route.path.startsWith("/docs/getting-started"),
+    active: route.path.startsWith("/sell"),
   },
   {
     label: "Купити матеріал",
-    to: "/sell",
+    to: "/catalog",
     icon: "i-streamline-ultimate-color:e-commerce-touch-buy",
-    active: route.path.startsWith("/docs/components"),
+    active: route.path.startsWith("/catalog"),
   },
 ]);
 </script>
