@@ -2,9 +2,9 @@
   <div class="min-h-screen bg-gray-50 pt-8 pb-16 lg:py-12">
     <div class="container mx-auto px-4 max-w-3xl">
       <UCard>
-        <!-- Stepper: Візуальний контроль (тільки читання) -->
+        <!-- Stepper -->
         <UStepper
-          v-model="activeStep"
+          :model-value="activeStep"
           :items="stepperItems"
           class="w-full mb-8 text-brand-500"
           color="neutral"
@@ -19,7 +19,7 @@
               оголошення.
             </p>
             <p class="text-gray-500 mb-8 text-sm">
-              (по фото ми заповнемо ціну, заголовок, опис та підберемо
+              (по фото ми заповнимо ціну, заголовок, опис та підберемо
               категорію, Вам залишиться тільки натиснути Опублікувати).
             </p>
 
@@ -47,6 +47,7 @@
                 size="lg"
                 block
                 class="mt-8 bg-brand-500 hover:bg-brand-400 font-bold"
+                :loading="isLoading"
               >
                 Проаналізувати фото
               </UButton>
@@ -93,15 +94,16 @@
               color="warning"
               title="Ваш товар не підходить для платформи."
               description="Якщо ми помилились, Ви можете додати цей товар, але він пройде ручну модерацію. Це може зайняти деякий час."
-              :ui="{
-                description: 'text-xs',
-              }"
-              class="mb-4"
+              :ui="{ description: 'text-xs' }"
+              class="mb-6"
             />
+            <ListingForm />
 
             <UForm
               :schema="mainFormSchema"
               :state="formData"
+              :validate-on="['input', 'blur', 'change']"
+              :validate-on-model-update="true"
               @submit="onFinalSubmit"
               class="space-y-8"
             >
@@ -128,10 +130,13 @@
                         size="xs"
                         icon="i-heroicons-trash"
                         @click="removeImage(index)"
-                        class="bg-red-500 hover:bg-red-600"
+                        class="bg-red-500 hover:bg-red-600 text-white"
                       />
                     </div>
-                    <UBadge v-if="index === 0" class="absolute -top-2 -left-2"
+                    <UBadge
+                      v-if="index === 0"
+                      class="absolute -top-2 -left-2"
+                      color="primary"
                       >Головне</UBadge
                     >
                   </div>
@@ -162,19 +167,20 @@
                 </p>
               </div>
 
-              <!-- Основні поля -->
+              <!-- Основна інформація -->
               <div class="space-y-6">
-                <UFormField name="title" label="Назва товару">
+                <!-- Назва -->
+                <UFormField name="title" label="Назва товару *">
                   <UInput
                     v-model="formData.title"
                     size="lg"
                     class="w-full"
-                    placeholder="Введіть назву товару"
+                    placeholder="Наприклад: Гіпсокартон Knauf 2500x1200x12.5мм"
                   />
                 </UFormField>
 
-                <!-- ПОЛЕ КАТЕГОРІЇ З ВИКЛИКОМ DROPDOWN MENU -->
-                <UFormField name="categoryId" label="Категорія товару">
+                <!-- Категорія -->
+                <UFormField name="categoryId" label="Категорія товару *">
                   <UDropdownMenu
                     :items="categoryDropdownItems"
                     :ui="{ content: 'w-72 max-h-96 overflow-y-auto' }"
@@ -204,28 +210,124 @@
                   </UDropdownMenu>
                 </UFormField>
 
+                <!-- СТАН (Нове) -->
+                <UFormField name="status" label="Стан *">
+                  <div class="flex gap-4">
+                    <UButton
+                      v-for="status in productStatuses"
+                      :key="status.value"
+                      :color="
+                        formData.status === status.value ? 'primary' : 'neutral'
+                      "
+                      :variant="
+                        formData.status === status.value ? 'solid' : 'outline'
+                      "
+                      class="flex-1 justify-center"
+                      size="lg"
+                      @click="formData.status = status.value"
+                    >
+                      {{ status.label }}
+                    </UButton>
+                  </div>
+                </UFormField>
+
+                <!-- Кількість та Одиниця (Нове) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <UFormField name="price" label="Ціна">
-                    <UInput v-model="formData.price" size="lg" class="w-full">
+                  <UFormField name="quantity" label="Кількість *">
+                    <UInput
+                      v-model="formData.quantity"
+                      size="lg"
+                      placeholder="10"
+                      class="w-full"
+                    />
+                  </UFormField>
+
+                  <UFormField name="unit" label="Одиниця *">
+                    <USelect
+                      v-model="formData.unit"
+                      :items="productUnits"
+                      size="lg"
+                      placeholder="Оберіть"
+                      class="w-full"
+                    />
+                  </UFormField>
+                </div>
+
+                <!-- Ціна -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <UFormField name="price" label="Ціна за одиницю *">
+                    <UInput
+                      v-model="formData.price"
+                      type="number"
+                      size="lg"
+                      placeholder="180"
+                      class="w-full"
+                    >
                       <template #trailing>грн</template>
                     </UInput>
                   </UFormField>
                 </div>
 
-                <UFormField name="description" label="Опис товару">
+                <!-- Локація (Нове) -->
+                <UFormField name="address" label="Локація *">
+                  <UInput
+                    v-model="formData.address"
+                    size="lg"
+                    class="w-full"
+                    placeholder="вул. Хрещатик, 22, Київ"
+                  />
+                  <template #description>
+                    Вкажіть адресу або найближчий орієнтир
+                  </template>
+                </UFormField>
+
+                <!-- Спосіб отримання (Нове) -->
+                <UFormField name="delivery" label="Спосіб отримання *">
+                  <div class="space-y-3 mt-2">
+                    <UCheckbox
+                      v-model="formData.delivery"
+                      value="Самовивіз"
+                      label="Самовивіз"
+                    />
+                    <UCheckbox
+                      v-model="formData.delivery"
+                      value="Доставка"
+                      label="Доставка продавцем"
+                    />
+                  </div>
+                </UFormField>
+
+                <!-- Умови доставки (З'являється, якщо обрано "Доставка") -->
+                <UFormField
+                  v-if="formData.delivery.includes('Доставка')"
+                  name="deliveryDetails"
+                  label="Умови доставки *"
+                >
+                  <UInput
+                    v-model="formData.deliveryDetails"
+                    size="lg"
+                    class="w-full"
+                    placeholder="Наприклад: Доставка по Києву - 200 грн"
+                  />
+                </UFormField>
+
+                <!-- Опис -->
+                <UFormField name="description" label="Коментар / Опис *">
                   <UTextarea
                     v-model="formData.description"
                     autoresize
-                    :rows="5"
+                    :rows="4"
                     size="lg"
                     class="w-full"
-                    placeholder="Детальний опис товару..."
+                    placeholder="Додаткова інформація про товар..."
                   />
                 </UFormField>
               </div>
 
               <!-- Кнопки керування -->
-              <div class="flex flex-col-reverse sm:flex-row gap-4 pt-4">
+              <div
+                class="flex flex-col-reverse sm:flex-row gap-4 pt-4 border-t border-gray-200"
+              >
                 <UButton
                   type="button"
                   color="neutral"
@@ -242,6 +344,7 @@
                   color="primary"
                   size="lg"
                   class="w-full sm:w-2/3 justify-center font-bold"
+                  :disabled="!isFormValid"
                 >
                   Опублікувати
                 </UButton>
@@ -259,10 +362,28 @@ import * as yup from "yup";
 import type { DropdownMenuItem, FormSubmitEvent, StepperItem } from "@nuxt/ui";
 
 import { CATEGORY_DATA } from "~/constants/category/category";
+import ListingForm from "./ui/ListingForm.vue";
 
+const toast = useToast();
 const shouldShowProductRelevantBanner = ref(false);
+const isLoading = ref(false);
 
-// --- СТРУКТУРА ДЛЯ UDropdownMenu (Масив масивів) ---
+// --- ДОВІДНИКИ ДЛЯ НОВИХ ПОЛІВ ---
+const productStatuses = [
+  { value: "новий", label: "Новий" },
+  { value: "залишок", label: "Залишок" },
+];
+
+const productUnits = [
+  { label: "шт", value: "шт" },
+  { label: "м²", value: "м²" },
+  { label: "м³", value: "м³" },
+  { label: "м.п.", value: "м.п." },
+  { label: "кг", value: "кг" },
+  { label: "мішок", value: "мішок" },
+];
+
+// --- СТРУКТУРА ДЛЯ UDropdownMenu ---
 const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
   return [
     CATEGORY_DATA.map((category) => ({
@@ -270,7 +391,6 @@ const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
       icon: category.icon,
       children: [
         [
-          // Секція 1 у вкладеному меню: Вибір основної категорії
           {
             label: `Всі товари в "${category.name}"`,
             icon: "i-lucide-check-circle",
@@ -280,7 +400,6 @@ const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
           },
         ],
         [
-          // Секція 2 у вкладеному меню: Список підкатегорій
           ...category.subcategories.map((sub) => ({
             label: sub.name,
             onSelect: () => {
@@ -295,24 +414,16 @@ const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
 
 // --- STEPPER CONFIG ---
 const stepperItems: StepperItem[] = [
-  {
-    slot: "upload",
-    title: "Фото",
-    description: "Завантаження",
-    icon: "i-heroicons-camera",
-    disabled: true,
-  },
+  { slot: "upload", title: "Фото", icon: "i-heroicons-camera", disabled: true },
   {
     slot: "processing",
     title: "Аналіз",
-    description: "Обробка ШІ",
     icon: "i-heroicons-sparkles",
     disabled: true,
   },
   {
     slot: "validate",
     title: "Деталі",
-    description: "Опис та публікація",
     icon: "i-heroicons-document-text",
     disabled: true,
   },
@@ -327,27 +438,39 @@ const step1State = reactive({ initialFile: undefined as File | undefined });
 const tempFile = ref<File | undefined>(undefined);
 const tempError = ref("");
 
+// Оновлений State з новими полями
 const formData = reactive({
   images: [] as File[],
   title: "",
   categoryId: "",
+  status: "новий", // За замовчуванням
+  quantity: undefined as number | undefined,
+  unit: "",
   price: undefined as number | undefined,
+  address: "",
+  delivery: [] as string[],
+  deliveryDetails: "",
   description: "",
 });
-
-const toast = useToast();
 
 // Обчислюємо красивий шлях для відображення в інпуті форми
 const selectedCategoryLabel = computed(() => {
   if (!formData.categoryId) return "";
-
   for (const cat of CATEGORY_DATA) {
     if (cat.id === formData.categoryId) return cat.name;
-
     const sub = cat.subcategories.find((s) => s.id === formData.categoryId);
     if (sub) return `${cat.name} > ${sub.name}`;
   }
-  return "Категорія обрана";
+  return "";
+});
+
+const isFormValid = computed(() => {
+  try {
+    // isValidSync повертає true, якщо дані відповідають схемі, і false, якщо ні
+    return mainFormSchema.isValidSync(formData);
+  } catch (error) {
+    return false;
+  }
 });
 
 // --- ФОРМА ТА ФАЙЛИ ---
@@ -360,6 +483,12 @@ const resetForm = () => {
   formData.price = undefined;
   formData.description = "";
   formData.categoryId = "";
+  formData.status = "новий";
+  formData.quantity = undefined;
+  formData.unit = "";
+  formData.address = "";
+  formData.delivery = [];
+  formData.deliveryDetails = "";
   shouldShowProductRelevantBanner.value = false;
   activeStep.value = 0;
 };
@@ -373,11 +502,7 @@ const handleInitialUpload = async (event: FormSubmitEvent<any>) => {
   const file = event.data.initialFile;
   if (!file) return;
 
-  formData.title = "";
-  formData.price = undefined;
-  formData.description = "";
-  formData.categoryId = "";
-
+  isLoading.value = true;
   formData.images = [file];
   activeStep.value = 1;
 
@@ -390,13 +515,8 @@ const handleInitialUpload = async (event: FormSubmitEvent<any>) => {
       body,
     });
 
-    console.log(response);
-
     if (!response?.isRelevant) {
-      console.log("Ваш товар не підходить для платформи");
       shouldShowProductRelevantBanner.value = true;
-      activeStep.value = 2;
-      return;
     }
 
     formData.title = response?.title || "";
@@ -404,16 +524,23 @@ const handleInitialUpload = async (event: FormSubmitEvent<any>) => {
     formData.description = response?.description || "";
     if (response?.categoryId) formData.categoryId = response.categoryId;
 
+    // Скидаємо нові поля при новому аналізі
+    formData.status = "новий";
+    formData.quantity = undefined;
+    formData.unit = "";
+    formData.address = "";
+    formData.delivery = [];
+
     activeStep.value = 2;
   } catch (e) {
-    console.error("Аналіз не вдався", e);
     activeStep.value = 2;
-
     toast.add({
       title: "Помилка! Аналіз не вдався",
       description: "Спробуйте пізніше чи заповніть поля вручну",
       color: "error",
     });
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -435,10 +562,15 @@ const removeImage = (index: number) => {
 };
 
 const onFinalSubmit = (event: FormSubmitEvent<any>) => {
-  console.log("Final Data:", event.data);
+  console.log("Final Data to DB:", event.data);
+  toast.add({
+    title: "Успішно!",
+    description: "Ваше оголошення створено.",
+    color: "success",
+  });
 };
 
-// --- ВАЛІДАЦІЯ ---
+// --- ВАЛІДАЦІЯ YUP ---
 const validateDimensions = (file: File) => {
   return new Promise<boolean>((resolve) => {
     const reader = new FileReader();
@@ -478,6 +610,7 @@ const fileSchema = yup
 
 const step1Schema = yup.object({ initialFile: fileSchema });
 
+// Оновлена схема для всіх нових полів
 const mainFormSchema = yup.object({
   images: yup.array().min(1, "Додайте хоча б одне фото").max(5),
   title: yup
@@ -485,10 +618,26 @@ const mainFormSchema = yup.object({
     .min(10, "Мінімальна кількість символів 10")
     .required("Введіть назву"),
   categoryId: yup.string().required("Оберіть категорію"),
+  status: yup.string().required("Оберіть стан товару"),
+  quantity: yup
+    .number()
+    .typeError("Введіть число")
+    .positive("Кількість повинна бути більше нуля")
+    .required("Вкажіть кількість"),
+  unit: yup.string().required("Оберіть одиницю виміру"),
   price: yup
     .number()
-    .positive("Ціна повина бути більше нуля")
+    .typeError("Введіть число")
+    .positive("Ціна повинна бути більше нуля")
     .required("Вкажіть ціну"),
+  address: yup.string().required("Вкажіть локацію"),
+  delivery: yup.array().min(1, "Оберіть хоча б один спосіб отримання"),
+  // Динамічна валідація: вимагати деталі, тільки якщо обрано "Доставка"
+  deliveryDetails: yup.string().when("delivery", {
+    is: (delivery: string[]) => delivery && delivery.includes("Доставка"),
+    then: (schema) => schema.required("Вкажіть умови доставки"),
+    otherwise: (schema) => schema.optional(),
+  }),
   description: yup.string().required("Опис обов'язковий"),
 });
 </script>

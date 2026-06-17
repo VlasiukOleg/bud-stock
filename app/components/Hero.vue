@@ -73,7 +73,7 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
               {{ $t("hero.sliderSeller.label") }}
             </div>
             <div class="hidden lg:block">
-              <UCarousel
+              <!-- <UCarousel
                 v-slot="{ item }"
                 loop
                 :auto-scroll="{ speed: 0.7 }"
@@ -86,11 +86,24 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
                 orientation="vertical"
               >
                 <CommonSliderCard :item="item" />
-              </UCarousel>
+              </UCarousel> -->
+              <UMarquee
+                pause-on-hover
+                :overlay="false"
+                orientation="vertical"
+                :ui="{
+                  root: '[--gap:--spacing(4)] bg-blue-100 py-2 h-[550px]',
+                  content: 'px-2',
+                }"
+              >
+                <div v-for="sellerStep in SELLER_STEPS" class="w-57.5 h-60">
+                  <CommonSliderCard :item="sellerStep" />
+                </div>
+              </UMarquee>
             </div>
 
             <div class="block lg:hidden">
-              <UCarousel
+              <!-- <UCarousel
                 v-slot="{ item }"
                 loop
                 :auto-scroll="{ speed: 0.7 }"
@@ -103,7 +116,22 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
                 }"
               >
                 <CommonSliderCard :item="item" />
-              </UCarousel>
+              </UCarousel> -->
+              <UMarquee
+                pause-on-hover
+                :overlay="false"
+                :ui="{
+                  root: '[--gap:--spacing(4)] bg-blue-100 py-2',
+                  content: 'w-[auto] py-1',
+                }"
+              >
+                <div
+                  v-for="sellerStep in SELLER_STEPS"
+                  class="w-45 sm:w-50 md:w-60 h-45"
+                >
+                  <CommonSliderCard :item="sellerStep" />
+                </div>
+              </UMarquee>
             </div>
           </div>
           <div class="relative">
@@ -113,7 +141,7 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
               {{ $t("hero.sliderBuyer.label") }}
             </div>
             <div class="hidden lg:block">
-              <UCarousel
+              <!-- <UCarousel
                 v-slot="{ item, index }"
                 loop
                 :auto-scroll="{ speed: 0.7, direction: 'backward' }"
@@ -126,10 +154,24 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
                 orientation="vertical"
               >
                 <CommonSliderCard :item="item" />
-              </UCarousel>
+              </UCarousel> -->
+              <UMarquee
+                pause-on-hover
+                :overlay="false"
+                orientation="vertical"
+                reverse
+                :ui="{
+                  root: '[--gap:--spacing(4)] bg-red-100 py-2 h-[550px]',
+                  content: 'px-2',
+                }"
+              >
+                <div v-for="buyerStep in BUYER_STEPS" class="w-57.5 h-60">
+                  <CommonSliderCard :item="buyerStep" />
+                </div>
+              </UMarquee>
             </div>
             <div class="block lg:hidden">
-              <UCarousel
+              <!-- <UCarousel
                 v-slot="{ item }"
                 loop
                 :auto-scroll="{ speed: 0.7, direction: 'backward' }"
@@ -142,7 +184,23 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
                 }"
               >
                 <CommonSliderCard :item="item" />
-              </UCarousel>
+              </UCarousel> -->
+              <UMarquee
+                pause-on-hover
+                reverse
+                :overlay="false"
+                :ui="{
+                  root: '[--gap:--spacing(4)] bg-red-100 py-2',
+                  content: 'w-[auto] py-1',
+                }"
+              >
+                <div
+                  v-for="buyerStep in BUYER_STEPS"
+                  class="w-45 sm:w-50 md:w-60 h-45"
+                >
+                  <CommonSliderCard :item="buyerStep" />
+                </div>
+              </UMarquee>
             </div>
           </div>
         </div>
