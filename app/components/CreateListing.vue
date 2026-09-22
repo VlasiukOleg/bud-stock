@@ -97,7 +97,7 @@
               :ui="{ description: 'text-xs' }"
               class="mb-6"
             />
-            <ListingForm />
+            <!-- <ListingForm /> -->
 
             <UForm
               :schema="mainFormSchema"
@@ -224,7 +224,7 @@
                       "
                       class="flex-1 justify-center"
                       size="lg"
-                      @click="formData.status = status.value"
+                      @click="setProductStatus(status.value)"
                     >
                       {{ status.label }}
                     </UButton>
@@ -253,8 +253,18 @@
                   </UFormField>
                 </div>
 
-                <!-- Ціна -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Віддам даром (Нове) -->
+                <div class="flex items-center mt-6 mb-2">
+                  <UCheckbox
+                    v-model="formData.isFree"
+                    name="isFree"
+                    label="Віддам безкоштовно (даром)"
+                    color="primary"
+                  />
+                </div>
+
+                <!-- Ціна (ховаємо, якщо Віддам даром) -->
+                <div v-if="!formData.isFree" class="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
                   <UFormField name="price" label="Ціна за одиницю *">
                     <UInput
                       v-model="formData.price"
@@ -266,6 +276,14 @@
                       <template #trailing>грн</template>
                     </UInput>
                   </UFormField>
+
+                  <!-- Відображення загальної ціни -->
+                  <div class="flex flex-col justify-center text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Загальна вартість</span>
+                    <span class="text-xl font-bold text-gray-900">
+                      {{ totalPrice > 0 ? totalPrice + ' грн' : '—' }}
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Локація (Нове) -->
@@ -283,18 +301,11 @@
 
                 <!-- Спосіб отримання (Нове) -->
                 <UFormField name="delivery" label="Спосіб отримання *">
-                  <div class="space-y-3 mt-2">
-                    <UCheckbox
-                      v-model="formData.delivery"
-                      value="Самовивіз"
-                      label="Самовивіз"
-                    />
-                    <UCheckbox
-                      v-model="formData.delivery"
-                      value="Доставка"
-                      label="Доставка продавцем"
-                    />
-                  </div>
+                  <UCheckboxGroup
+                    v-model="formData.delivery"
+                    :items="deliveryOptions"
+                    class="mt-2"
+                  />
                 </UFormField>
 
                 <!-- Умови доставки (З'являється, якщо обрано "Доставка") -->
@@ -365,6 +376,8 @@ import { CATEGORY_DATA } from "~/constants/category/category";
 import ListingForm from "./ui/ListingForm.vue";
 
 const toast = useToast();
+const supabase = useSupabaseClient<any>();
+const user = useSupabaseUser();
 const shouldShowProductRelevantBanner = ref(false);
 const isLoading = ref(false);
 
@@ -381,6 +394,11 @@ const productUnits = [
   { label: "м.п.", value: "м.п." },
   { label: "кг", value: "кг" },
   { label: "мішок", value: "мішок" },
+];
+
+const deliveryOptions = [
+  { label: "Самовивіз", value: "Самовивіз" },
+  { label: "Доставка продавцем", value: "Доставка" }
 ];
 
 // --- СТРУКТУРА ДЛЯ UDropdownMenu ---
@@ -447,11 +465,16 @@ const formData = reactive({
   quantity: undefined as number | undefined,
   unit: "",
   price: undefined as number | undefined,
+  isFree: false,
   address: "",
   delivery: [] as string[],
   deliveryDetails: "",
   description: "",
 });
+
+const setProductStatus = (status: string) => {
+  formData.status = status;
+};
 
 // Обчислюємо красивий шлях для відображення в інпуті форми
 const selectedCategoryLabel = computed(() => {
@@ -473,6 +496,13 @@ const isFormValid = computed(() => {
   }
 });
 
+const totalPrice = computed(() => {
+  if (formData.quantity && formData.price && !formData.isFree) {
+    return formData.quantity * formData.price;
+  }
+  return 0;
+});
+
 // --- ФОРМА ТА ФАЙЛИ ---
 const createObjectUrl = (file: File) => URL.createObjectURL(file);
 
@@ -481,6 +511,7 @@ const resetForm = () => {
   formData.images = [];
   formData.title = "";
   formData.price = undefined;
+  formData.isFree = false;
   formData.description = "";
   formData.categoryId = "";
   formData.status = "новий";
@@ -521,6 +552,7 @@ const handleInitialUpload = async (event: FormSubmitEvent<any>) => {
 
     formData.title = response?.title || "";
     formData.price = response?.price;
+    formData.isFree = false;
     formData.description = response?.description || "";
     if (response?.categoryId) formData.categoryId = response.categoryId;
 
@@ -561,13 +593,80 @@ const removeImage = (index: number) => {
   formData.images.splice(index, 1);
 };
 
-const onFinalSubmit = (event: FormSubmitEvent<any>) => {
-  console.log("Final Data to DB:", event.data);
-  toast.add({
-    title: "Успішно!",
-    description: "Ваше оголошення створено.",
-    color: "success",
-  });
+const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
+  if (!user.value) {
+    toast.add({
+      title: "Помилка",
+      description: "Ви повинні бути авторизовані для створення оголошення",
+      color: "error",
+    });
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    const uploadedImageUrls: string[] = [];
+
+    // Завантажуємо фотографії
+    for (const file of formData.images) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `${user.value.id}/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('listing_images')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      // Отримуємо публічний URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('listing_images')
+        .getPublicUrl(filePath);
+
+      uploadedImageUrls.push(publicUrl);
+    }
+
+    // Зберігаємо в базу даних
+    const { error: dbError } = await supabase
+      .from('listings')
+      .insert({
+        user_id: user.value?.sub,
+        title: formData.title,
+        category_id: formData.categoryId,
+        status: formData.status,
+        quantity: formData.quantity,
+        unit: formData.unit,
+        price: formData.isFree ? null : formData.price,
+        is_free: formData.isFree,
+        address: formData.address,
+        delivery: formData.delivery,
+        delivery_details: formData.deliveryDetails,
+        description: formData.description,
+        images: uploadedImageUrls,
+      });
+
+    if (dbError) throw dbError;
+
+    toast.add({
+      title: "Успішно!",
+      description: "Ваше оголошення створено.",
+      color: "success",
+    });
+    
+    // Перенаправляємо на сторінку "Мої оголошення" (профіль)
+    navigateTo('/profile');
+
+  } catch (error: any) {
+    console.error("Error creating listing:", error);
+    toast.add({
+      title: "Помилка при створенні",
+      description: error.message || "Сталася невідома помилка",
+      color: "error",
+    });
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 // --- ВАЛІДАЦІЯ YUP ---
@@ -625,11 +724,18 @@ const mainFormSchema = yup.object({
     .positive("Кількість повинна бути більше нуля")
     .required("Вкажіть кількість"),
   unit: yup.string().required("Оберіть одиницю виміру"),
+  isFree: yup.boolean(),
   price: yup
     .number()
-    .typeError("Введіть число")
-    .positive("Ціна повинна бути більше нуля")
-    .required("Вкажіть ціну"),
+    .when("isFree", {
+      is: true,
+      then: (schema) => schema.optional().nullable(),
+      otherwise: (schema) =>
+        schema
+          .typeError("Введіть число")
+          .positive("Ціна повинна бути більше нуля")
+          .required("Вкажіть ціну"),
+    }),
   address: yup.string().required("Вкажіть локацію"),
   delivery: yup.array().min(1, "Оберіть хоча б один спосіб отримання"),
   // Динамічна валідація: вимагати деталі, тільки якщо обрано "Доставка"

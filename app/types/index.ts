@@ -27,6 +27,7 @@ export interface Product {
     lat: number;
     lng: number;
   };
+  address?: string;
   sellerName?: string;
   sellerRating: number;
   views?: number;

@@ -7,7 +7,15 @@ export default defineNuxtConfig({
     "@nuxtjs/google-fonts",
     "@nuxtjs/i18n",
     "@nuxtjs/leaflet",
+    "@nuxtjs/supabase"
   ],
+  supabase: {
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/', '/catalog', '/catalog/*'],
+    }
+  },
   css: ["~/assets/css/main.css"],
   googleFonts: {
     families: {
@@ -36,6 +44,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     geminiApiKey: '', // Nuxt сам підставить сюди значення з NUXT_GEMINI_API_KEY
+    supabaseUrl: "",
+    supabaseKey: "",
     public: { /* твої інші налаштування */ }
   }
 });

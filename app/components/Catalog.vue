@@ -92,7 +92,7 @@
           @update:zoom="zoom = $event"
           @update:center="center = $event"
           @update:bounds="mapBounds = $event"
-          @click="selectedProductOnMap = null"
+          @click="() => { selectedProductOnMap = null }"
           @ready="onMapReady"
         >
           <LTileLayer
@@ -192,7 +192,7 @@
                 icon="i-heroicons-x-mark"
                 size="xs"
                 class="-mr-1 -mt-1 text-neutral-400"
-                @click="showDragHint = false"
+                @click="() => { showDragHint = false }"
               />
             </div>
           </div>
@@ -238,7 +238,7 @@
                   label="Зрозумів"
                   block
                   class="mt-2"
-                  @click="isGeolocationErrorPopoverOpen = false"
+                  @click="() => { isGeolocationErrorPopoverOpen = false }"
                 />
               </div>
             </template>
@@ -252,7 +252,7 @@
             icon="i-heroicons-list-bullet"
             size="md"
             class="ring-3 ring-white bg-brand-500 dark:ring-neutral-950 hover:bg-brand-600"
-            @click="isProductsSliderOpen = true"
+            @click="() => { isProductsSliderOpen = true }"
           >
             Список ({{ productsInRadius.length }})
           </UButton>
@@ -332,6 +332,7 @@
 </template>
 
 <script setup lang="ts">
+import { useLMarkerCluster } from '#imports';
 import L from "leaflet";
 import type { PointTuple } from "leaflet";
 import { useGeolocation, useStorage } from "@vueuse/core";

@@ -24,11 +24,16 @@
       <div
         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-6"
       >
-        <CommonProductCard
-          v-for="product in filteredProductsById"
-          :key="product.id"
-          :product="product"
-        />
+        <div v-if="pending" class="col-span-full flex justify-center py-12">
+          <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-neutral-400" />
+        </div>
+        <template v-else>
+          <CommonProductCard
+            v-for="product in latestProducts"
+            :key="product.id"
+            :product="product"
+          />
+        </template>
       </div>
 
       <div class="mt-10 text-center sm:hidden">
@@ -47,9 +52,10 @@
 </template>
 
 <script setup lang="ts">
-import { MOCK_PRODUCTS } from "~/constants/products/products";
+const { getLatestListings } = useListings();
 
-const filteredProductsById = MOCK_PRODUCTS.filter(
-  (product) => Number(product.id) < 15,
+const { data: latestProducts, pending } = useAsyncData(
+  'latest-products',
+  () => getLatestListings(8)
 );
 </script>

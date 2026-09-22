@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import type { Product } from "~/types/index";
 
-const props = defineProps<{
+const { product } = defineProps<{
   product: Product;
 }>();
 
 const distance = Math.floor(Math.random() * 5) + 1;
 
 const formattedPrice = computed(() => {
-  return new Intl.NumberFormat("uk-UA").format(props.product.price);
+  return new Intl.NumberFormat("uk-UA").format(product.price);
 });
 </script>
 
 <template>
   <NuxtLink
-    :to="`/catalog/${props.product.id}`"
-    :id="`product-${props.product.id}`"
+    :to="`/catalog/${product.id}`"
+    :id="`product-${product.id}`"
     class="group block bg-white dark:bg-neutral-900 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-neutral-200 dark:border-neutral-800"
   >
     <div
@@ -75,7 +75,7 @@ const formattedPrice = computed(() => {
           <UIcon name="i-heroicons-map-pin" class="w-4 h-4 text-neutral-400" />
           <span class="truncate"
             >{{ distance }} км •
-            {{ product.location.address.split(",")[0] }}</span
+            {{ product?.location?.address.split(",")[0] || product?.address}}</span
           >
         </div>
       </div>

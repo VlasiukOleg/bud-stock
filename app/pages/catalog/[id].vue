@@ -15,7 +15,7 @@
         <div class="lg:col-span-2 space-y-6">
           <UCard>
             <div
-              class="aspect-[4/3] relative bg-neutral-100 dark:bg-neutral-800"
+              class="aspect-4/3 relative bg-neutral-100 dark:bg-neutral-800"
             >
               <img
                 :src="product.images[currentImageIndex]"
@@ -37,10 +37,10 @@
               <button
                 v-for="(image, index) in product.images"
                 :key="index"
-                @click="currentImageIndex = index"
+                @click="currentImageIndex = Number(index)"
                 :class="[
-                  'flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all',
-                  currentImageIndex === index
+                  'shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all',
+                  currentImageIndex === Number(index)
                     ? 'border-brand-500 ring-2 ring-brand-500/20'
                     : 'border-transparent',
                 ]"
@@ -157,7 +157,7 @@
                 variant="link"
                 color="primary"
                 icon="i-heroicons-arrow-top-right-on-square-20-solid"
-                @click="isOpenMapDrawer = true"
+                @click="() => { isOpenMapDrawer = true }"
               >
                 Переглянути на карті
               </UButton>
@@ -311,7 +311,7 @@
                       ? 'i-heroicons-phone-20-solid'
                       : 'i-heroicons-device-phone-mobile-20-solid'
                   "
-                  @click="showPhone = !showPhone"
+                  @click="() => { showPhone = !showPhone }"
                 >
                   {{ showPhone ? product.sellerPhone : "Показати телефон" }}
                 </UButton>
@@ -368,15 +368,44 @@ import { MOCK_PRODUCTS } from "~/constants/products/products";
 
 const route = useRoute();
 const router = useRouter();
+const supabase = useSupabaseClient<any>();
 
 const currentImageIndex = ref(0);
 const showPhone = ref(false);
 const isOpenMapDrawer = ref(false);
 
-// В майбутньому тут буде useFetch
-const product = computed(() => {
-  return MOCK_PRODUCTS.find((p) => String(p.id) === String(route.params.id));
+// Отримуємо товар (з моків або з Supabase)
+const { data: supabaseProduct, pending } = useAsyncData(`product-${route.params.id}`, async () => {
+  // Шукаємо в моках
+  const mockProduct = MOCK_PRODUCTS.find((p) => String(p.id) === String(route.params.id));
+  if (mockProduct) return mockProduct;
+
+  // Шукаємо в Supabase
+  const { data, error } = await supabase
+    .from('listings')
+    .select('*')
+    .eq('id', route.params.id)
+    .single();
+    
+  if (error || !data) return null;
+  
+  // Адаптуємо дані з бази під поточний шаблон, щоб не ламалася верстка
+  return {
+    ...data,
+    images: (data.images?.length > 0 ? data.images : []) as string[],
+    location: { 
+      address: data.address || "Адреса не вказана", 
+      lat: 50.45, // Заглушка координат для карти
+      lng: 30.52 
+    }, 
+    sellerName: "Користувач BudStock",
+    sellerPhone: "+38 000 000 00 00",
+    sellerRating: 5.0,
+    category: data.category_id || "Без категорії"
+  };
 });
+
+const product = computed(() => supabaseProduct.value);
 
 const googleMapsUrl = computed(() => {
   if (!product.value?.location) return "";

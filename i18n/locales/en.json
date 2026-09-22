@@ -87,5 +87,10 @@
       "sell": "Sell",
       "profile": "Profile"
     }
+  },
+  "validation": {
+    "invalid_email": "Invalid email",
+    "required": "Required",
+    "min_password": "Must be at least 8 characters"
   }
 }

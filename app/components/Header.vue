@@ -3,6 +3,8 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 
 const route = useRoute();
 
+const user = useSupabaseUser()
+
 const items = computed<NavigationMenuItem[]>(() => [
   {
     label: "Продати матеріал",
@@ -17,7 +19,23 @@ const items = computed<NavigationMenuItem[]>(() => [
     active: route.path.startsWith("/catalog"),
   },
 ]);
+
+const buttonLink = computed(() => {
+  if (user.value) {
+    return '/profile'
+  }
+  return '/login'
+})
+
+const buttonText = computed(() => {
+  if (user.value) {
+    return 'Профіль'
+  }
+  return 'Вхід'
+})
 </script>
+
+
 
 <template>
   <UHeader>
@@ -30,14 +48,13 @@ const items = computed<NavigationMenuItem[]>(() => [
     <template #right>
       <CommonLocaleSelect />
       <UColorModeButton />
-      <UTooltip text="Open on GitHub" :kbds="['meta', 'G']">
+      <UTooltip :text="buttonText">
         <UButton
           color="neutral"
           variant="ghost"
-          to="https://github.com/nuxt/ui"
-          target="_blank"
+          :to="buttonLink"
           icon="i-icon-park-solid:people"
-          aria-label="GitHub"
+          aria-label="Вхід"
         />
       </UTooltip>
     </template>
