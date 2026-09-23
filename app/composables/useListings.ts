@@ -16,7 +16,7 @@ export const useListings = () => {
     return data || []
   }
   
-  const getUserListings = async (userId: string) => {
+  const getUserListings = async (userId: string ) => {
     const { data, error } = await client
       .from('listings')
       .select('*')
@@ -31,8 +31,23 @@ export const useListings = () => {
     return data || []
   }
 
+  const getAllListings = async () => {
+    const { data, error } = await client
+      .from('listings')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Помилка завантаження всіх оголошень:', error)
+      throw error
+    }
+    
+    return data || []
+  }
+
   return {
     getLatestListings,
-    getUserListings
+    getUserListings,
+    getAllListings
   }
 }

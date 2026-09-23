@@ -299,6 +299,30 @@
                   </template>
                 </UFormField>
 
+                <div class="flex flex-col sm:flex-row gap-3 -mt-2">
+                  <UButton
+                    color="neutral"
+                    variant="outline"
+                    icon="i-heroicons-map-pin"
+                    @click="useMyLocation"
+                    :loading="isGettingLocation"
+                  >
+                    Отримати мою позицію
+                  </UButton>
+                  <UButton
+                    color="primary"
+                    variant="soft"
+                    icon="i-heroicons-map"
+                    @click="openMapModal"
+                  >
+                    Вказати на мапі
+                  </UButton>
+                </div>
+                <div v-if="formData.latitude && formData.longitude" class="text-xs text-green-600 flex items-center gap-1 font-medium -mt-2">
+                  <UIcon name="i-heroicons-check-circle" class="w-4 h-4" />
+                  Координати встановлено ({{ formData.latitude.toFixed(4) }}, {{ formData.longitude.toFixed(4) }})
+                </div>
+
                 <!-- Спосіб отримання (Нове) -->
                 <UFormField name="delivery" label="Спосіб отримання *">
                   <UCheckboxGroup
@@ -365,12 +389,44 @@
         </template>
       </UCard>
     </div>
+
+    <ClientOnly>
+      <UModal v-model:open="isMapModalOpen" title="Вкажіть точку на карті" description="Оберіть місцезнаходження на карті">
+        <template #body>
+          <div class="h-96 w-full rounded-lg overflow-hidden relative">
+            <LMap
+              ref="modalMap"
+              :zoom="12"
+              :center="mapCenter"
+              :use-global-leaflet="true"
+              @click="onMapClick"
+            >
+              <LTileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&amp;copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+                layer-type="base"
+                name="OpenStreetMap"
+              />
+              <LMarker v-if="markerPosition" :lat-lng="markerPosition" />
+            </LMap>
+          </div>
+        </template>
+
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton color="neutral" variant="ghost" @click="() => { isMapModalOpen = false }">Скасувати</UButton>
+            <UButton color="primary" @click="confirmMapLocation" :disabled="!markerPosition">Підтвердити локацію</UButton>
+          </div>
+        </template>
+      </UModal>
+    </ClientOnly>
   </div>
 </template>
 
 <script setup lang="ts">
 import * as yup from "yup";
 import type { DropdownMenuItem, FormSubmitEvent, StepperItem } from "@nuxt/ui";
+import type { PointTuple } from "leaflet";
 
 import { CATEGORY_DATA } from "~/constants/category/category";
 import ListingForm from "./ui/ListingForm.vue";
@@ -467,6 +523,8 @@ const formData = reactive({
   price: undefined as number | undefined,
   isFree: false,
   address: "",
+  latitude: undefined as number | undefined,
+  longitude: undefined as number | undefined,
   delivery: [] as string[],
   deliveryDetails: "",
   description: "",
@@ -518,6 +576,8 @@ const resetForm = () => {
   formData.quantity = undefined;
   formData.unit = "";
   formData.address = "";
+  formData.latitude = undefined;
+  formData.longitude = undefined;
   formData.delivery = [];
   formData.deliveryDetails = "";
   shouldShowProductRelevantBanner.value = false;
@@ -640,6 +700,8 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
         price: formData.isFree ? null : formData.price,
         is_free: formData.isFree,
         address: formData.address,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
         delivery: formData.delivery,
         delivery_details: formData.deliveryDetails,
         description: formData.description,
@@ -737,6 +799,8 @@ const mainFormSchema = yup.object({
           .required("Вкажіть ціну"),
     }),
   address: yup.string().required("Вкажіть локацію"),
+  latitude: yup.number().required("Будь ласка, вкажіть точку на карті або використайте поточну позицію"),
+  longitude: yup.number().required("Будь ласка, вкажіть точку на карті або використайте поточну позицію"),
   delivery: yup.array().min(1, "Оберіть хоча б один спосіб отримання"),
   // Динамічна валідація: вимагати деталі, тільки якщо обрано "Доставка"
   deliveryDetails: yup.string().when("delivery", {
@@ -746,4 +810,75 @@ const mainFormSchema = yup.object({
   }),
   description: yup.string().required("Опис обов'язковий"),
 });
+
+// Додаємо змінні для карти
+const isMapModalOpen = ref(false);
+const mapCenter = ref<PointTuple>([50.4501, 30.5234]);
+const markerPosition = ref<PointTuple | null>(null);
+const isGettingLocation = ref(false);
+
+const fetchAddressFromCoordinates = async (lat: number, lng: number) => {
+  try {
+    // Використовуємо $fetch для запиту до OpenStreetMap Nominatim API
+    const data = await $fetch<any>(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+    if (data && data.display_name) {
+      // Можна також брати data.address.city, data.address.road і формувати красивіше
+      formData.address = data.display_name;
+    }
+  } catch (error) {
+    console.error("Помилка отримання адреси:", error);
+  }
+};
+
+const useMyLocation = () => {
+  if (navigator.geolocation) {
+    isGettingLocation.value = true;
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        formData.latitude = position.coords.latitude;
+        formData.longitude = position.coords.longitude;
+        isGettingLocation.value = false;
+        toast.add({ title: 'Геопозиція отримана!', color: 'success' });
+        
+        // Отримуємо адресу за координатами
+        await fetchAddressFromCoordinates(position.coords.latitude, position.coords.longitude);
+      },
+      (err) => {
+        isGettingLocation.value = false;
+        toast.add({ title: 'Помилка геолокації', description: err.message, color: 'error' });
+      }
+    );
+  } else {
+    toast.add({ title: 'Помилка', description: 'Ваш браузер не підтримує геолокацію', color: 'error' });
+  }
+};
+
+const openMapModal = () => {
+  isMapModalOpen.value = true;
+  if (formData.latitude && formData.longitude) {
+    mapCenter.value = [formData.latitude, formData.longitude];
+    markerPosition.value = [formData.latitude, formData.longitude];
+  } else {
+    mapCenter.value = [50.4501, 30.5234];
+    markerPosition.value = null;
+  }
+};
+
+const onMapClick = (event: any) => {
+  const { lat, lng } = event.latlng;
+  markerPosition.value = [lat, lng];
+};
+
+const confirmMapLocation = async () => {
+  if (markerPosition.value) {
+    formData.latitude = markerPosition.value[0];
+    formData.longitude = markerPosition.value[1];
+    isMapModalOpen.value = false;
+    toast.add({ title: 'Локація вибрана на мапі', color: 'success' });
+    
+    // Отримуємо адресу за координатами
+    await fetchAddressFromCoordinates(markerPosition.value[0], markerPosition.value[1]);
+  }
+};
+
 </script>

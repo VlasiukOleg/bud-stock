@@ -377,6 +377,9 @@ const isGeolocationErrorPopoverOpen = ref(false);
 
 const { coords, error, pause, resume } = useGeolocation();
 
+const { getAllListings } = useListings();
+const { data: allListings } = useAsyncData('all-listings', getAllListings);
+
 const createPriceIcon = (price: number, isSelected: boolean): any => {
   const bgClass = isSelected ? "bg-green-500 scale-110 text-white" : "bg-white";
   return L.divIcon({
@@ -434,10 +437,10 @@ const refreshClusters = async () => {
 const isLocating = computed(() => !initialUserLocation.value && !error.value);
 
 const productsInRadius = computed(() => {
-  if (!initialUserLocation.value) return [];
+  if (!initialUserLocation.value || !allListings.value) return [];
 
-  return MOCK_PRODUCTS.filter((product) => {
-    if (!product.location?.lat || !product.location?.lng) return false;
+  return allListings.value.filter((product) => {
+    if (!product.latitude || !product.longitude) return false;
 
     // 1. Фільтр по радіусу
     const isWithin = isPointWithinRadius(
@@ -445,7 +448,7 @@ const productsInRadius = computed(() => {
         latitude: initialUserLocation.value![0],
         longitude: initialUserLocation.value![1],
       },
-      { latitude: product.location.lat, longitude: product.location.lng },
+      { latitude: product.latitude, longitude: product.longitude },
       searchRadius.value,
     );
 
@@ -477,8 +480,18 @@ const handleForceUpdateLocation = () => {
     return;
   }
 
-  initialUserLocation.value = null;
   resume();
+
+  // Якщо координати вже є, відразу їх застосовуємо, щоб не було вічного "Шукаємо..."
+  if (coords.value && coords.value.latitude !== Infinity && coords.value.longitude !== Infinity) {
+    initialUserLocation.value = [coords.value.latitude, coords.value.longitude];
+    center.value = [coords.value.latitude, coords.value.longitude];
+    if (map.value?.leafletObject) {
+      map.value.leafletObject.flyTo(initialUserLocation.value, 12);
+    }
+  } else {
+    initialUserLocation.value = null;
+  }
 };
 
 const displayedProducts = computed(() => {
@@ -512,16 +525,13 @@ const loadMoreProducts = () => {
 
 const handleZoomToProduct = (product: Product) => {
   selectedProductOnMap.value = product.id;
-  if (
-    product.location?.lat &&
-    product.location?.lng &&
-    map.value?.leafletObject
-  ) {
+  
+  const lat = product.latitude || product.location?.lat;
+  const lng = product.longitude || product.location?.lng;
+
+  if (lat && lng && map.value?.leafletObject) {
     isProductsSliderOpen.value = false;
-    map.value.leafletObject.flyTo(
-      [product.location.lat, product.location.lng],
-      14,
-    );
+    map.value.leafletObject.flyTo([lat, lng], 14);
   }
 };
 
@@ -557,14 +567,15 @@ const handleDraggableMarker = (newLatLng: any) => {
 
 const clusterMarkersData = computed(() => {
   return productsInRadius.value.map((product) => ({
-    lat: product.location.lat,
-    lng: product.location.lng,
+    lat: product.latitude,
+    lng: product.longitude,
     options: {
       id: product.id,
       icon: createPriceIcon(
         product.price,
-        selectedProductOnMap.value === product.id,
+        product.id === selectedProductOnMap.value,
       ),
+      zIndexOffset: product.id === selectedProductOnMap.value ? 1000 : 0,
     },
   }));
 });

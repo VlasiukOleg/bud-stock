@@ -1,56 +1,21 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 
+const { getUserListings } = useListings();
+
 const client = useSupabaseClient<any>()
 const user = useSupabaseUser()
-
-const listings = ref<any[]>([])
-const isLoading = ref(true)
-const errorMessage = ref('')
 
 const handleLogOut = async () => {
   await client.auth.signOut()
   navigateTo('/login')
 }
 
-async function fetchListings() {
-  if (!user.value) {
-    isLoading.value = false
-    return
-  }
-  
-  isLoading.value = true
-  errorMessage.value = ''
-  
-  try {
-    const { data, error } = await client
-      .from('listings')
-      .select('*')
-      .eq('user_id', user.value?.sub) 
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-    listings.value = data || []
-  } catch (error: any) {
-    console.error('Помилка завантаження оголошень:', error)
-    errorMessage.value = error.message
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Завантажуємо дані при монтуванні, але також стежимо за user
-onMounted(() => {
-  if (user.value) {
-    fetchListings()
-  }
-})
-
-watch(user, (newUser) => {
-  if (newUser) {
-    fetchListings()
-  }
-})
+const { data: userListings, pending, error } = useAsyncData(
+  'user-listings',
+  () => user.value?.sub ? getUserListings(user.value.sub) : Promise.resolve([]),
+  { watch: [user] }
+);
 </script>
 
 <template>
@@ -70,21 +35,21 @@ watch(user, (newUser) => {
     <div>
       <h2 class="text-xl font-semibold mb-4">Мої оголошення</h2>
       
-      <div v-if="isLoading" class="flex justify-center py-10">
+      <div v-if="pending" class="flex justify-center py-10">
         <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-gray-500" />
       </div>
       
-      <div v-else-if="errorMessage" class="text-red-500 bg-red-50 p-4 rounded-lg">
-        Помилка при завантаженні оголошень: {{ errorMessage }}
+      <div v-else-if="error" class="text-red-500 bg-red-50 p-4 rounded-lg">
+        Помилка при завантаженні оголошень: {{ error }}
       </div>
       
-      <div v-else-if="listings.length === 0" class="text-center py-10 text-gray-500 bg-gray-50 rounded-lg">
+      <div v-else-if="userListings?.length === 0" class="text-center py-10 text-gray-500 bg-gray-50 rounded-lg">
         У вас ще немає жодного оголошення.
       </div>
       
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <CommonProductCard
-           v-for="listing in listings" 
+           v-for="listing in userListings" 
           :key="listing.id"
           :product="listing" 
         />

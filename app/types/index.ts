@@ -22,12 +22,14 @@ export interface Product {
   unit: string;
   status: string;
   description?: string;
-  location: {
+  location?: {
     address: string;
     lat: number;
     lng: number;
   };
   address?: string;
+  latitude?: number;
+  longitude?: number;
   sellerName?: string;
   sellerRating: number;
   views?: number;
@@ -35,6 +37,7 @@ export interface Product {
   deliveryDetails?: string;
   category?: string;
   sellerPhone?: string;
+  created_at?: string;
 }
 
 export interface MobileMenuItem {
