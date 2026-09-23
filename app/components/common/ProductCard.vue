@@ -10,6 +10,7 @@ const distance = Math.floor(Math.random() * 5) + 1;
 const formattedPrice = computed(() => {
   return new Intl.NumberFormat("uk-UA").format(product.price);
 });
+
 const formattedDate = computed(() => {
   if (!product.created_at) return '';
   const date = new Date(product.created_at);

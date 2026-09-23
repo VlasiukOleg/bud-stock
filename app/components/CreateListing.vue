@@ -671,7 +671,8 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
     for (const file of formData.images) {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `${user.value.id}/${fileName}`;
+      const userId = user.value?.id || user.value?.sub || 'unknown';
+      const filePath = `${userId}/${fileName}`;
 
       const { data, error } = await supabase.storage
         .from('listing_images')
@@ -717,7 +718,7 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
     });
     
     // Перенаправляємо на сторінку "Мої оголошення" (профіль)
-    navigateTo('/profile');
+    navigateTo('/profile/listings');
 
   } catch (error: any) {
     console.error("Error creating listing:", error);
