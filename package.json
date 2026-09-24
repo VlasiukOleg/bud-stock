@@ -18,6 +18,7 @@
     "@nuxtjs/supabase": "^2.0.10",
     "geolib": "^3.3.4",
     "leaflet.markercluster": "^1.5.3",
+    "maska": "^3.2.1",
     "nuxt": "^4.2.2",
     "tailwindcss": "^4.2.1",
     "vue": "^3.5.26",

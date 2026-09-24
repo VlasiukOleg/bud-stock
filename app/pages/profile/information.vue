@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, reactive, watch } from 'vue'
+import { vMaska } from 'maska/vue'
+import * as yup from 'yup'
+import type { FormSubmitEvent } from '@nuxt/ui'
 
 const client = useSupabaseClient<any>()
 const user = useSupabaseUser()
@@ -10,6 +13,17 @@ const profileForm = reactive({
   phone: '',
   avatar_url: '',
   is_phone_public: false
+})
+
+const schema = yup.object({
+  name: yup.string().required("Введіть ім'я").min(2, "Ім'я має містити щонайменше 2 символи"),
+  phone: yup.string()
+    .required("Введіть телефон")
+    .test('valid-phone', 'Введіть повний номер', (value) => {
+      if (!value) return false;
+      const digits = value.replace(/\D/g, '');
+      return digits.length === 12 && digits.startsWith('380');
+    })
 })
 
 watch(user, (newUser) => {
@@ -32,8 +46,11 @@ const isFormChanged = computed(() => {
   const currentPhone = user.value?.user_metadata?.phone || '';
   const currentIsPhonePublic = user.value?.user_metadata?.is_phone_public ?? false;
   
+  const rawFormPhone = profileForm.phone ? profileForm.phone.replace(/\D/g, '') : '';
+  const rawCurrentPhone = currentPhone ? currentPhone.replace(/\D/g, '') : '';
+
   return profileForm.name !== currentName ||
-         profileForm.phone !== currentPhone ||
+         rawFormPhone !== rawCurrentPhone ||
          profileForm.is_phone_public !== currentIsPhonePublic;
 })
 
@@ -52,7 +69,7 @@ const currentAvatarUrl = computed(() => {
   return localAvatarPreview.value || profileForm.avatar_url
 })
 
-const saveProfile = async () => {
+const saveProfile = async (event?: FormSubmitEvent<any>) => {
   isSavingProfile.value = true
   try {
     let finalAvatarUrl = profileForm.avatar_url
@@ -77,7 +94,7 @@ const saveProfile = async () => {
     const { data: updateData, error } = await client.auth.updateUser({
       data: { 
         full_name: profileForm.name,
-        phone: profileForm.phone,
+        phone: '+' + profileForm.phone.replace(/\D/g, ''),
         avatar_url: finalAvatarUrl,
         is_phone_public: profileForm.is_phone_public
       }
@@ -121,13 +138,18 @@ const saveProfile = async () => {
           <template #header>
             <h2 class="text-lg font-semibold">Особисті дані</h2>
           </template>
-          <form @submit.prevent="saveProfile" class="space-y-4">
-            <UFormField label="Ім'я">
+          <UForm :schema="schema" :state="profileForm" @submit="saveProfile" class="space-y-4">
+            <UFormField name="name" label="Ім'я">
               <UInput v-model="profileForm.name" placeholder="Введіть ваше ім'я" icon="i-heroicons-user" />
             </UFormField>
             
-            <UFormField label="Телефон">
-              <UInput v-model="profileForm.phone" placeholder="+380991234567" icon="i-heroicons-phone" />
+            <UFormField name="phone" label="Телефон">
+              <UInput 
+                v-model="profileForm.phone" 
+                v-maska="'+380 (##) ###-##-##'"
+                placeholder="+380 (99) 123-45-67" 
+                icon="i-heroicons-phone" 
+              />
               <template #description>
                 <div class="mt-2 text-sm text-gray-500">
                   Для створення оголошень необхідно вказати телефон.
@@ -174,7 +196,7 @@ const saveProfile = async () => {
                 Зберегти зміни
               </UButton>
             </div>
-          </form>
+          </UForm>
         </UCard>
       </div>
     </main>
