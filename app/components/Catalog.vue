@@ -57,13 +57,14 @@
             :key="product.id"
             :id="`product-${product.id}`"
             :product="product"
+            :show-map-button="true"
+            @map-click="handleZoomToProduct"
             :class="[
               'transition-all duration-300 rounded-xl',
               selectedProductOnMap === product.id
                 ? 'ring-2 ring-brand-500 shadow-lg'
                 : '',
             ]"
-            @click="handleZoomToProduct(product)"
           />
           <UButton
             v-if="hasMoreProducts"

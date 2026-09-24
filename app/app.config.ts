@@ -29,6 +29,12 @@ export default defineAppConfig({
     },
     colors: {
       primary: 'brand',
+    },
+    modal: {
+      slots: { overlay: "bg-gray-900/75 dark:bg-gray-900/90 backdrop-blur-sm" },
+    },
+    slideover: {
+      slots: { overlay: "bg-gray-900/75 dark:bg-gray-900/90 backdrop-blur-sm" },
     }
   },
 });

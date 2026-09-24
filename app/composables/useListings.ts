@@ -45,9 +45,24 @@ export const useListings = () => {
     return data || []
   }
 
+  const deleteListing = async (listingId: string) => {
+    const { error } = await client
+      .from('listings')
+      .delete()
+      .eq('id', listingId)
+
+    if (error) {
+      console.error('Помилка видалення оголошення:', error)
+      throw error
+    }
+    
+    return true
+  }
+
   return {
     getLatestListings,
     getUserListings,
-    getAllListings
+    getAllListings,
+    deleteListing
   }
 }

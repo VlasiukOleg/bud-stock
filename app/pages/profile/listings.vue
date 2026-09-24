@@ -1,10 +1,9 @@
 <script setup lang="ts">
-
 const nuxtApp = useNuxtApp();
 const user = useSupabaseUser();
-const { getUserListings } = useListings();
+const { getUserListings, deleteListing } = useListings();
 
-const { data: userListings, pending, error } = useAsyncData(
+const { data: userListings, pending, error, refresh } = useAsyncData(
   `user-listings-${user.value?.sub}`,
   () => user.value?.sub ? getUserListings(user.value.sub) : Promise.resolve([]),
   {
@@ -13,6 +12,38 @@ const { data: userListings, pending, error } = useAsyncData(
     }
   }
 );
+
+const toast = useToast();
+
+const isDeleteModalOpen = ref(false);
+const listingToDelete = ref<string | number | null>(null);
+const isDeleting = ref(false);
+
+const handleDelete = (id: string | number) => {
+  listingToDelete.value = id;
+  isDeleteModalOpen.value = true;
+};
+
+const confirmDelete = async () => {
+  if (!listingToDelete.value) return;
+  isDeleting.value = true;
+  try {
+    await deleteListing(String(listingToDelete.value));
+    toast.add({ title: 'Оголошення успішно видалено', color: 'success' });
+    
+    // Скидаємо кеш Nuxt, щоб підтягнулись нові дані при перезавантаженні або навігації
+    clearNuxtData(`user-listings-${user.value?.sub}`);
+    clearNuxtData('all-listings');
+    
+    refresh();
+  } catch (err) {
+    toast.add({ title: 'Помилка видалення', color: 'error' });
+  } finally {
+    isDeleting.value = false;
+    isDeleteModalOpen.value = false;
+    listingToDelete.value = null;
+  }
+};
 </script>
 
 <template>
@@ -39,10 +70,38 @@ const { data: userListings, pending, error } = useAsyncData(
           <CommonProductCard
             v-for="listing in userListings" 
             :key="listing.id"
-            :product="listing" 
+            :product="listing"
+            :show-delete-button="true"
+            @delete="handleDelete"
           />
         </div>
       </div>
     </main>
+
+    <UModal 
+      v-model:open="isDeleteModalOpen" 
+      title="Підтвердження видалення" 
+      description="Ви дійсно хочете видалити це оголошення? Цю дію неможливо буде скасувати."
+      :ui="{ overlay: 'bg-gray-900/75 dark:bg-gray-900/90 backdrop-blur-sm' }"
+    >
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton
+            color="neutral"
+            variant="ghost"
+            label="Скасувати"
+            @click="() =>{ isDeleteModalOpen = false }"
+            :disabled="isDeleting"
+          />
+          <UButton
+            color="error"
+            variant="solid"
+            label="Видалити"
+            :loading="isDeleting"
+            @click="confirmDelete"
+          />
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

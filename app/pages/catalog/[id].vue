@@ -293,7 +293,7 @@
                     <span class="text-sm font-bold">{{
                       product.sellerRating
                     }}</span>
-                    <span class="text-xs text-neutral-500">(23 відгуки)</span>
+                    <span class="text-xs text-neutral-500">({{ product.sellerReviewsCount }} відгуків)</span>
                   </div>
                 </div>
               </div>
@@ -372,6 +372,8 @@
 </template>
 
 <script setup lang="ts">
+import { CATEGORY_DATA } from '~/constants/category/category';
+
 const nuxtApp = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
@@ -404,6 +406,16 @@ const { data: product, pending } = useAsyncData(
     const isOwner = currentUser.value?.id === listingData.user_id;
     const canSeePhone = profileData?.is_phone_public || isOwner;
     
+    const getCategoryName = (categoryId: string) => {
+      if (!categoryId) return "Без категорії";
+      for (const cat of CATEGORY_DATA) {
+        if (cat.id === categoryId) return cat.name;
+        const sub = cat.subcategories?.find((s: any) => s.id === categoryId);
+        if (sub) return `${cat.name} / ${sub.name}`;
+      }
+      return "Без категорії";
+    };
+    
     return {
       ...listingData,
       images: (listingData.images?.length > 0 ? listingData.images : []) as string[],
@@ -417,7 +429,8 @@ const { data: product, pending } = useAsyncData(
       sellerPhone: canSeePhone ? (profileData?.phone || "Не вказано") : "Приховано",
       canSeePhone,
       sellerRating: 5.0,
-      category: listingData.category_id || "Без категорії"
+      sellerReviewsCount: 0,
+      category: getCategoryName(listingData.category_id)
     };
   },
   {

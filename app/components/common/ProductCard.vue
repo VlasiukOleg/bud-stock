@@ -1,19 +1,29 @@
 <script setup lang="ts">
 import type { Product } from "~/types/index";
 
-const { product } = defineProps<{
+const props = withDefaults(defineProps<{
   product: Product;
+  showMapButton?: boolean;
+  showDeleteButton?: boolean;
+}>(), {
+  showMapButton: false,
+  showDeleteButton: false,
+});
+
+const emit = defineEmits<{
+  (e: 'delete', id: string | number): void;
+  (e: 'mapClick', product: Product): void;
 }>();
 
 const distance = Math.floor(Math.random() * 5) + 1;
 
 const formattedPrice = computed(() => {
-  return new Intl.NumberFormat("uk-UA").format(product.price);
+  return new Intl.NumberFormat("uk-UA").format(props.product.price);
 });
 
 const formattedDate = computed(() => {
-  if (!product.created_at) return '';
-  const date = new Date(product.created_at);
+  if (!props.product.created_at) return '';
+  const date = new Date(props.product.created_at);
   const now = new Date();
   
   const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
@@ -26,7 +36,7 @@ const formattedDate = computed(() => {
 });
 
 const shortAddress = computed(() => {
-  return product?.location?.address || product?.address || '';
+  return props.product?.location?.address || props.product?.address || '';
 });
 </script>
 
@@ -44,17 +54,28 @@ const shortAddress = computed(() => {
         :alt="product.title"
         class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
       />
-      <div class="absolute top-2 right-2">
+      <div v-if="props.showMapButton" class="absolute top-2 right-2 z-10">
         <UButton
           icon="i-heroicons-map"
           variant="solid"
           size="xs"
           class="shadow-md bg-brand-400 hover:bg-brand-500"
-          @click.prevent=""
+          @click.prevent="emit('mapClick', product)"
           >На мапі</UButton
         >
       </div>
-      <div class="absolute top-2 left-2">
+      <div v-if="props.showDeleteButton" class="absolute top-2 right-2 z-10">
+        <UButton
+          icon="i-heroicons-trash"
+          variant="solid"
+          color="error"
+          size="sm"
+          :ui="{ base: 'rounded-full' }"
+          class="cursor-pointer"
+          @click.prevent="emit('delete', product.id)"
+        />
+      </div>
+      <div class="absolute top-2 left-2 z-10">
         <UBadge size="sm" color="primary">
           {{ product.status }}
         </UBadge>
