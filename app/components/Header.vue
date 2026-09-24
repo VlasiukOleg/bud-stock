@@ -5,7 +5,7 @@ import { ref, computed } from 'vue';
 const route = useRoute();
 
 const user = useSupabaseUser()
-const isSlideoverOpen = ref(false)
+const isSlideoverOpen = useState('isSlideoverOpen', () => false)
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
@@ -40,7 +40,7 @@ const userInitials = computed(() => {
 </script>
 
 <template>
-  <UHeader>
+  <UHeader :toggle="false">
     <template #left>
       <CommonLogo />
     </template>
@@ -50,12 +50,12 @@ const userInitials = computed(() => {
     <template #right>
       <CommonLocaleSelect />
       <UColorModeButton />
-      <UTooltip :text="buttonText">
+      <UTooltip :text="buttonText" class="hidden lg:flex">
         <UButton
           v-if="user"
           color="neutral"
           variant="ghost"
-          @click="isSlideoverOpen = true"
+          @click="() => {isSlideoverOpen = true}"
           aria-label="Профіль"
           class="p-1"
         >
@@ -70,10 +70,6 @@ const userInitials = computed(() => {
           aria-label="Вхід"
         />
       </UTooltip>
-    </template>
-
-    <template #body>
-      <UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
     </template>
   </UHeader>
   

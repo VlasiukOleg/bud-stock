@@ -8,7 +8,8 @@ const toast = useToast()
 const profileForm = reactive({
   name: '',
   phone: '',
-  avatar_url: ''
+  avatar_url: '',
+  is_phone_public: false
 })
 
 watch(user, (newUser) => {
@@ -16,12 +17,25 @@ watch(user, (newUser) => {
     profileForm.name = newUser.user_metadata?.full_name || ''
     profileForm.phone = newUser.user_metadata?.phone || ''
     profileForm.avatar_url = newUser.user_metadata?.avatar_url || ''
+    profileForm.is_phone_public = newUser.user_metadata?.is_phone_public ?? false
   }
 }, { immediate: true })
 
 const isSavingProfile = ref(false)
 const avatarFile = ref<File | null>(null)
 const localAvatarPreview = ref<string | null>(null)
+
+const isFormChanged = computed(() => {
+  if (avatarFile.value !== null) return true;
+  
+  const currentName = user.value?.user_metadata?.full_name || '';
+  const currentPhone = user.value?.user_metadata?.phone || '';
+  const currentIsPhonePublic = user.value?.user_metadata?.is_phone_public ?? false;
+  
+  return profileForm.name !== currentName ||
+         profileForm.phone !== currentPhone ||
+         profileForm.is_phone_public !== currentIsPhonePublic;
+})
 
 watch(avatarFile, (newFile) => {
   if (newFile) {
@@ -64,7 +78,8 @@ const saveProfile = async () => {
       data: { 
         full_name: profileForm.name,
         phone: profileForm.phone,
-        avatar_url: finalAvatarUrl
+        avatar_url: finalAvatarUrl,
+        is_phone_public: profileForm.is_phone_public
       }
     })
     
@@ -113,6 +128,19 @@ const saveProfile = async () => {
             
             <UFormField label="Телефон">
               <UInput v-model="profileForm.phone" placeholder="+380991234567" icon="i-heroicons-phone" />
+              <template #description>
+                <div class="mt-2 text-sm text-gray-500">
+                  Для створення оголошень необхідно вказати телефон.
+                </div>
+              </template>
+            </UFormField>
+
+            <UFormField>
+              <UCheckbox
+                v-model="profileForm.is_phone_public"
+                label="Показувати мій телефон в оголошеннях"
+                help="Ваш телефон не будуть бачити інші користувачі, якщо ви вимкнете це налаштування (зв'язок буде тільки через повідомлення)."
+              />
             </UFormField>
 
             <UFormField label="Аватарка">
@@ -137,7 +165,12 @@ const saveProfile = async () => {
             </UFormField>
 
             <div class="flex justify-end mt-6">
-              <UButton type="submit" color="primary" :loading="isSavingProfile">
+              <UButton 
+                type="submit" 
+                color="primary" 
+                :loading="isSavingProfile"
+                :disabled="!isFormChanged"
+              >
                 Зберегти зміни
               </UButton>
             </div>

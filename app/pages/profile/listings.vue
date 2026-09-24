@@ -1,12 +1,17 @@
 <script setup lang="ts">
 
+const nuxtApp = useNuxtApp();
 const user = useSupabaseUser();
 const { getUserListings } = useListings();
 
 const { data: userListings, pending, error } = useAsyncData(
-  'user-listings',
+  `user-listings-${user.value?.sub}`,
   () => user.value?.sub ? getUserListings(user.value.sub) : Promise.resolve([]),
-  { watch: [user] }
+  {
+    getCachedData(key) {
+      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
+    }
+  }
 );
 </script>
 

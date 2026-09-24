@@ -5,7 +5,7 @@
       <slot />
     </UMain>
     <Footer :class="route.path === '/' ? 'block' : 'hidden lg:block'" />
-    <UiMobileMenu v-if="route.path !== '/'" class="lg:hidden"/>
+    <UiMobileMenu class="lg:hidden"/>
   </div>
 </template>
 

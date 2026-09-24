@@ -717,6 +717,9 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
       color: "success",
     });
     
+    // Очищаємо кеш сторінки "Мої оголошення", щоб при переході завантажились нові дані
+    clearNuxtData(`user-listings-${user.value?.sub}`);
+    
     // Перенаправляємо на сторінку "Мої оголошення" (профіль)
     navigateTo('/profile/listings');
 
