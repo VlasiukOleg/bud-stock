@@ -11,7 +11,12 @@
         Назад
       </UButton>
 
-      <div v-if="product" class="grid lg:grid-cols-3 gap-6">
+      <div v-if="pending" class="flex flex-col items-center justify-center py-32 text-brand-500">
+        <UIcon name="i-heroicons-arrow-path" class="w-12 h-12 animate-spin mb-4" />
+        <p class="font-medium animate-pulse">Завантаження деталей...</p>
+      </div>
+
+      <div v-else-if="product" class="grid lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
           <UCard>
             <div
@@ -273,6 +278,7 @@
               </h3>
               <div class="flex items-center gap-4 mb-4">
                 <UAvatar
+                  :src="product.sellerAvatar"
                   :alt="product.sellerName"
                   size="lg"
                   class="bg-brand-500 text-white font-bold"
@@ -296,6 +302,7 @@
                 color="primary"
                 block
                 label="Всі оголошення автора"
+                :to="`/user/${product.user_id}`"
               />
             </UCard>
 
@@ -311,9 +318,10 @@
                       ? 'i-heroicons-phone-20-solid'
                       : 'i-heroicons-device-phone-mobile-20-solid'
                   "
-                  @click="() => { showPhone = !showPhone }"
+                  @click="() => { if(product.canSeePhone) showPhone = !showPhone }"
+                  :disabled="!product.canSeePhone"
                 >
-                  {{ showPhone ? product.sellerPhone : "Показати телефон" }}
+                  {{ !product.canSeePhone ? "Телефон приховано" : (showPhone ? product.sellerPhone : "Показати телефон") }}
                 </UButton>
 
                 <p
@@ -364,8 +372,7 @@
 </template>
 
 <script setup lang="ts">
-import { MOCK_PRODUCTS } from "~/constants/products/products";
-
+const nuxtApp = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
 const supabase = useSupabaseClient<any>();
@@ -374,38 +381,51 @@ const currentImageIndex = ref(0);
 const showPhone = ref(false);
 const isOpenMapDrawer = ref(false);
 
-// Отримуємо товар (з моків або з Supabase)
-const { data: supabaseProduct, pending } = useAsyncData(`product-${route.params.id}`, async () => {
-  // Шукаємо в моках
-  const mockProduct = MOCK_PRODUCTS.find((p) => String(p.id) === String(route.params.id));
-  if (mockProduct) return mockProduct;
+const currentUser = useSupabaseUser();
 
-  // Шукаємо в Supabase
-  const { data, error } = await supabase
-    .from('listings')
-    .select('*')
-    .eq('id', route.params.id)
-    .single();
+const { data: product, pending } = useAsyncData(
+  `product-${route.params.id}`, 
+  async () => {
+    const { data: listingData, error } = await supabase
+      .from('listings')
+      .select('*')
+      .eq('id', route.params.id)
+      .single();
+      
+    if (error || !listingData) return null;
     
-  if (error || !data) return null;
-  
-  // Адаптуємо дані з бази під поточний шаблон, щоб не ламалася верстка
-  return {
-    ...data,
-    images: (data.images?.length > 0 ? data.images : []) as string[],
-    location: { 
-      address: data.address || "Адреса не вказана", 
-      lat: 50.45, // Заглушка координат для карти
-      lng: 30.52 
-    }, 
-    sellerName: "Користувач BudStock",
-    sellerPhone: "+38 000 000 00 00",
-    sellerRating: 5.0,
-    category: data.category_id || "Без категорії"
-  };
-});
-
-const product = computed(() => supabaseProduct.value);
+    // Отримуємо профіль продавця через нашу нову View
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', listingData.user_id)
+      .single();
+      
+    const isOwner = currentUser.value?.id === listingData.user_id;
+    const canSeePhone = profileData?.is_phone_public || isOwner;
+    
+    return {
+      ...listingData,
+      images: (listingData.images?.length > 0 ? listingData.images : []) as string[],
+      location: { 
+        address: listingData.address || "Адреса не вказана", 
+        lat: listingData.latitude || 50.45, 
+        lng: listingData.longitude || 30.52 
+      }, 
+      sellerName: getUserDisplayName(profileData),
+      sellerAvatar: profileData?.avatar_url || null,
+      sellerPhone: canSeePhone ? (profileData?.phone || "Не вказано") : "Приховано",
+      canSeePhone,
+      sellerRating: 5.0,
+      category: listingData.category_id || "Без категорії"
+    };
+  },
+  {
+    getCachedData(key) {
+      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
+    }
+  }
+);
 
 const googleMapsUrl = computed(() => {
   if (!product.value?.location) return "";
