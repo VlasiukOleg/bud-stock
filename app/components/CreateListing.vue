@@ -292,10 +292,11 @@
                     v-model="formData.address"
                     size="lg"
                     class="w-full"
-                    placeholder="вул. Хрещатик, 22, Київ"
+                    placeholder="Визначте локацію кнопками нижче"
+                    readonly
                   />
                   <template #description>
-                    Вкажіть адресу або найближчий орієнтир
+                    Адреса визначається автоматично за допомогою кнопок нижче.
                   </template>
                 </UFormField>
 
@@ -823,11 +824,13 @@ const isGettingLocation = ref(false);
 
 const fetchAddressFromCoordinates = async (lat: number, lng: number) => {
   try {
-    // Використовуємо $fetch для запиту до OpenStreetMap Nominatim API
-    const data = await $fetch<any>(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
-    if (data && data.display_name) {
-      // Можна також брати data.address.city, data.address.road і формувати красивіше
-      formData.address = data.display_name;
+    // Звертаємося до НАШОГО власного API замість напряму до стороннього сервісу
+    const data = await $fetch<{ address: string | null }>('/api/geocode', {
+      query: { lat, lng }
+    });
+    
+    if (data && data.address) {
+      formData.address = data.address;
     }
   } catch (error) {
     console.error("Помилка отримання адреси:", error);
