@@ -88,6 +88,7 @@
         <LMap
           :zoom="zoom"
           :center="center"
+          :max-zoom="18"
           :use-global-leaflet="true"
           ref="map"
           @update:zoom="zoom = $event"
@@ -333,7 +334,7 @@
 </template>
 
 <script setup lang="ts">
-import { useLMarkerCluster } from '#imports';
+
 import L from "leaflet";
 import type { PointTuple } from "leaflet";
 import { useGeolocation, useStorage } from "@vueuse/core";
@@ -369,6 +370,8 @@ const searchRadius = ref(5000);
 const isProductsSliderOpen = ref(false);
 const map = ref<any>(null);
 const mapBounds = ref<any>(null);
+const mapClusterGroup = ref<any>(null);
+const mapMarkers = ref<any[]>([]);
 const selectedProductOnMap = ref<string | number | null>(null);
 const isMapReady = ref<boolean>(false);
 const showDragHint = ref<boolean>(false);
@@ -385,11 +388,29 @@ const createPriceIcon = (price: number, isSelected: boolean): any => {
   const bgClass = isSelected ? "bg-green-500 scale-110 text-white" : "bg-white";
   return L.divIcon({
     className: "custom-price-marker",
-    html: `<div class="${bgClass} text-neutral-800 px-2 py-1 rounded-md text-xs border border-brand-500">
+    html: `<div class="${bgClass} text-neutral-800 px-2 py-1 rounded-md text-xs border border-brand-500 shadow-md">
             ${price} ₴
            </div>`,
     iconSize: [55, 25],
     iconAnchor: [25, 25],
+  });
+};
+
+const createApproximateIcon = (price: number, isSelected: boolean): any => {
+  const borderClass = isSelected ? "border-green-500 scale-110" : "border-brand-500";
+  const bgClass = isSelected ? "bg-green-500/20" : "bg-brand-500/20";
+  const textClass = isSelected ? "text-green-800" : "text-brand-800";
+  
+  // Малюємо велике напівпрозоре коло з простою ціною всередині
+  return L.divIcon({
+    className: "custom-approx-marker",
+    html: `
+      <div class="w-16 h-16 rounded-full flex items-center justify-center ${bgClass} border-2 ${borderClass} backdrop-blur-[2px] transition-transform shadow-md">
+        <span class="${textClass} font-bold text-[11px]">${price} ₴</span>
+      </div>
+    `,
+    iconSize: [64, 64],
+    iconAnchor: [32, 32],
   });
 };
 
@@ -406,7 +427,7 @@ const refreshClusters = async () => {
   });
 
   // Нова група з анімаціями
-  const { markers } = await useLMarkerCluster({
+  const result = await useLMarkerCluster({
     leafletObject: leafletMap,
     markers: clusterMarkersData.value,
     options: {
@@ -414,23 +435,84 @@ const refreshClusters = async () => {
       // ГАРАНТІЯ АНІМАЦІЇ:
       animate: true,
       animateAddingMarkers: true,
-      // Коли зум > 13, кластери зникають, з'являються ціни:
-      disableClusteringAtZoom: 14,
-      spiderfyOnMaxZoom: false,
+      // Відключаємо примусове зникнення кластерів і вмикаємо spiderfy
+      spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
+      iconCreateFunction: (cluster: any) => {
+        const childMarkers = cluster.getAllChildMarkers();
+        const isSelected = childMarkers.some((m: any) => m.options?.id === selectedProductOnMap.value);
+        const count = cluster.getChildCount();
+        
+        if (isSelected) {
+          // Якщо кластер містить вибраний товар, робимо його зеленим у стилі оригінального MarkerCluster
+          return L.divIcon({
+            html: `<div style="background-color: #22c55e; color: white; border-radius: 15px; width: 30px; height: 30px; margin-left: 5px; margin-top: 5px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                    <span style="line-height: 1; font-weight: bold; font-size: 14px;">${count}</span>
+                   </div>`,
+            className: 'marker-cluster bg-green-500/50', // напівпрозоре зелене зовнішнє кільце
+            iconSize: [40, 40],
+          });
+        }
+        
+        // Повертаємо рідний гарний вигляд Leaflet для всіх інших кластерів
+        let c = ' marker-cluster-';
+        if (count < 10) {
+          c += 'small';
+        } else if (count < 100) {
+          c += 'medium';
+        } else {
+          c += 'large';
+        }
+        
+        return L.divIcon({
+          html: `<div><span>${count}</span></div>`,
+          className: 'marker-cluster' + c,
+          iconSize: [40, 40]
+        });
+      }
     },
   });
 
-  markers.forEach((marker) => {
+  const { markers } = result as any;
+
+  // Зберігаємо посилання на маркери для подальшого використання
+  mapMarkers.value = markers;
+
+  // Знаходимо саму групу кластерів безпосередньо на карті (оскільки useLMarkerCluster міг не повернути її)
+  leafletMap.eachLayer((layer: any) => {
+    if (layer instanceof (L as any).MarkerClusterGroup) {
+      mapClusterGroup.value = layer;
+    }
+  });
+
+  markers.forEach((marker: any) => {
     marker.on("click", () => {
       const productId = (marker.options as any).id;
 
       if (productId) {
         handleClickProductMarker(productId);
+        
+        // Якщо клік був по мапі, маркер перемалюється (щоб стати зеленим)
+        // Тому ми чекаємо трохи, і відкриваємо попап вже на новому зеленому маркері
+        if ((marker.options as any).isApproximate) {
+          setTimeout(() => {
+            const newMarker = mapMarkers.value?.find((m: any) => m.options?.id === productId);
+            if (newMarker) {
+              newMarker.openPopup();
+            }
+          }, 300);
+        }
       } else {
         console.warn("Не вдалося знайти ID для цього маркера", marker);
       }
     });
+
+    if ((marker.options as any).isApproximate) {
+      marker.bindPopup("<div class='text-center p-1 text-sm font-medium'>Цей товар знаходиться десь у цьому районі (радіус ~1 км)</div>", {
+        closeButton: false,
+        offset: [0, -10],
+      });
+    }
   });
 };
 
@@ -438,10 +520,16 @@ const refreshClusters = async () => {
 const isLocating = computed(() => !initialUserLocation.value && !error.value);
 
 const productsInRadius = computed(() => {
-  if (!initialUserLocation.value || !allListings.value) return [];
+  if (!initialUserLocation.value) return [];
+  
+  // Об'єднуємо товари з бази даних (allListings) та замокані товари (MOCK_PRODUCTS)
+  const combinedListings = [...(allListings.value || []), ...MOCK_PRODUCTS];
 
-  return allListings.value.filter((product) => {
-    if (!product.latitude || !product.longitude) return false;
+  return combinedListings.filter((product) => {
+    const lat = product.latitude || product.location?.lat;
+    const lng = product.longitude || product.location?.lng;
+
+    if (!lat || !lng) return false;
 
     // 1. Фільтр по радіусу
     const isWithin = isPointWithinRadius(
@@ -449,7 +537,7 @@ const productsInRadius = computed(() => {
         latitude: initialUserLocation.value![0],
         longitude: initialUserLocation.value![1],
       },
-      { latitude: product.latitude, longitude: product.longitude },
+      { latitude: lat, longitude: lng },
       searchRadius.value,
     );
 
@@ -532,7 +620,24 @@ const handleZoomToProduct = (product: Product) => {
 
   if (lat && lng && map.value?.leafletObject) {
     isProductsSliderOpen.value = false;
-    map.value.leafletObject.flyTo([lat, lng], 14);
+    
+    // Просто плавно летимо до маркера (зум 18 - максимальний)
+    // Оскільки ми додали підсвітку кластера (він стане зеленим),
+    // користувач сам інтуїтивно натисне на нього, щоб розкрити.
+    map.value.leafletObject.flyTo([lat, lng], 18, {
+      animate: true,
+      duration: 1.5 
+    });
+
+    if (product.is_exact_location === false) {
+      map.value.leafletObject.once('moveend', () => {
+        // Знаходимо маркер з новим підсвіченим станом і автоматично відкриваємо його попап
+        const targetMarker = mapMarkers.value?.find((m: any) => m.options?.id === product.id);
+        if (targetMarker) {
+          targetMarker.openPopup();
+        }
+      });
+    }
   }
 };
 
@@ -567,18 +672,25 @@ const handleDraggableMarker = (newLatLng: any) => {
 };
 
 const clusterMarkersData = computed(() => {
-  return productsInRadius.value.map((product) => ({
-    lat: product.latitude,
-    lng: product.longitude,
-    options: {
-      id: product.id,
-      icon: createPriceIcon(
-        product.price,
-        product.id === selectedProductOnMap.value,
-      ),
-      zIndexOffset: product.id === selectedProductOnMap.value ? 1000 : 0,
-    },
-  }));
+  return productsInRadius.value.map((product) => {
+    // Перевіряємо чи точна локація (за замовчуванням true, якщо не вказано)
+    const isExact = product.is_exact_location !== false;
+    const lat = product.latitude || product.location?.lat;
+    const lng = product.longitude || product.location?.lng;
+    
+    return {
+      lat,
+      lng,
+      options: {
+        id: product.id,
+        isApproximate: !isExact,
+        icon: isExact 
+          ? createPriceIcon(product.price, product.id === selectedProductOnMap.value)
+          : createApproximateIcon(product.price, product.id === selectedProductOnMap.value),
+        zIndexOffset: product.id === selectedProductOnMap.value ? 1000 : 0,
+      },
+    };
+  });
 });
 
 const onMapReady = async () => {

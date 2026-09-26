@@ -184,7 +184,17 @@
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                       />
                       <LMarker
+                        v-if="product.is_exact_location !== false"
                         :lat-lng="[product.location.lat, product.location.lng]"
+                      />
+                      <LCircle
+                        v-else
+                        :lat-lng="[product.location.lat, product.location.lng]"
+                        :radius="1000"
+                        color="#f97316"
+                        fill-color="#f97316"
+                        :fill-opacity="0.2"
+                        :weight="2"
                       />
                     </LMap>
                   </div>
@@ -233,6 +243,7 @@
                 />
 
                 <LMarker
+                  v-if="product.is_exact_location !== false"
                   :lat-lng="[product.location.lat, product.location.lng]"
                 >
                   <LIcon
@@ -241,12 +252,22 @@
                     class-name="bg-transparent"
                   >
                     <div
-                      class="bg-brand-500 text-white p-1 rounded-lg text-xs text-center whitespace-nowrap border-2 border-white"
+                      class="bg-brand-500 text-white p-1 rounded-lg text-xs text-center whitespace-nowrap border-2 border-white shadow-md"
                     >
                       {{ product.price }} ₴
                     </div>
                   </LIcon>
                 </LMarker>
+                
+                <LCircle
+                  v-else
+                  :lat-lng="[product.location.lat, product.location.lng]"
+                  :radius="1000"
+                  color="#f97316"
+                  fill-color="#f97316"
+                  :fill-opacity="0.2"
+                  :weight="2"
+                />
               </LMap>
             </div>
           </UCard>

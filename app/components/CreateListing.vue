@@ -394,6 +394,13 @@
     <ClientOnly>
       <UModal v-model:open="isMapModalOpen" title="Вкажіть точку на карті" description="Оберіть місцезнаходження на карті">
         <template #body>
+          <div class="flex items-center justify-between mb-4 bg-gray-50 dark:bg-neutral-800 p-3 rounded-lg border border-gray-200 dark:border-neutral-700">
+            <div class="flex flex-col pr-4">
+              <span class="font-medium text-sm text-neutral-900 dark:text-white">Показувати точну адресу</span>
+              <span class="text-xs text-neutral-500">Вимкніть, щоб показувати лише приблизний радіус (надійно приховує точну будівлю)</span>
+            </div>
+            <UCheckbox v-model="formData.isExactLocation" color="primary" />
+          </div>
           <div class="h-96 w-full rounded-lg overflow-hidden relative">
             <LMap
               ref="modalMap"
@@ -408,7 +415,17 @@
                 layer-type="base"
                 name="OpenStreetMap"
               />
-              <LMarker v-if="markerPosition" :lat-lng="markerPosition" />
+              <!-- Замість LMarker використовуємо LCircle для вибору зони, якщо вимкнено точну адресу -->
+              <LMarker v-if="markerPosition && formData.isExactLocation" :lat-lng="markerPosition" />
+              <LCircle 
+                v-if="markerPosition && !formData.isExactLocation" 
+                :lat-lng="markerPosition" 
+                :radius="1000" 
+                color="#f97316"
+                fill-color="#f97316"
+                :fill-opacity="0.2"
+                :weight="2"
+              />
             </LMap>
           </div>
         </template>
@@ -524,6 +541,7 @@ const formData = reactive({
   price: undefined as number | undefined,
   isFree: false,
   address: "",
+  isExactLocation: true,
   latitude: undefined as number | undefined,
   longitude: undefined as number | undefined,
   delivery: [] as string[],
@@ -577,6 +595,7 @@ const resetForm = () => {
   formData.quantity = undefined;
   formData.unit = "";
   formData.address = "";
+  formData.isExactLocation = true;
   formData.latitude = undefined;
   formData.longitude = undefined;
   formData.delivery = [];
@@ -704,6 +723,7 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
         address: formData.address,
         latitude: formData.latitude,
         longitude: formData.longitude,
+        is_exact_location: formData.isExactLocation,
         delivery: formData.delivery,
         delivery_details: formData.deliveryDetails,
         description: formData.description,
@@ -826,7 +846,7 @@ const fetchAddressFromCoordinates = async (lat: number, lng: number) => {
   try {
     // Звертаємося до НАШОГО власного API замість напряму до стороннього сервісу
     const data = await $fetch<{ address: string | null }>('/api/geocode', {
-      query: { lat, lng }
+      query: { lat, lng, exact: formData.isExactLocation }
     });
     
     if (data && data.address) {
@@ -872,6 +892,7 @@ const openMapModal = () => {
 };
 
 const onMapClick = (event: any) => {
+  console.log(event.latlng);
   const { lat, lng } = event.latlng;
   markerPosition.value = [lat, lng];
 };

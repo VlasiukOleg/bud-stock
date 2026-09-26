@@ -25,6 +25,7 @@ export const generateMockProducts = (count: number): Product[] => {
       quantity: Math.floor(Math.random() * 50) + 1,
       unit: "м²",
       status: Math.random() > 0.5 ? "Нове" : "Залишки",
+      is_exact_location: Math.random() > 0.2, // 20% товарів матимуть неточну локацію
       location: {
         address: "Київ, район",
         lat,
@@ -36,4 +37,4 @@ export const generateMockProducts = (count: number): Product[] => {
   });
 };
 
-export const MOCK_PRODUCTS = generateMockProducts(500);
+export const MOCK_PRODUCTS = generateMockProducts(5000);

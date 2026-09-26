@@ -132,9 +132,12 @@ const shortAddress = computed(() => {
         </div>
       </div>
 
-      <div class="flex items-start gap-1 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mb-3 line-clamp-2">
+      <div class="flex items-start gap-1 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mb-3">
         <UIcon name="i-heroicons-map-pin" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-neutral-400 mt-0.5" />
-        <span class="font-medium leading-snug">{{ shortAddress }}</span>
+        <div class="flex flex-col">
+          <span class="font-medium leading-snug line-clamp-2">{{ shortAddress }}</span>
+          <span v-if="product.is_exact_location === false" class="text-[10px] sm:text-xs text-brand-500 mt-0.5 italic">Товар знаходиться десь у цьому районі</span>
+        </div>
       </div>
 
       <div class="mt-auto pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-2 text-xs text-neutral-500 dark:text-neutral-400">

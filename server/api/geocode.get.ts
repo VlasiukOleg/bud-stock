@@ -28,12 +28,19 @@ export default defineEventHandler(async (event) => {
 
     if (data && data.address) {
       // 3. Форматуємо адресу
-      const parts = [
-        data.address.road,
-        data.address.house_number,
-        data.address.city_district || data.address.suburb,
-        data.address.city || data.address.town || data.address.village
-      ].filter(Boolean);
+      const isExact = query.exact !== 'false';
+      
+      const parts = isExact 
+        ? [
+            data.address.road,
+            data.address.house_number,
+            data.address.city_district || data.address.suburb,
+            data.address.city || data.address.town || data.address.village
+          ].filter(Boolean)
+        : [
+            data.address.city_district || data.address.suburb,
+            data.address.city || data.address.town || data.address.village
+          ].filter(Boolean);
       
       // Повертаємо готовий рядок
       return { address: parts.join(', ') };

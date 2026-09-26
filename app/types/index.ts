@@ -30,6 +30,7 @@ export interface Product {
   address?: string;
   latitude?: number;
   longitude?: number;
+  is_exact_location?: boolean;
   sellerName?: string;
   sellerRating: number;
   views?: number;
