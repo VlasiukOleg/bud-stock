@@ -13,14 +13,12 @@
         <!-- Step 1: Upload -->
         <template v-if="activeStep === 0">
           <div class="text-center">
-            <h1 class="text-3xl font-bold mb-4">Що будемо продавати?</h1>
+            <h1 class="text-3xl font-bold mb-4">{{ $t('createListing.step1.title') }}</h1>
             <p class="text-gray-700 mb-1">
-              Завантажте головне фото товару для швидкого аналізу та створення
-              оголошення.
+              {{ $t('createListing.step1.subtitle') }}
             </p>
             <p class="text-gray-500 mb-8 text-sm">
-              (по фото ми заповнимо ціну, заголовок, опис та підберемо
-              категорію, Вам залишиться тільки натиснути Опублікувати).
+              {{ $t('createListing.step1.hint') }}
             </p>
 
             <UForm
@@ -31,7 +29,7 @@
             >
               <UFormField
                 name="initialFile"
-                description="JPG, GIF or PNG. 20MB Max."
+                :description="$t('createListing.step1.fileDesc')"
               >
                 <UFileUpload
                   v-model="step1State.initialFile"
@@ -49,7 +47,7 @@
                 class="mt-8 bg-brand-500 hover:bg-brand-400 font-bold"
                 :loading="isLoading"
               >
-                Проаналізувати фото
+                {{ $t('createListing.step1.analyzeBtn') }}
               </UButton>
             </UForm>
 
@@ -59,7 +57,7 @@
               class="mt-4"
               @click="skipToManual"
             >
-              Перейти до створення оголошення
+              {{ $t('createListing.step1.skipBtn') }}
             </UButton>
           </div>
         </template>
@@ -79,21 +77,21 @@
               />
             </div>
             <h2 class="text-2xl font-bold mb-2">
-              ШІ розпізнає товар та шукає ціни...
+              {{ $t('createListing.step2.title') }}
             </h2>
-            <p class="text-gray-500">Це може зайняти кілька секунд</p>
+            <p class="text-gray-500">{{ $t('createListing.step2.subtitle') }}</p>
           </div>
         </template>
 
         <!-- Step 3: Validate & Details -->
         <template v-else-if="activeStep === 2">
           <div>
-            <h1 class="text-2xl font-bold mb-6">Деталі оголошення</h1>
+            <h1 class="text-2xl font-bold mb-6">{{ $t('createListing.step3.title') }}</h1>
             <UAlert
               v-if="shouldShowProductRelevantBanner"
               color="warning"
-              title="Ваш товар не підходить для платформи."
-              description="Якщо ми помилились, Ви можете додати цей товар, але він пройде ручну модерацію. Це може зайняти деякий час."
+              :title="$t('createListing.step3.bannerTitle')"
+              :description="$t('createListing.step3.bannerDesc')"
               :ui="{ description: 'text-xs' }"
               class="mb-6"
             />
@@ -110,7 +108,7 @@
               <!-- Галерея фото -->
               <div class="space-y-3">
                 <label class="block text-sm font-medium text-gray-700">
-                  Фотографії ({{ formData.images.length }}/5)
+                  {{ $t('createListing.step3.photosLabel', { current: formData.images.length, max: 5 }) }}
                 </label>
 
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
@@ -137,7 +135,7 @@
                       v-if="index === 0"
                       class="absolute -top-2 -left-2"
                       color="primary"
-                      >Головне</UBadge
+                      >{{ $t('createListing.step3.mainPhotoBadge') }}</UBadge
                     >
                   </div>
 
@@ -157,7 +155,7 @@
                           name="i-heroicons-plus"
                           class="w-8 h-8 text-gray-400"
                         />
-                        <span class="text-xs text-gray-500 mt-1">Додати</span>
+                        <span class="text-xs text-gray-500 mt-1">{{ $t('createListing.step3.addPhotoBtn') }}</span>
                       </button>
                     </template>
                   </UFileUpload>
@@ -170,17 +168,17 @@
               <!-- Основна інформація -->
               <div class="space-y-6">
                 <!-- Назва -->
-                <UFormField name="title" label="Назва товару *">
+                <UFormField name="title" :label="$t('createListing.step3.titleLabel')">
                   <UInput
                     v-model="formData.title"
                     size="lg"
                     class="w-full"
-                    placeholder="Наприклад: Гіпсокартон Knauf 2500x1200x12.5мм"
+                    :placeholder="$t('createListing.step3.titlePlaceholder')"
                   />
                 </UFormField>
 
                 <!-- Категорія -->
-                <UFormField name="categoryId" label="Категорія товару *">
+                <UFormField name="categoryId" :label="$t('createListing.step3.categoryLabel')">
                   <UDropdownMenu
                     :items="categoryDropdownItems"
                     :ui="{ content: 'w-72 max-h-96 overflow-y-auto' }"
@@ -200,7 +198,7 @@
                         {{ selectedCategoryLabel }}
                       </span>
                       <span v-else class="text-gray-400"
-                        >Оберіть категорію</span
+                        >{{ $t('createListing.step3.categoryPlaceholder') }}</span
                       >
                       <UIcon
                         name="i-lucide-chevron-down"
@@ -211,7 +209,7 @@
                 </UFormField>
 
                 <!-- СТАН (Нове) -->
-                <UFormField name="status" label="Стан *">
+                <UFormField name="status" :label="$t('createListing.step3.statusLabel')">
                   <div class="flex gap-4">
                     <UButton
                       v-for="status in productStatuses"
@@ -233,7 +231,7 @@
 
                 <!-- Кількість та Одиниця (Нове) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <UFormField name="quantity" label="Кількість *">
+                  <UFormField name="quantity" :label="$t('createListing.step3.quantityLabel')">
                     <UInput
                       v-model="formData.quantity"
                       size="lg"
@@ -242,12 +240,12 @@
                     />
                   </UFormField>
 
-                  <UFormField name="unit" label="Одиниця *">
+                  <UFormField name="unit" :label="$t('createListing.step3.unitLabel')">
                     <USelect
                       v-model="formData.unit"
                       :items="productUnits"
                       size="lg"
-                      placeholder="Оберіть"
+                      :placeholder="$t('createListing.step3.unitPlaceholder')"
                       class="w-full"
                     />
                   </UFormField>
@@ -258,14 +256,14 @@
                   <UCheckbox
                     v-model="formData.isFree"
                     name="isFree"
-                    label="Віддам безкоштовно (даром)"
+                    :label="$t('createListing.step3.freeLabel')"
                     color="primary"
                   />
                 </div>
 
                 <!-- Ціна (ховаємо, якщо Віддам даром) -->
                 <div v-if="!formData.isFree" class="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
-                  <UFormField name="price" label="Ціна за одиницю *">
+                  <UFormField name="price" :label="$t('createListing.step3.priceLabel')">
                     <UInput
                       v-model="formData.price"
                       type="number"
@@ -273,30 +271,30 @@
                       placeholder="180"
                       class="w-full"
                     >
-                      <template #trailing>грн</template>
+                      <template #trailing>{{ $t('createListing.step3.currency') }}</template>
                     </UInput>
                   </UFormField>
 
                   <!-- Відображення загальної ціни -->
                   <div class="flex flex-col justify-center text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Загальна вартість</span>
+                    <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">{{ $t('createListing.step3.totalPriceLabel') }}</span>
                     <span class="text-xl font-bold text-gray-900">
-                      {{ totalPrice > 0 ? totalPrice + ' грн' : '—' }}
+                      {{ totalPrice > 0 ? totalPrice + ' ' + $t('createListing.step3.currency') : '—' }}
                     </span>
                   </div>
                 </div>
 
                 <!-- Локація (Нове) -->
-                <UFormField name="address" label="Локація *">
+                <UFormField name="address" :label="$t('createListing.step3.locationLabel')">
                   <UInput
                     v-model="formData.address"
                     size="lg"
                     class="w-full"
-                    placeholder="Визначте локацію кнопками нижче"
+                    :placeholder="$t('createListing.step3.locationPlaceholder')"
                     readonly
                   />
                   <template #description>
-                    Адреса визначається автоматично за допомогою кнопок нижче.
+                    {{ $t('createListing.step3.locationDesc') }}
                   </template>
                 </UFormField>
 
@@ -308,7 +306,7 @@
                     @click="useMyLocation"
                     :loading="isGettingLocation"
                   >
-                    Отримати мою позицію
+                    {{ $t('createListing.step3.myLocationBtn') }}
                   </UButton>
                   <UButton
                     color="primary"
@@ -316,16 +314,16 @@
                     icon="i-heroicons-map"
                     @click="openMapModal"
                   >
-                    Вказати на мапі
+                    {{ $t('createListing.step3.mapLocationBtn') }}
                   </UButton>
                 </div>
                 <div v-if="formData.latitude && formData.longitude" class="text-xs text-green-600 flex items-center gap-1 font-medium -mt-2">
                   <UIcon name="i-heroicons-check-circle" class="w-4 h-4" />
-                  Координати встановлено ({{ formData.latitude.toFixed(4) }}, {{ formData.longitude.toFixed(4) }})
+                  {{ $t('createListing.step3.coordinatesSet') }} ({{ formData.latitude.toFixed(4) }}, {{ formData.longitude.toFixed(4) }})
                 </div>
 
                 <!-- Спосіб отримання (Нове) -->
-                <UFormField name="delivery" label="Спосіб отримання *">
+                <UFormField name="delivery" :label="$t('createListing.step3.deliveryLabel')">
                   <UCheckboxGroup
                     v-model="formData.delivery"
                     :items="deliveryOptions"
@@ -337,25 +335,25 @@
                 <UFormField
                   v-if="formData.delivery.includes('Доставка')"
                   name="deliveryDetails"
-                  label="Умови доставки *"
+                  :label="$t('createListing.step3.deliveryDetailsLabel')"
                 >
                   <UInput
                     v-model="formData.deliveryDetails"
                     size="lg"
                     class="w-full"
-                    placeholder="Наприклад: Доставка по Києву - 200 грн"
+                    :placeholder="$t('createListing.step3.deliveryDetailsPlaceholder')"
                   />
                 </UFormField>
 
                 <!-- Опис -->
-                <UFormField name="description" label="Коментар / Опис *">
+                <UFormField name="description" :label="$t('createListing.step3.descriptionLabel')">
                   <UTextarea
                     v-model="formData.description"
                     autoresize
                     :rows="4"
                     size="lg"
                     class="w-full"
-                    placeholder="Додаткова інформація про товар..."
+                    :placeholder="$t('createListing.step3.descriptionPlaceholder')"
                   />
                 </UFormField>
               </div>
@@ -372,7 +370,7 @@
                   class="w-full sm:w-1/3 justify-center"
                   @click="resetForm"
                 >
-                  Скасувати
+                  {{ $t('createListing.step3.cancelBtn') }}
                 </UButton>
 
                 <UButton
@@ -382,7 +380,7 @@
                   class="w-full sm:w-2/3 justify-center font-bold"
                   :disabled="!isFormValid"
                 >
-                  Опублікувати
+                  {{ $t('createListing.step3.publishBtn') }}
                 </UButton>
               </div>
             </UForm>
@@ -392,12 +390,12 @@
     </div>
 
     <ClientOnly>
-      <UModal v-model:open="isMapModalOpen" title="Вкажіть точку на карті" description="Оберіть місцезнаходження на карті">
+      <UModal v-model:open="isMapModalOpen" :title="$t('createListing.mapModal.title')" :description="$t('createListing.mapModal.desc')">
         <template #body>
           <div class="flex items-center justify-between mb-4 bg-gray-50 dark:bg-neutral-800 p-3 rounded-lg border border-gray-200 dark:border-neutral-700">
             <div class="flex flex-col pr-4">
-              <span class="font-medium text-sm text-neutral-900 dark:text-white">Показувати точну адресу</span>
-              <span class="text-xs text-neutral-500">Вимкніть, щоб показувати лише приблизний радіус (надійно приховує точну будівлю)</span>
+              <span class="font-medium text-sm text-neutral-900 dark:text-white">{{ $t('createListing.mapModal.exactAddressTitle') }}</span>
+              <span class="text-xs text-neutral-500">{{ $t('createListing.mapModal.exactAddressDesc') }}</span>
             </div>
             <UCheckbox v-model="formData.isExactLocation" color="primary" />
           </div>
@@ -432,8 +430,8 @@
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton color="neutral" variant="ghost" @click="() => { isMapModalOpen = false }">Скасувати</UButton>
-            <UButton color="primary" @click="confirmMapLocation" :disabled="!markerPosition">Підтвердити локацію</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { isMapModalOpen = false }">{{ $t('createListing.mapModal.cancelBtn') }}</UButton>
+            <UButton color="primary" @click="confirmMapLocation" :disabled="!markerPosition">{{ $t('createListing.mapModal.confirmBtn') }}</UButton>
           </div>
         </template>
       </UModal>
@@ -452,14 +450,15 @@ import ListingForm from "./ui/ListingForm.vue";
 const toast = useToast();
 const supabase = useSupabaseClient<any>();
 const user = useSupabaseUser();
+const { t } = useI18n();
 const shouldShowProductRelevantBanner = ref(false);
 const isLoading = ref(false);
 
 // --- ДОВІДНИКИ ДЛЯ НОВИХ ПОЛІВ ---
-const productStatuses = [
-  { value: "новий", label: "Новий" },
-  { value: "залишок", label: "Залишок" },
-];
+const productStatuses = computed(() => [
+  { value: "новий", label: t('createListing.constants.statusNew') },
+  { value: "залишок", label: t('createListing.constants.statusRemnant') },
+]);
 
 const productUnits = [
   { label: "шт", value: "шт" },
@@ -470,10 +469,10 @@ const productUnits = [
   { label: "мішок", value: "мішок" },
 ];
 
-const deliveryOptions = [
-  { label: "Самовивіз", value: "Самовивіз" },
-  { label: "Доставка продавцем", value: "Доставка" }
-];
+const deliveryOptions = computed(() => [
+  { label: t('createListing.constants.pickup'), value: "Самовивіз" },
+  { label: t('createListing.constants.delivery'), value: "Доставка" }
+]);
 
 // --- СТРУКТУРА ДЛЯ UDropdownMenu ---
 const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
@@ -484,7 +483,7 @@ const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
       children: [
         [
           {
-            label: `Всі товари в "${category.name}"`,
+            label: t('createListing.constants.allIn', { category: category.name }),
             icon: "i-lucide-check-circle",
             onSelect: () => {
               formData.categoryId = category.id;
@@ -505,21 +504,21 @@ const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
 });
 
 // --- STEPPER CONFIG ---
-const stepperItems: StepperItem[] = [
-  { slot: "upload", title: "Фото", icon: "i-heroicons-camera", disabled: true },
+const stepperItems = computed<StepperItem[]>(() => [
+  { slot: "upload", title: t('createListing.stepper.photo'), icon: "i-heroicons-camera", disabled: true },
   {
     slot: "processing",
-    title: "Аналіз",
+    title: t('createListing.stepper.analysis'),
     icon: "i-heroicons-sparkles",
     disabled: true,
   },
   {
     slot: "validate",
-    title: "Деталі",
+    title: t('createListing.stepper.details'),
     icon: "i-heroicons-document-text",
     disabled: true,
   },
-];
+]);
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -647,8 +646,8 @@ const handleInitialUpload = async (event: FormSubmitEvent<any>) => {
   } catch (e) {
     activeStep.value = 2;
     toast.add({
-      title: "Помилка! Аналіз не вдався",
-      description: "Спробуйте пізніше чи заповніть поля вручну",
+      title: t('createListing.toasts.analyzeErrorTitle'),
+      description: t('createListing.toasts.analyzeErrorDesc'),
       color: "error",
     });
   } finally {
@@ -677,7 +676,7 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
   if (!user.value) {
     toast.add({
       title: "Помилка",
-      description: "Ви повинні бути авторизовані для створення оголошення",
+      description: t('createListing.toasts.authError'),
       color: "error",
     });
     return;
@@ -733,8 +732,8 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
     if (dbError) throw dbError;
 
     toast.add({
-      title: "Успішно!",
-      description: "Ваше оголошення створено.",
+      title: t('createListing.toasts.createSuccessTitle'),
+      description: t('createListing.toasts.createSuccessDesc'),
       color: "success",
     });
     
@@ -747,8 +746,8 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
   } catch (error: any) {
     console.error("Error creating listing:", error);
     toast.add({
-      title: "Помилка при створенні",
-      description: error.message || "Сталася невідома помилка",
+      title: t('createListing.toasts.createErrorTitle'),
+      description: error.message || t('createListing.toasts.createErrorDesc'),
       color: "error",
     });
   } finally {
@@ -778,18 +777,18 @@ const validateDimensions = (file: File) => {
 
 const fileSchema = yup
   .mixed<File>()
-  .required("Будь ласка, оберіть фото")
+  .required(t('createListing.validation.addPhoto'))
   .test(
     "fileSize",
-    "Файл занадто великий (макс 20MB)",
+    t('createListing.validation.fileTooLarge'),
     (val) => !val || val.size <= MAX_FILE_SIZE,
   )
   .test(
     "fileType",
-    "Тільки JPEG, PNG або WEBP",
+    t('createListing.validation.wrongType'),
     (val) => !val || ACCEPTED_IMAGE_TYPES.includes(val.type),
   )
-  .test("dimensions", "Неправильний розмір картинки", async (val) => {
+  .test("dimensions", t('createListing.validation.wrongDimensions'), async (val) => {
     if (!val || !ACCEPTED_IMAGE_TYPES.includes(val.type)) return true;
     return await validateDimensions(val);
   });
@@ -798,19 +797,19 @@ const step1Schema = yup.object({ initialFile: fileSchema });
 
 // Оновлена схема для всіх нових полів
 const mainFormSchema = yup.object({
-  images: yup.array().min(1, "Додайте хоча б одне фото").max(5),
+  images: yup.array().min(1, t('createListing.validation.minPhotos')).max(5),
   title: yup
     .string()
-    .min(10, "Мінімальна кількість символів 10")
-    .required("Введіть назву"),
-  categoryId: yup.string().required("Оберіть категорію"),
-  status: yup.string().required("Оберіть стан товару"),
+    .min(10, t('createListing.validation.minTitle'))
+    .required(t('createListing.validation.reqTitle')),
+  categoryId: yup.string().required(t('createListing.validation.reqCategory')),
+  status: yup.string().required(t('createListing.validation.reqStatus')),
   quantity: yup
     .number()
-    .typeError("Введіть число")
-    .positive("Кількість повинна бути більше нуля")
-    .required("Вкажіть кількість"),
-  unit: yup.string().required("Оберіть одиницю виміру"),
+    .typeError(t('createListing.validation.reqQuantityNum'))
+    .positive(t('createListing.validation.reqQuantityPos'))
+    .required(t('createListing.validation.reqQuantity')),
+  unit: yup.string().required(t('createListing.validation.reqUnit')),
   isFree: yup.boolean(),
   price: yup
     .number()
@@ -819,21 +818,21 @@ const mainFormSchema = yup.object({
       then: (schema) => schema.optional().nullable(),
       otherwise: (schema) =>
         schema
-          .typeError("Введіть число")
-          .positive("Ціна повинна бути більше нуля")
-          .required("Вкажіть ціну"),
+          .typeError(t('createListing.validation.reqPriceNum'))
+          .positive(t('createListing.validation.reqPricePos'))
+          .required(t('createListing.validation.reqPrice')),
     }),
-  address: yup.string().required("Вкажіть локацію"),
-  latitude: yup.number().required("Будь ласка, вкажіть точку на карті або використайте поточну позицію"),
-  longitude: yup.number().required("Будь ласка, вкажіть точку на карті або використайте поточну позицію"),
-  delivery: yup.array().min(1, "Оберіть хоча б один спосіб отримання"),
+  address: yup.string().required(t('createListing.validation.reqAddress')),
+  latitude: yup.number().required(t('createListing.validation.reqLat')),
+  longitude: yup.number().required(t('createListing.validation.reqLat')),
+  delivery: yup.array().min(1, t('createListing.validation.reqDelivery')),
   // Динамічна валідація: вимагати деталі, тільки якщо обрано "Доставка"
   deliveryDetails: yup.string().when("delivery", {
     is: (delivery: string[]) => delivery && delivery.includes("Доставка"),
-    then: (schema) => schema.required("Вкажіть умови доставки"),
+    then: (schema) => schema.required(t('createListing.validation.reqDeliveryDetails')),
     otherwise: (schema) => schema.optional(),
   }),
-  description: yup.string().required("Опис обов'язковий"),
+  description: yup.string().required(t('createListing.validation.reqDesc')),
 });
 
 // Додаємо змінні для карти
@@ -865,18 +864,18 @@ const useMyLocation = () => {
         formData.latitude = position.coords.latitude;
         formData.longitude = position.coords.longitude;
         isGettingLocation.value = false;
-        toast.add({ title: 'Геопозиція отримана!', color: 'success' });
+        toast.add({ title: t('createListing.toasts.locationSuccess'), color: 'success' });
         
         // Отримуємо адресу за координатами
         await fetchAddressFromCoordinates(position.coords.latitude, position.coords.longitude);
       },
       (err) => {
         isGettingLocation.value = false;
-        toast.add({ title: 'Помилка геолокації', description: err.message, color: 'error' });
+        toast.add({ title: t('createListing.toasts.locationError'), description: err.message, color: 'error' });
       }
     );
   } else {
-    toast.add({ title: 'Помилка', description: 'Ваш браузер не підтримує геолокацію', color: 'error' });
+    toast.add({ title: 'Помилка', description: t('createListing.toasts.noGeoSupport'), color: 'error' });
   }
 };
 
@@ -902,7 +901,7 @@ const confirmMapLocation = async () => {
     formData.latitude = markerPosition.value[0];
     formData.longitude = markerPosition.value[1];
     isMapModalOpen.value = false;
-    toast.add({ title: 'Локація вибрана на мапі', color: 'success' });
+    toast.add({ title: t('createListing.toasts.mapLocationSuccess'), color: 'success' });
     
     // Отримуємо адресу за координатами
     await fetchAddressFromCoordinates(markerPosition.value[0], markerPosition.value[1]);

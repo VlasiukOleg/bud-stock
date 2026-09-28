@@ -137,7 +137,7 @@
         <Transition name="fade">
           <div
             v-if="isLocating"
-            class="absolute inset-0 z-[2000] bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm flex flex-col items-center justify-center"
+            class="absolute inset-0 z-2000 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm flex flex-col items-center justify-center"
           >
             <UIcon
               name="i-heroicons-arrow-path"
@@ -272,7 +272,21 @@
           <div
             class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10 scroll-smooth"
           >
-            <NuxtLink
+          <CommonProductCard
+            v-for="product in displayedProducts"
+            :key="product.id"
+            :id="`mobile-product-${product.id}`"
+            :product="product"
+            :show-map-button="true"
+            @map-click="handleZoomToProduct"
+            :class="[
+              'transition-all duration-300 rounded-xl',
+              selectedProductOnMap === product.id
+                ? 'ring-2 ring-brand-500 shadow-lg'
+                : '',
+            ]"
+          />
+            <!-- <NuxtLink
               v-for="item in displayedProducts"
               :to="`/catalog/${item.id}`"
               :key="item.id"
@@ -313,7 +327,7 @@
                   {{ $t('catalog.showOnMap') }}
                 </UButton>
               </div>
-            </NuxtLink>
+            </NuxtLink> -->
           </div>
           <div v-if="hasMoreProducts" class="col-span-full mt-2">
             <UButton

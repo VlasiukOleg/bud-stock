@@ -135,26 +135,147 @@
     "myListings": "My Listings",
     "myPurchases": "My Purchases",
     "information": {
-      "title": "Personal Information",
-      "subtitle": "Manage your details",
+      "pageTitle": "My Profile",
+      "sectionTitle": "Personal Details",
       "nameLabel": "Name",
-      "nameHelp": "How should we call you",
+      "namePlaceholder": "Enter your name",
+      "nameRequired": "Enter name",
+      "nameMin": "Name must be at least 2 characters",
       "phoneLabel": "Phone",
-      "phoneHelp": "For contacting buyers (Optional)",
-      "save": "Save changes"
+      "phoneRequired": "Enter phone",
+      "phoneInvalid": "Enter full number",
+      "phoneHelp": "A phone number is required to create listings.",
+      "showPhoneLabel": "Show my phone in listings",
+      "showPhoneHelp": "Other users will not see your phone number if you disable this setting (communication will only be via messages).",
+      "avatarLabel": "Avatar",
+      "selectPhoto": "Select photo",
+      "saveChanges": "Save changes",
+      "updateSuccess": "Profile updated",
+      "updateError": "Update error"
     },
     "listings": {
-      "title": "My Listings",
+      "pageTitle": "My Listings",
       "subtitle": "Manage your items",
       "createFirst": "Create first listing",
+      "create": "Create listing",
       "noListings": "You have no active listings yet.",
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "deleteSuccess": "Listing deleted",
+      "deleteError": "Error deleting listing",
+      "loadError": "Error loading listings: ",
+      "deleteConfirmTitle": "Confirm Deletion",
+      "deleteConfirmDesc": "Are you sure you want to delete this listing? This action cannot be undone.",
+      "cancel": "Cancel"
     },
     "purchases": {
-      "title": "My Purchases",
+      "pageTitle": "My Purchases",
       "subtitle": "Your order history",
-      "noPurchases": "You haven't bought anything yet."
+      "noPurchases": "You haven't bought anything yet.",
+      "noPurchasesText": "Your orders will be displayed here."
+    }
+  },
+  "createListing": {
+    "stepper": {
+      "photo": "Photo",
+      "analysis": "Analysis",
+      "details": "Details"
+    },
+    "step1": {
+      "title": "What are we selling?",
+      "subtitle": "Upload the main photo of the item for quick analysis and listing creation.",
+      "hint": "(we will auto-fill the price, title, description and category, you just need to click Publish).",
+      "fileDesc": "JPG, GIF or PNG. Max 20MB.",
+      "analyzeBtn": "Analyze photo",
+      "skipBtn": "Skip to manual creation"
+    },
+    "step2": {
+      "title": "AI is recognizing the item and searching prices...",
+      "subtitle": "This may take a few seconds"
+    },
+    "step3": {
+      "title": "Listing Details",
+      "bannerTitle": "Your item is not suitable for the platform.",
+      "bannerDesc": "If we made a mistake, you can add this item, but it will undergo manual moderation. This may take some time.",
+      "photosLabel": "Photos ({current}/{max})",
+      "mainPhotoBadge": "Main",
+      "addPhotoBtn": "Add",
+      "titleLabel": "Item title *",
+      "titlePlaceholder": "Example: Knauf Drywall 2500x1200x12.5mm",
+      "categoryLabel": "Category *",
+      "categoryPlaceholder": "Select category",
+      "statusLabel": "Condition *",
+      "quantityLabel": "Quantity *",
+      "unitLabel": "Unit *",
+      "unitPlaceholder": "Select",
+      "freeLabel": "Give away for free",
+      "priceLabel": "Price per unit *",
+      "currency": "UAH",
+      "totalPriceLabel": "Total value",
+      "locationLabel": "Location *",
+      "locationPlaceholder": "Set location using buttons below",
+      "locationDesc": "Address is determined automatically using the buttons below.",
+      "myLocationBtn": "Get my location",
+      "mapLocationBtn": "Select on map",
+      "coordinatesSet": "Coordinates set",
+      "deliveryLabel": "Delivery method *",
+      "deliveryDetailsLabel": "Delivery details *",
+      "deliveryDetailsPlaceholder": "Example: Delivery in Kyiv - 200 UAH",
+      "descriptionLabel": "Comment / Description *",
+      "descriptionPlaceholder": "Additional information about the item...",
+      "cancelBtn": "Cancel",
+      "publishBtn": "Publish"
+    },
+    "mapModal": {
+      "title": "Set point on map",
+      "desc": "Choose location on the map",
+      "exactAddressTitle": "Show exact address",
+      "exactAddressDesc": "Disable to show only an approximate radius (reliably hides the exact building)",
+      "cancelBtn": "Cancel",
+      "confirmBtn": "Confirm location"
+    },
+    "constants": {
+      "statusNew": "New",
+      "statusRemnant": "Remnant",
+      "pickup": "Pickup",
+      "delivery": "Seller delivery",
+      "allIn": "All items in \"{category}\""
+    },
+    "validation": {
+      "addPhoto": "Please select a photo",
+      "fileTooLarge": "File too large (max 20MB)",
+      "wrongType": "Only JPEG, PNG or WEBP",
+      "wrongDimensions": "Incorrect image dimensions",
+      "minPhotos": "Add at least one photo",
+      "minTitle": "Minimum 10 characters",
+      "reqTitle": "Enter title",
+      "reqCategory": "Select category",
+      "reqStatus": "Select condition",
+      "reqQuantityNum": "Enter a number",
+      "reqQuantityPos": "Quantity must be greater than zero",
+      "reqQuantity": "Specify quantity",
+      "reqUnit": "Select unit",
+      "reqPriceNum": "Enter a number",
+      "reqPricePos": "Price must be greater than zero",
+      "reqPrice": "Specify price",
+      "reqAddress": "Specify location",
+      "reqLat": "Please specify a point on the map or use current location",
+      "reqDelivery": "Select at least one delivery method",
+      "reqDeliveryDetails": "Specify delivery details",
+      "reqDesc": "Description is required"
+    },
+    "toasts": {
+      "analyzeErrorTitle": "Error! Analysis failed",
+      "analyzeErrorDesc": "Please try again later or fill in manually",
+      "authError": "You must be logged in to create a listing",
+      "createSuccessTitle": "Success!",
+      "createSuccessDesc": "Your listing has been created.",
+      "createErrorTitle": "Creation error",
+      "createErrorDesc": "An unknown error occurred",
+      "locationSuccess": "Geolocation received!",
+      "locationError": "Geolocation error",
+      "noGeoSupport": "Your browser does not support geolocation",
+      "mapLocationSuccess": "Location selected on map"
     }
   }
 }

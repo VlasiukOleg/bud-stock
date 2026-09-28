@@ -30,6 +30,10 @@ const buttonText = computed(() => {
   return t('header.login')
 })
 
+const isProfileRouteActive = computed(() => {
+  return route.path.startsWith("/profile")
+})
+
 const userInitials = computed(() => {
   if (!user.value) return '';
   const name = user.value.user_metadata?.full_name;
@@ -51,16 +55,14 @@ const userInitials = computed(() => {
     <template #right>
       <CommonLocaleSelect />
       <UColorModeButton />
-      <UTooltip :text="buttonText" class="hidden lg:flex">
         <UButton
           v-if="user"
           color="neutral"
           variant="ghost"
           @click="() => {isSlideoverOpen = true}"
           :aria-label="t('header.profile')"
-          class="p-1"
         >
-          <UAvatar :src="user.user_metadata?.avatar_url" :text="!user.user_metadata?.avatar_url ? userInitials : undefined" :alt="userInitials" size="sm" />
+          <UAvatar :class="{ 'ring-2 ring-brand-500': isProfileRouteActive }" :src="user.user_metadata?.avatar_url" :text="!user.user_metadata?.avatar_url ? userInitials : undefined" :alt="userInitials" size="sm" />
         </UButton>
         <UButton
           v-else
@@ -70,7 +72,6 @@ const userInitials = computed(() => {
           icon="i-icon-park-solid:people"
           :aria-label="t('header.login')"
         />
-      </UTooltip>
     </template>
   </UHeader>
   

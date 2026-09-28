@@ -2,6 +2,7 @@
 const nuxtApp = useNuxtApp();
 const user = useSupabaseUser();
 const { getUserListings, deleteListing } = useListings();
+const { t } = useI18n();
 
 const { data: userListings, pending, error, refresh } = useAsyncData(
   `user-listings-${user.value?.sub}`,
@@ -29,7 +30,7 @@ const confirmDelete = async () => {
   isDeleting.value = true;
   try {
     await deleteListing(String(listingToDelete.value));
-    toast.add({ title: 'Оголошення успішно видалено', color: 'success' });
+    toast.add({ title: t('profile.listings.deleteSuccess'), color: 'success' });
     
     // Скидаємо кеш Nuxt, щоб підтягнулись нові дані при перезавантаженні або навігації
     clearNuxtData(`user-listings-${user.value?.sub}`);
@@ -37,7 +38,7 @@ const confirmDelete = async () => {
     
     refresh();
   } catch (err) {
-    toast.add({ title: 'Помилка видалення', color: 'error' });
+    toast.add({ title: t('profile.listings.deleteError'), color: 'error' });
   } finally {
     isDeleting.value = false;
     isDeleteModalOpen.value = false;
@@ -50,20 +51,20 @@ const confirmDelete = async () => {
   <div class="relative bg-gray-50 dark:bg-gray-900 min-h-[calc(100vh-64px)]">
     <main class="w-full">
       <div class="max-w-5xl mx-auto p-4 md:p-8">
-        <h1 class="text-3xl font-bold mb-8">Мої Оголошення</h1>
+        <h1 class="text-3xl font-bold mb-8">{{ $t('profile.listings.pageTitle') }}</h1>
 
         <div v-if="pending" class="flex justify-center py-10">
           <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-gray-500" />
         </div>
         
         <div v-else-if="error" class="text-red-500 bg-red-50 p-4 rounded-lg">
-          Помилка при завантаженні оголошень: {{ error }}
+          {{ $t('profile.listings.loadError') }} {{ error }}
         </div>
         
         <div v-else-if="userListings?.length === 0" class="text-center py-16 text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm">
           <UIcon name="i-heroicons-shopping-bag" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
-          <p class="text-lg">У вас ще немає жодного оголошення.</p>
-          <UButton to="/create-listing" class="mt-4" color="primary" variant="soft">Створити перше оголошення</UButton>
+          <p class="text-lg">{{ $t('profile.listings.noListings') }}</p>
+          <UButton to="/create-listing" class="mt-4" color="primary" variant="soft">{{ $t('profile.listings.createFirst') }}</UButton>
         </div>
         
         <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -80,8 +81,8 @@ const confirmDelete = async () => {
 
     <UModal 
       v-model:open="isDeleteModalOpen" 
-      title="Підтвердження видалення" 
-      description="Ви дійсно хочете видалити це оголошення? Цю дію неможливо буде скасувати."
+      :title="$t('profile.listings.deleteConfirmTitle')" 
+      :description="$t('profile.listings.deleteConfirmDesc')"
       :ui="{ overlay: 'bg-gray-900/75 dark:bg-gray-900/90 backdrop-blur-sm' }"
     >
       <template #footer>
@@ -89,14 +90,14 @@ const confirmDelete = async () => {
           <UButton
             color="neutral"
             variant="ghost"
-            label="Скасувати"
+            :label="$t('profile.listings.cancel')"
             @click="() =>{ isDeleteModalOpen = false }"
             :disabled="isDeleting"
           />
           <UButton
             color="error"
             variant="solid"
-            label="Видалити"
+            :label="$t('profile.listings.delete')"
             :loading="isDeleting"
             @click="confirmDelete"
           />

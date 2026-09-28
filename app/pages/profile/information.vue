@@ -7,6 +7,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 const client = useSupabaseClient<any>()
 const user = useSupabaseUser()
 const toast = useToast()
+const { t } = useI18n()
 
 const profileForm = reactive({
   name: '',
@@ -16,10 +17,10 @@ const profileForm = reactive({
 })
 
 const schema = yup.object({
-  name: yup.string().required("Введіть ім'я").min(2, "Ім'я має містити щонайменше 2 символи"),
+  name: yup.string().required(t('profile.information.nameRequired')).min(2, t('profile.information.nameMin')),
   phone: yup.string()
-    .required("Введіть телефон")
-    .test('valid-phone', 'Введіть повний номер', (value) => {
+    .required(t('profile.information.phoneRequired'))
+    .test('valid-phone', t('profile.information.phoneInvalid'), (value) => {
       if (!value) return false;
       const digits = value.replace(/\D/g, '');
       return digits.length === 12 && digits.startsWith('380');
@@ -113,12 +114,12 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
     avatarFile.value = null
     
     toast.add({
-      title: 'Профіль оновлено',
+      title: t('profile.information.updateSuccess'),
       color: 'success'
     })
   } catch (err: any) {
     toast.add({
-      title: 'Помилка оновлення',
+      title: t('profile.information.updateError'),
       description: err.message,
       color: 'error'
     })
@@ -132,18 +133,18 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
   <div class="relative bg-gray-50 dark:bg-gray-900 min-h-[calc(100vh-64px)]">
     <main class="w-full">
       <div class="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
-        <h1 class="text-3xl font-bold mb-8">Мій Профіль</h1>
+        <h1 class="text-3xl font-bold mb-8">{{ $t('profile.information.pageTitle') }}</h1>
 
         <UCard>
           <template #header>
-            <h2 class="text-lg font-semibold">Особисті дані</h2>
+            <h2 class="text-lg font-semibold">{{ $t('profile.information.sectionTitle') }}</h2>
           </template>
           <UForm :schema="schema" :state="profileForm" @submit="saveProfile" class="space-y-4">
-            <UFormField name="name" label="Ім'я">
-              <UInput v-model="profileForm.name" placeholder="Введіть ваше ім'я" icon="i-heroicons-user" />
+            <UFormField name="name" :label="$t('profile.information.nameLabel')">
+              <UInput v-model="profileForm.name" :placeholder="$t('profile.information.namePlaceholder')" icon="i-heroicons-user" />
             </UFormField>
             
-            <UFormField name="phone" label="Телефон">
+            <UFormField name="phone" :label="$t('profile.information.phoneLabel')">
               <UInput 
                 v-model="profileForm.phone" 
                 v-maska="'+380 (##) ###-##-##'"
@@ -152,7 +153,7 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
               />
               <template #description>
                 <div class="mt-2 text-sm text-gray-500">
-                  Для створення оголошень необхідно вказати телефон.
+                  {{ $t('profile.information.phoneHelp') }}
                 </div>
               </template>
             </UFormField>
@@ -160,12 +161,12 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
             <UFormField>
               <UCheckbox
                 v-model="profileForm.is_phone_public"
-                label="Показувати мій телефон в оголошеннях"
-                help="Ваш телефон не будуть бачити інші користувачі, якщо ви вимкнете це налаштування (зв'язок буде тільки через повідомлення)."
+                :label="$t('profile.information.showPhoneLabel')"
+                :help="$t('profile.information.showPhoneHelp')"
               />
             </UFormField>
 
-            <UFormField label="Аватарка">
+            <UFormField :label="$t('profile.information.avatarLabel')">
               <div class="flex items-center gap-4">
                 <UAvatar :src="currentAvatarUrl" size="xl" />
                 <UFileUpload
@@ -179,7 +180,7 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
                       variant="soft" 
                       icon="i-heroicons-camera"
                     >
-                      Вибрати фото
+                      {{ $t('profile.information.selectPhoto') }}
                     </UButton>
                   </template>
                 </UFileUpload>
@@ -193,7 +194,7 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
                 :loading="isSavingProfile"
                 :disabled="!isFormChanged"
               >
-                Зберегти зміни
+                {{ $t('profile.information.saveChanges') }}
               </UButton>
             </div>
           </UForm>
