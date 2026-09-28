@@ -8,6 +8,7 @@
       :to="item.to"
       :icon-name="item.iconName"
       :link-label="item.linkLabel"
+      :is-active="isItemActive(item.to)"
       @click.capture="handleItemClick($event, item)"
     >
       <template #icon v-if="item.to === '/profile' && user">
@@ -16,7 +17,8 @@
           :text="!user.user_metadata?.avatar_url ? userInitials : undefined"
           :alt="userInitials"
           size="sm"
-          class="mb-1"
+          class="mb-1 transition-all"
+          :class="{ 'ring-2 ring-brand-500': isItemActive(item.to) }"
         />
       </template>
     </CommonMobileMenuLinkItem>
@@ -27,9 +29,18 @@
 import { computed } from 'vue'
 import { MOBILE_MENU_LIST } from "~/constants/mobileMenu/mobileMenuList";
 import type { MobileMenuItem } from "~/types";
+import { useRoute } from 'vue-router';
 
 const user = useSupabaseUser()
 const isSlideoverOpen = useState('isSlideoverOpen', () => false)
+const route = useRoute()
+
+const isItemActive = (itemTo: string) => {
+  if (itemTo === '/') {
+    return route.path === '/'
+  }
+  return route.path.startsWith(itemTo)
+}
 
 const userInitials = computed(() => {
   if (!user.value) return '';

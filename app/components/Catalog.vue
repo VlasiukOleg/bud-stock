@@ -337,7 +337,7 @@
 
 import L from "leaflet";
 import type { PointTuple } from "leaflet";
-import { useGeolocation, useStorage } from "@vueuse/core";
+import { useGeolocation, useStorage, refDebounced } from "@vueuse/core";
 import { isPointWithinRadius } from "geolib";
 import { ref, computed, watch, nextTick } from "vue"; // Не забудь імпорти, якщо використовуєш auto-imports, то ок
 
@@ -365,7 +365,8 @@ const initialUserLocation = useStorage<PointTuple | null>(
   },
 );
 const zoom = ref(12);
-const searchRadius = ref(5000);
+const searchRadius = useStorage<number>("search-radius", 5000);
+const debouncedRadius = refDebounced(searchRadius, 500);
 
 const isProductsSliderOpen = ref(false);
 const map = ref<any>(null);
@@ -377,6 +378,7 @@ const isMapReady = ref<boolean>(false);
 const showDragHint = ref<boolean>(false);
 const displayLimit = ref(20);
 const searchQuery = ref("");
+const debouncedSearchQuery = refDebounced(searchQuery, 300);
 const isGeolocationErrorPopoverOpen = ref(false);
 
 const { coords, error, pause, resume } = useGeolocation();
@@ -538,14 +540,14 @@ const productsInRadius = computed(() => {
         longitude: initialUserLocation.value![1],
       },
       { latitude: lat, longitude: lng },
-      searchRadius.value,
+      debouncedRadius.value,
     );
 
     if (!isWithin) return false;
 
     // 2. Фільтр по назві (searchQuery)
-    if (searchQuery.value.trim()) {
-      const query = searchQuery.value.toLowerCase();
+    if (debouncedSearchQuery.value.trim()) {
+      const query = debouncedSearchQuery.value.toLowerCase();
       return product.title.toLowerCase().includes(query);
       // Можна додати ще пошук по опису: || product.description.toLowerCase().includes(query)
     }

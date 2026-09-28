@@ -2,9 +2,10 @@
   <NuxtLink
     :to="to"
     class="flex flex-col items-center justify-center w-full h-full text-neutral-500 hover:text-brand-500"
+    :class="{ 'text-brand-500!': isActive }"
     active-class="text-brand-500!"
   >
-    <slot name="icon">
+    <slot name="icon" :isActive="isActive">
       <UIcon :name="iconName" class="w-6 h-6 mb-1" />
     </slot>
     <span class="text-[10px] font-medium">{{ $t(linkLabel) }}</span>
@@ -15,6 +16,7 @@ defineProps<{
   to: string;
   iconName: string;
   linkLabel: string;
+  isActive?: boolean;
 }>();
 </script>
 <style></style>
