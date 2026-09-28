@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col h-dvh pb-16 md:h-[calc(100vh-64px)] md:pb-0 overflow-hidden relative"
+    class="flex flex-col h-[calc(100dvh-64px)] pb-16 md:pb-0 overflow-hidden relative"
   >
     <header
       class="p-4 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 z-20"
@@ -10,25 +10,25 @@
           <UInput
             v-model="searchQuery"
             icon="i-heroicons-magnifying-glass"
-            placeholder="Шукати матеріали..."
+            :placeholder="$t('catalog.searchPlaceholder')"
             class="w-full max-w-sm"
           />
           <UButton
             color="neutral"
             variant="soft"
             icon="i-heroicons-adjustments-horizontal"
-            >Фільтри</UButton
+            >{{ $t('catalog.filters') }}</UButton
           >
         </div>
 
         <div class="w-full md:w-64 space-y-1">
           <div class="flex justify-between items-center mb-2">
-            <span class="font-medium text-neutral-500">Радіус пошуку</span>
+            <span class="font-medium text-neutral-500">{{ $t('catalog.searchRadius') }}</span>
             <UBadge
               size="md"
               class="bg-brand-100 text-neutral-800"
               variant="soft"
-              >{{ searchRadius / 1000 }} км</UBadge
+              >{{ searchRadius / 1000 }} {{ $t('catalog.km') }}</UBadge
             >
           </div>
           <USlider
@@ -51,7 +51,7 @@
         class="hidden lg:block w-100 overflow-y-auto p-4 bg-neutral-50 dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 scroll-smooth"
       >
         <div class="grid grid-cols-1 gap-4" v-if="productsInRadius.length > 0">
-          <div>{{ `Знайдено: ${productsInRadius.length} позицій` }}</div>
+          <div>{{ $t('catalog.foundItems', { count: productsInRadius.length }) }}</div>
           <CommonProductCard
             v-for="product in displayedProducts"
             :key="product.id"
@@ -75,12 +75,11 @@
             class="mt-2"
             @click="loadMoreProducts"
           >
-            Показати ще 20 (Залишилось:
-            {{ productsInRadius.length - displayLimit }})
+            {{ $t('catalog.showMoreItems', { count: 20, remaining: productsInRadius.length - displayLimit }) }}
           </UButton>
         </div>
         <div v-else>
-          Не знайдено жодного матеріалу. Спробуйте збільшити радіус пошуку.
+          {{ $t('catalog.noResults') }}
         </div>
       </aside>
 
@@ -114,6 +113,7 @@
             v-if="initialUserLocation"
             :lat-lng="initialUserLocation"
             draggable
+            :z-index-offset="2000"
             @update:latLng="handleDraggableMarker"
           >
             <LIcon
@@ -130,7 +130,7 @@
                 />
               </div>
             </LIcon>
-            <LPopup>Ви тут</LPopup>
+            <LPopup>{{ $t('catalog.youAreHere') }}</LPopup>
           </LMarker>
         </LMap>
 
@@ -143,7 +143,7 @@
               name="i-heroicons-arrow-path"
               class="w-8 h-8 animate-spin text-primary-500 mb-2"
             />
-            <p class="text-sm font-medium">Шукаємо вас на карті...</p>
+            <p class="text-sm font-medium">{{ $t('catalog.locating') }}</p>
           </div>
         </Transition>
 
@@ -157,7 +157,7 @@
         >
           <div
             v-if="showDragHint && initialUserLocation"
-            class="absolute top-20 left-1/2 -translate-x-1/2 z-[1001] w-[90%] max-w-[340px]"
+            class="absolute top-20 left-1/2 -translate-x-1/2 z-1001 w-[90%] max-w-85"
           >
             <div
               class="bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 p-3 rounded-2xl shadow-2xl flex items-start gap-3"
@@ -175,7 +175,7 @@
                 <p
                   class="text-[13px] leading-tight text-neutral-700 dark:text-neutral-200"
                 >
-                  Ви можете перетягувати маркер
+                  {{ $t('catalog.dragHintPrefix') }}
                   <span
                     class="inline-flex items-center justify-center bg-blue-600 rounded-full size-4 align-middle mx-0.5 border border-white shadow-sm"
                   >
@@ -184,7 +184,7 @@
                       class="size-2.5 text-white"
                     />
                   </span>
-                  у будь-яке місце, щоб змінити точку пошуку матеріалів.
+                  {{ $t('catalog.dragHintSuffix') }}
                 </p>
               </div>
 
@@ -227,17 +227,16 @@
                     class="size-5 shrink-0"
                   />
                   <p class="font-bold text-sm text-red-500">
-                    Доступ заборонено
+                    {{ $t('catalog.accessDenied') }}
                   </p>
                 </div>
                 <p class="text-xs text-neutral-600 dark:text-neutral-400">
-                  Будь ласка, дозвольте доступ до вашої геопозиції у
-                  налаштуваннях браузера.
+                  {{ $t('catalog.allowLocation') }}
                 </p>
                 <UButton
                   size="xs"
                   variant="ghost"
-                  label="Зрозумів"
+                  :label="$t('catalog.gotIt')"
                   block
                   class="mt-2"
                   @click="() => { isGeolocationErrorPopoverOpen = false }"
@@ -248,7 +247,7 @@
         </div>
 
         <div
-          class="absolute bottom-6 left-1/2 -translate-x-1/2 z-1001 lg:hidden"
+          class="absolute bottom-5 left-1/2 -translate-x-1/2 z-1001 lg:hidden"
         >
           <UButton
             icon="i-heroicons-list-bullet"
@@ -256,7 +255,7 @@
             class="ring-3 ring-white bg-brand-500 dark:ring-neutral-950 hover:bg-brand-600"
             @click="() => { isProductsSliderOpen = true }"
           >
-            Список ({{ productsInRadius.length }})
+            {{ $t('catalog.list', { count: productsInRadius.length }) }}
           </UButton>
         </div>
       </main>
@@ -264,7 +263,7 @@
       <USlideover
         v-model:open="isProductsSliderOpen"
         side="bottom"
-        :title="`Знайдено: ${productsInRadius.length} позицій`"
+        :title="$t('catalog.foundItems', { count: productsInRadius.length })"
         :ui="{
           content: 'h-[75%]',
         }"
@@ -311,7 +310,7 @@
                   variant="soft"
                   @click="handleZoomToProduct(item)"
                 >
-                  Показати на мапі
+                  {{ $t('catalog.showOnMap') }}
                 </UButton>
               </div>
             </NuxtLink>
@@ -324,7 +323,7 @@
               size="md"
               @click="loadMoreProducts"
             >
-              Показати ще ({{ productsInRadius.length - displayLimit }})
+              {{ $t('catalog.showMore', { remaining: productsInRadius.length - displayLimit }) }}
             </UButton>
           </div>
         </template>
@@ -540,7 +539,7 @@ const productsInRadius = computed(() => {
         longitude: initialUserLocation.value![1],
       },
       { latitude: lat, longitude: lng },
-      debouncedRadius.value,
+      debouncedRadius.value ?? 5000,
     );
 
     if (!isWithin) return false;

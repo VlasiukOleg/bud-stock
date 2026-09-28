@@ -92,5 +92,69 @@
     "invalid_email": "Invalid email",
     "required": "Required",
     "min_password": "Must be at least 8 characters"
+  },
+  "catalog": {
+    "searchPlaceholder": "Search materials...",
+    "filters": "Filters",
+    "searchRadius": "Search radius",
+    "km": "km",
+    "foundItems": "Found: {count} items",
+    "showMoreItems": "Show {count} more (Remaining: {remaining})",
+    "noResults": "No materials found. Try increasing the search radius.",
+    "youAreHere": "You are here",
+    "locating": "Locating you on the map...",
+    "dragHintPrefix": "You can drag the marker",
+    "dragHintSuffix": "anywhere to change the search location for materials.",
+    "accessDenied": "Access denied",
+    "allowLocation": "Please allow access to your geolocation in browser settings.",
+    "gotIt": "Got it",
+    "list": "List ({count})",
+    "showOnMap": "Show on map",
+    "showMore": "Show more ({remaining})"
+  },
+  "header": {
+    "sellMaterial": "Sell material",
+    "buyMaterial": "Buy material",
+    "profile": "Profile",
+    "login": "Login"
+  },
+  "footer": {
+    "privacyPolicy": "Privacy Policy"
+  },
+  "userSlideover": {
+    "userMenu": "User Menu",
+    "profileNav": "Profile Navigation",
+    "myData": "My Data",
+    "myListings": "My Listings",
+    "myPurchases": "My Purchases",
+    "logout": "Logout",
+    "defaultUser": "User"
+  },
+  "profile": {
+    "myData": "My Data",
+    "myListings": "My Listings",
+    "myPurchases": "My Purchases",
+    "information": {
+      "title": "Personal Information",
+      "subtitle": "Manage your details",
+      "nameLabel": "Name",
+      "nameHelp": "How should we call you",
+      "phoneLabel": "Phone",
+      "phoneHelp": "For contacting buyers (Optional)",
+      "save": "Save changes"
+    },
+    "listings": {
+      "title": "My Listings",
+      "subtitle": "Manage your items",
+      "createFirst": "Create first listing",
+      "noListings": "You have no active listings yet.",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "purchases": {
+      "title": "My Purchases",
+      "subtitle": "Your order history",
+      "noPurchases": "You haven't bought anything yet."
+    }
   }
 }

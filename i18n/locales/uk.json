@@ -92,5 +92,69 @@
     "invalid_email": "Невірний email",
     "required": "Обов'язкове поле",
     "min_password": "Пароль має містити щонайменше 8 символів"
+  },
+  "catalog": {
+    "searchPlaceholder": "Шукати матеріали...",
+    "filters": "Фільтри",
+    "searchRadius": "Радіус пошуку",
+    "km": "км",
+    "foundItems": "Знайдено: {count} позицій",
+    "showMoreItems": "Показати ще {count} (Залишилось: {remaining})",
+    "noResults": "Не знайдено жодного матеріалу. Спробуйте збільшити радіус пошуку.",
+    "youAreHere": "Ви тут",
+    "locating": "Шукаємо вас на карті...",
+    "dragHintPrefix": "Ви можете перетягувати маркер",
+    "dragHintSuffix": "у будь-яке місце, щоб змінити точку пошуку матеріалів.",
+    "accessDenied": "Доступ заборонено",
+    "allowLocation": "Будь ласка, дозвольте доступ до вашої геопозиції у налаштуваннях браузера.",
+    "gotIt": "Зрозумів",
+    "list": "Список ({count})",
+    "showOnMap": "Показати на мапі",
+    "showMore": "Показати ще ({remaining})"
+  },
+  "header": {
+    "sellMaterial": "Продати матеріал",
+    "buyMaterial": "Купити матеріал",
+    "profile": "Профіль",
+    "login": "Вхід"
+  },
+  "footer": {
+    "privacyPolicy": "Політика конфіденційності"
+  },
+  "userSlideover": {
+    "userMenu": "Меню користувача",
+    "profileNav": "Навігація по профілю",
+    "myData": "Мої дані",
+    "myListings": "Мої оголошення",
+    "myPurchases": "Мої покупки",
+    "logout": "Вийти",
+    "defaultUser": "Користувач"
+  },
+  "profile": {
+    "myData": "Мої дані",
+    "myListings": "Мої оголошення",
+    "myPurchases": "Мої покупки",
+    "information": {
+      "title": "Особиста інформація",
+      "subtitle": "Керуйте своїми даними",
+      "nameLabel": "Ім'я",
+      "nameHelp": "Як до вас звертатись",
+      "phoneLabel": "Телефон",
+      "phoneHelp": "Для зв'язку з покупцями (Необов'язково)",
+      "save": "Зберегти зміни"
+    },
+    "listings": {
+      "title": "Мої оголошення",
+      "subtitle": "Управління вашими товарами",
+      "createFirst": "Створити перше оголошення",
+      "noListings": "У вас ще немає активних оголошень.",
+      "edit": "Редагувати",
+      "delete": "Видалити"
+    },
+    "purchases": {
+      "title": "Мої покупки",
+      "subtitle": "Історія ваших замовлень",
+      "noPurchases": "Ви ще нічого не купували."
+    }
   }
 }

@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from "@nuxt/ui";
 
-const items: NavigationMenuItem[] = [
+const { t } = useI18n();
+
+const items = computed<NavigationMenuItem[]>(() => [
   {
-    label: "Політика конфіденційності",
+    label: t('footer.privacyPolicy'),
     to: "/",
     target: "_blank",
   },
-];
+]);
 </script>
 
 <template>

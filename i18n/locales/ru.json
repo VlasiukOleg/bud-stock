@@ -92,5 +92,69 @@
     "invalid_email": "Неверный email",
     "required": "Обязательное поле",
     "min_password": "Пароль должен содержать минимум 8 символов"
+  },
+  "catalog": {
+    "searchPlaceholder": "Искать материалы...",
+    "filters": "Фильтры",
+    "searchRadius": "Радиус поиска",
+    "km": "км",
+    "foundItems": "Найдено: {count} позиций",
+    "showMoreItems": "Показать еще {count} (Осталось: {remaining})",
+    "noResults": "Материалы не найдены. Попробуйте увеличить радиус поиска.",
+    "youAreHere": "Вы здесь",
+    "locating": "Ищем вас на карте...",
+    "dragHintPrefix": "Вы можете перетаскивать маркер",
+    "dragHintSuffix": "в любое место, чтобы изменить точку поиска материалов.",
+    "accessDenied": "Доступ запрещен",
+    "allowLocation": "Пожалуйста, разрешите доступ к вашей геопозиции в настройках браузера.",
+    "gotIt": "Понятно",
+    "list": "Список ({count})",
+    "showOnMap": "Показать на карте",
+    "showMore": "Показать еще ({remaining})"
+  },
+  "header": {
+    "sellMaterial": "Продать материал",
+    "buyMaterial": "Купить материал",
+    "profile": "Профиль",
+    "login": "Вход"
+  },
+  "footer": {
+    "privacyPolicy": "Политика конфиденциальности"
+  },
+  "userSlideover": {
+    "userMenu": "Меню пользователя",
+    "profileNav": "Навигация по профилю",
+    "myData": "Мои данные",
+    "myListings": "Мои объявления",
+    "myPurchases": "Мои покупки",
+    "logout": "Выйти",
+    "defaultUser": "Пользователь"
+  },
+  "profile": {
+    "myData": "Мои данные",
+    "myListings": "Мои объявления",
+    "myPurchases": "Мои покупки",
+    "information": {
+      "title": "Личная информация",
+      "subtitle": "Управляйте своими данными",
+      "nameLabel": "Имя",
+      "nameHelp": "Как к вам обращаться",
+      "phoneLabel": "Телефон",
+      "phoneHelp": "Для связи с покупателями (Необязательно)",
+      "save": "Сохранить изменения"
+    },
+    "listings": {
+      "title": "Мои объявления",
+      "subtitle": "Управление вашими товарами",
+      "createFirst": "Создать первое объявление",
+      "noListings": "У вас еще нет активных объявлений.",
+      "edit": "Редактировать",
+      "delete": "Удалить"
+    },
+    "purchases": {
+      "title": "Мои покупки",
+      "subtitle": "История ваших заказов",
+      "noPurchases": "Вы еще ничего не покупали."
+    }
   }
 }

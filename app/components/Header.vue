@@ -3,19 +3,20 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 import { ref, computed } from 'vue';
 
 const route = useRoute();
+const { t } = useI18n();
 
 const user = useSupabaseUser()
 const isSlideoverOpen = useState('isSlideoverOpen', () => false)
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
-    label: "Продати матеріал",
+    label: t('header.sellMaterial'),
     to: "/sell",
     icon: "i-streamline-emojis:money-bag",
     active: route.path.startsWith("/sell"),
   },
   {
-    label: "Купити матеріал",
+    label: t('header.buyMaterial'),
     to: "/catalog",
     icon: "i-streamline-ultimate-color:e-commerce-touch-buy",
     active: route.path.startsWith("/catalog"),
@@ -24,9 +25,9 @@ const items = computed<NavigationMenuItem[]>(() => [
 
 const buttonText = computed(() => {
   if (user.value) {
-    return 'Профіль'
+    return t('header.profile')
   }
-  return 'Вхід'
+  return t('header.login')
 })
 
 const userInitials = computed(() => {
@@ -56,7 +57,7 @@ const userInitials = computed(() => {
           color="neutral"
           variant="ghost"
           @click="() => {isSlideoverOpen = true}"
-          aria-label="Профіль"
+          :aria-label="t('header.profile')"
           class="p-1"
         >
           <UAvatar :src="user.user_metadata?.avatar_url" :text="!user.user_metadata?.avatar_url ? userInitials : undefined" :alt="userInitials" size="sm" />
@@ -67,7 +68,7 @@ const userInitials = computed(() => {
           variant="ghost"
           to="/login"
           icon="i-icon-park-solid:people"
-          aria-label="Вхід"
+          :aria-label="t('header.login')"
         />
       </UTooltip>
     </template>

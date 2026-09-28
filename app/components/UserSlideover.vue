@@ -29,26 +29,28 @@ watch(() => route.path, () => {
   isOpen.value = false
 })
 
+const { t } = useI18n()
+
 const menuItems = computed(() => [
   {
-    label: 'Мої дані',
+    label: t('userSlideover.myData'),
     icon: 'i-heroicons-user',
     to: '/profile/information'
   },
   {
-    label: 'Мої оголошення',
+    label: t('userSlideover.myListings'),
     icon: 'i-heroicons-shopping-bag',
     to: '/profile/listings'
   },
   {
-    label: 'Мої покупки',
+    label: t('userSlideover.myPurchases'),
     icon: 'i-heroicons-shopping-cart',
     to: '/profile/purchases'
   }
 ])
 
 const avatarUrl = computed(() => user.value?.user_metadata?.avatar_url)
-const userName = computed(() => user.value?.user_metadata?.full_name || 'Користувач')
+const userName = computed(() => user.value?.user_metadata?.full_name || t('userSlideover.defaultUser'))
 const userEmail = computed(() => user.value?.email)
 
 const router = useRouter()
@@ -64,7 +66,7 @@ const handleNavigation = async (path: string) => {
 </script>
 
 <template>
-  <USlideover v-model:open="isOpen" side="left" title="Меню користувача" description="Навігація по профілю">
+  <USlideover v-model:open="isOpen" side="left" :title="t('userSlideover.userMenu')" :description="t('userSlideover.profileNav')">
     <template #header>
       <div class="flex items-center justify-between w-full">
         <div class="flex items-center gap-3 overflow-hidden">
@@ -110,7 +112,7 @@ const handleNavigation = async (path: string) => {
         class="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 text-base py-2.5"
         @click="handleLogOut"
       >
-        Вийти
+        {{ t('userSlideover.logout') }}
       </UButton>
     </template>
   </USlideover>
