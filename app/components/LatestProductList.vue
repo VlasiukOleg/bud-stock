@@ -11,7 +11,7 @@
           </p>
         </div>
         <UButton
-          to="/catalog"
+          :to="APP_ROUTES.CATALOG"
           variant="link"
           color="primary"
           trailing-icon="i-heroicons-arrow-right"
@@ -38,7 +38,7 @@
 
       <div class="mt-10 text-center sm:hidden">
         <UButton
-          to="/catalog"
+          :to="APP_ROUTES.CATALOG"
           block
           size="lg"
           color="neutral"

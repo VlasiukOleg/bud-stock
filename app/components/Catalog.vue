@@ -342,6 +342,13 @@
           </div>
         </template>
       </USlideover>
+
+      <CitySelectorModal
+        v-model="isCityModalOpen"
+        :detected-city="detectedCityName"
+        @select="onCitySelect"
+        @exact-location="triggerExactLocation"
+      />
     </div>
   </div>
 </template>
@@ -352,7 +359,9 @@ import L from "leaflet";
 import type { PointTuple } from "leaflet";
 import { useGeolocation, useStorage, refDebounced } from "@vueuse/core";
 import { isPointWithinRadius } from "geolib";
-import { ref, computed, watch, nextTick } from "vue"; // Не забудь імпорти, якщо використовуєш auto-imports, то ок
+import { ref, computed, watch, nextTick, onMounted } from "vue"; 
+
+import CitySelectorModal from "~/components/common/CitySelectorModal.vue";
 
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -394,7 +403,31 @@ const searchQuery = ref("");
 const debouncedSearchQuery = refDebounced(searchQuery, 300);
 const isGeolocationErrorPopoverOpen = ref(false);
 
+const isCityModalOpen = ref(false);
+const detectedCityName = ref("");
+const isManualLocationRequest = ref(false);
+
+// Запускаємо запит на геолокацію одразу
 const { coords, error, pause, resume } = useGeolocation();
+
+const onCitySelect = (city: { lat: number, lng: number, name: string }) => {
+  initialUserLocation.value = [city.lat, city.lng];
+  center.value = [city.lat, city.lng];
+  showDragHint.value = true;
+  if (map.value?.leafletObject) {
+    map.value.leafletObject.flyTo([city.lat, city.lng], 12);
+  }
+};
+
+const triggerExactLocation = () => {
+  isCityModalOpen.value = false;
+  if (error.value?.message) {
+    isGeolocationErrorPopoverOpen.value = true;
+  } else {
+    isManualLocationRequest.value = true;
+    resume(); // Це викличе браузерний запит на геолокацію
+  }
+};
 
 const { getAllListings } = useListings();
 const { data: allListings } = useAsyncData('all-listings', getAllListings);
@@ -576,26 +609,8 @@ const handleUserLocationCenter = () => {
 };
 
 const handleForceUpdateLocation = () => {
-  console.log("errorhandleForceUpdateLocation", error.value?.message);
   isGeolocationErrorPopoverOpen.value = false;
-
-  if (error.value?.message) {
-    isGeolocationErrorPopoverOpen.value = true;
-    return;
-  }
-
-  resume();
-
-  // Якщо координати вже є, відразу їх застосовуємо, щоб не було вічного "Шукаємо..."
-  if (coords.value && coords.value.latitude !== Infinity && coords.value.longitude !== Infinity) {
-    initialUserLocation.value = [coords.value.latitude, coords.value.longitude];
-    center.value = [coords.value.latitude, coords.value.longitude];
-    if (map.value?.leafletObject) {
-      map.value.leafletObject.flyTo(initialUserLocation.value, 12);
-    }
-  } else {
-    initialUserLocation.value = null;
-  }
+  isCityModalOpen.value = true; // Завжди відкриваємо модалку
 };
 
 const displayedProducts = computed(() => {
@@ -737,17 +752,11 @@ watch(
 watch(
   coords,
   (newCoords) => {
-    console.log("initialUserLocation", initialUserLocation.value);
-    if (initialUserLocation.value) {
-      return;
-    }
     if (newCoords.latitude !== Infinity && newCoords.longitude !== Infinity) {
       const latLng: PointTuple = [newCoords.latitude, newCoords.longitude];
 
       initialUserLocation.value = latLng;
-
       center.value = latLng;
-
       showDragHint.value = true;
 
       if (map.value?.leafletObject) {
@@ -757,27 +766,44 @@ watch(
       pause();
     }
   },
-  // { immediate: true },
 );
 
-watch(error, (newError) => {
+watch(error, async (newError) => {
   if (newError) {
-    console.log("newError", newError);
     console.warn("Геолокація недоступна:", newError.message);
-
+    
     if (initialUserLocation.value) {
+      if (isManualLocationRequest.value) {
+        isGeolocationErrorPopoverOpen.value = true;
+        isManualLocationRequest.value = false;
+      }
+      pause();
       return;
     }
 
-    console.log("center", center.value);
-
-    initialUserLocation.value = [...center.value];
-
-    showDragHint.value = true;
+    // Якщо ми тут, значить локації ще немає, а користувач заборонив доступ або сталась помилка
+    // Пробуємо визначити по IP
+    try {
+      const config = useRuntimeConfig();
+      const res = await fetch(config.public.api.ipapiBaseUrl);
+      const data = await res.json();
+      if (data.latitude && data.longitude) {
+         initialUserLocation.value = [data.latitude, data.longitude];
+         detectedCityName.value = data.city || data.region || "ваше місто";
+      } else {
+         initialUserLocation.value = [...center.value];
+      }
+    } catch (err) {
+       initialUserLocation.value = [...center.value];
+    }
 
     if (map.value?.leafletObject) {
       map.value.leafletObject.flyTo(initialUserLocation.value, 12);
     }
+    
+    // Показуємо модалку для підтвердження або зміни міста
+    isCityModalOpen.value = true;
+    
     pause();
   }
 });

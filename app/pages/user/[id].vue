@@ -36,7 +36,7 @@
       
       <div v-else class="flex flex-col items-center justify-center py-20 text-center">
         <h3 class="text-xl font-bold mb-2">Користувача не знайдено</h3>
-        <UButton to="/catalog" color="primary">До каталогу</UButton>
+        <UButton :to="APP_ROUTES.CATALOG" color="primary">До каталогу</UButton>
       </div>
     </UContainer>
   </div>

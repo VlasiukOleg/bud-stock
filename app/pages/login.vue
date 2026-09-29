@@ -16,7 +16,7 @@ const toggleSign = () => {
 
 watchEffect(() => {
   if (user.value) {
-    return navigateTo('/')
+    return navigateTo(APP_ROUTES.HOME)
   }
 })
 

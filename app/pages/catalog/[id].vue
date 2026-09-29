@@ -386,7 +386,7 @@
         <p class="text-neutral-500 mb-6">
           Схоже, це оголошення вже неактивне або видалене
         </p>
-        <UButton to="/catalog" color="primary">Повернутися до каталогу</UButton>
+        <UButton :to="APP_ROUTES.CATALOG" color="primary">Повернутися до каталогу</UButton>
       </div>
     </UContainer>
   </div>

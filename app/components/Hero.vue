@@ -31,7 +31,7 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
             class="mt-8 md:mt-10 flex flex-col items-center justify-center lg:justify-start lg:items-start gap-4 sm:flex-row"
           >
             <UButton
-              to="/catalog"
+              :to="APP_ROUTES.CATALOG"
               size="xl"
               class="bg-brand-500 hover:bg-brand-600 text-lg"
               icon="i-streamline-ultimate-color:e-commerce-touch-buy"
@@ -40,7 +40,7 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
             </UButton>
 
             <UButton
-              to="/sell"
+              :to="APP_ROUTES.CREATE_LISTING"
               size="xl"
               color="neutral"
               variant="outline"

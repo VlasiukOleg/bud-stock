@@ -6,7 +6,7 @@ const { t } = useI18n();
 const items = computed<NavigationMenuItem[]>(() => [
   {
     label: t('footer.privacyPolicy'),
-    to: "/",
+    to: APP_ROUTES.HOME,
     target: "_blank",
   },
 ]);

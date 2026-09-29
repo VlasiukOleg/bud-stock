@@ -2,22 +2,22 @@ import type { MobileMenuItem } from "~/types";
 
 export const MOBILE_MENU_LIST: MobileMenuItem[] = [
   {
-    to: "/",
+    to: APP_ROUTES.HOME,
     iconName: "i-heroicons-home",
     linkLabel: "mobileMenu.list.main",
   },
   {
-    to: "/catalog",
+    to: APP_ROUTES.CATALOG,
     iconName: "i-heroicons-magnifying-glass-circle",
     linkLabel: "mobileMenu.list.buy",
   },
   {
-    to: "/sell",
+    to: APP_ROUTES.CREATE_LISTING,
     iconName: "i-heroicons-plus-circle",
     linkLabel: "mobileMenu.list.sell",
   },
   {
-    to: "/profile",
+    to: APP_ROUTES.PROFILE.ROOT,
     iconName: "i-heroicons-user",
     linkLabel: "mobileMenu.list.profile",
   },

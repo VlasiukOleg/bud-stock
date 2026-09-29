@@ -12,9 +12,10 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    const config = useRuntimeConfig();
     // 2. Робимо запит до Nominatim
     // ВАЖЛИВО: Nominatim блокує серверні запити без заголовка User-Agent, тому ми додаємо його
-    const data: any = await $fetch(`https://nominatim.openstreetmap.org/reverse`, {
+    const data: any = await $fetch(`${config.public.api.nominatimBaseUrl}/reverse`, {
       headers: {
         'User-Agent': 'BudStock App / 1.0 (test-task)'
       },

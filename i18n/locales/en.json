@@ -277,5 +277,23 @@
       "noGeoSupport": "Your browser does not support geolocation",
       "mapLocationSuccess": "Location selected on map"
     }
+  },
+  "citySelector": {
+    "title": "Choose your city",
+    "searchPlaceholder": "Search for a settlement...",
+    "notFound": "Nothing found",
+    "yourCity": "Is your city {city}?",
+    "yesCorrect": "Yes, correct",
+    "popularCities": "Popular cities",
+    "or": "or",
+    "exactLocation": "Determine exact location",
+    "errorSearching": "Error searching cities",
+    "cities": {
+      "kyiv": "Kyiv",
+      "lviv": "Lviv",
+      "odesa": "Odesa",
+      "dnipro": "Dnipro",
+      "kharkiv": "Kharkiv"
+    }
   }
 }

@@ -277,5 +277,23 @@
       "noGeoSupport": "Ваш браузер не поддерживает геолокацию",
       "mapLocationSuccess": "Локация выбрана на карте"
     }
+  },
+  "citySelector": {
+    "title": "Выберите ваш город",
+    "searchPlaceholder": "Поиск населенного пункта...",
+    "notFound": "Ничего не найдено",
+    "yourCity": "Ваш город {city}?",
+    "yesCorrect": "Да, верно",
+    "popularCities": "Популярные города",
+    "or": "или",
+    "exactLocation": "Определить точное местоположение",
+    "errorSearching": "Ошибка поиска городов",
+    "cities": {
+      "kyiv": "Киев",
+      "lviv": "Львов",
+      "odesa": "Одесса",
+      "dnipro": "Днепр",
+      "kharkiv": "Харьков"
+    }
   }
 }

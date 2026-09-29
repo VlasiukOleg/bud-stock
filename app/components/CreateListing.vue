@@ -741,7 +741,7 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
     clearNuxtData(`user-listings-${user.value?.sub}`);
     
     // Перенаправляємо на сторінку "Мої оголошення" (профіль)
-    navigateTo('/profile/listings');
+    navigateTo(APP_ROUTES.PROFILE.LISTINGS);
 
   } catch (error: any) {
     console.error("Error creating listing:", error);

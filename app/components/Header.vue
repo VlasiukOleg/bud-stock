@@ -11,13 +11,13 @@ const isSlideoverOpen = useState('isSlideoverOpen', () => false)
 const items = computed<NavigationMenuItem[]>(() => [
   {
     label: t('header.sellMaterial'),
-    to: "/sell",
+    to: APP_ROUTES.CREATE_LISTING,
     icon: "i-streamline-emojis:money-bag",
     active: route.path.startsWith("/sell"),
   },
   {
     label: t('header.buyMaterial'),
-    to: "/catalog",
+    to: APP_ROUTES.CATALOG,
     icon: "i-streamline-ultimate-color:e-commerce-touch-buy",
     active: route.path.startsWith("/catalog"),
   },
@@ -61,6 +61,7 @@ const userInitials = computed(() => {
           variant="ghost"
           @click="() => {isSlideoverOpen = true}"
           :aria-label="t('header.profile')"
+          class="hidden lg:flex"
         >
           <UAvatar :class="{ 'ring-2 ring-brand-500': isProfileRouteActive }" :src="user.user_metadata?.avatar_url" :text="!user.user_metadata?.avatar_url ? userInitials : undefined" :alt="userInitials" size="sm" />
         </UButton>
@@ -68,7 +69,7 @@ const userInitials = computed(() => {
           v-else
           color="neutral"
           variant="ghost"
-          to="/login"
+          :to="APP_ROUTES.AUTH.LOGIN"
           icon="i-icon-park-solid:people"
           :aria-label="t('header.login')"
         />

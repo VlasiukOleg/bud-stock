@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink to="/" class="flex items-center gap-2 group font-public">
+  <NuxtLink :to="APP_ROUTES.HOME" class="flex items-center gap-2 group font-public">
     <div
       class="bg-brand-500/10 p-2 rounded-lg flex items-center justify-center group-hover:bg-brand-500/20 transition-colors"
     >

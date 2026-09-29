@@ -46,6 +46,11 @@ export default defineNuxtConfig({
     geminiApiKey: '', // Nuxt сам підставить сюди значення з NUXT_GEMINI_API_KEY
     supabaseUrl: "",
     supabaseKey: "",
-    public: { /* твої інші налаштування */ }
+    public: {
+      api: {
+        nominatimBaseUrl: 'https://nominatim.openstreetmap.org',
+        ipapiBaseUrl: 'https://ipapi.co/json/'
+      }
+    }
   }
 });

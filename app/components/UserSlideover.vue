@@ -20,7 +20,7 @@ const user = useSupabaseUser()
 const handleLogOut = async () => {
   await client.auth.signOut()
   isOpen.value = false
-  navigateTo('/login')
+  navigateTo(APP_ROUTES.AUTH.LOGIN)
 }
 
 const route = useRoute()
@@ -35,17 +35,17 @@ const menuItems = computed(() => [
   {
     label: t('userSlideover.myData'),
     icon: 'i-heroicons-user',
-    to: '/profile/information'
+    to: APP_ROUTES.PROFILE.INFORMATION
   },
   {
     label: t('userSlideover.myListings'),
     icon: 'i-heroicons-shopping-bag',
-    to: '/profile/listings'
+    to: APP_ROUTES.PROFILE.LISTINGS
   },
   {
     label: t('userSlideover.myPurchases'),
     icon: 'i-heroicons-shopping-cart',
-    to: '/profile/purchases'
+    to: APP_ROUTES.PROFILE.PURCHASES
   }
 ])
 

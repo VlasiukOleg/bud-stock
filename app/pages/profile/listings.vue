@@ -64,7 +64,7 @@ const confirmDelete = async () => {
         <div v-else-if="userListings?.length === 0" class="text-center py-16 text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm">
           <UIcon name="i-heroicons-shopping-bag" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
           <p class="text-lg">{{ $t('profile.listings.noListings') }}</p>
-          <UButton to="/create-listing" class="mt-4" color="primary" variant="soft">{{ $t('profile.listings.createFirst') }}</UButton>
+          <UButton :to="APP_ROUTES.CREATE_LISTING" class="mt-4" color="primary" variant="soft">{{ $t('profile.listings.createFirst') }}</UButton>
         </div>
         
         <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
