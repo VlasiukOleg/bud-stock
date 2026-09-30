@@ -1,14 +1,15 @@
 import type { Chat, Message, Product } from '~/types';
 
-// Глобальна змінна для зберігання підписки, щоб не дублювати її при кожному виклику useChat
+// Plain global variables to ensure only ONE instance of the subscription and watcher exists
 let messageSubscription: any = null;
-let isSubscribed = false;
-let subscriberCount = 0;
+let fetchChatsPromise: Promise<void> | null = null;
+let isAuthListenerRegistered = false;
 
 export const useChat = () => {
   const supabase = useSupabaseClient();
   const user = useSupabaseUser();
   const toast = useToast();
+  const route = useRoute();
 
   const activeChats = useState<Chat[]>('active-chats', () => []);
   const currentChat = useState<Chat | null>('current-chat', () => null);
@@ -56,6 +57,8 @@ export const useChat = () => {
           }
         }
         unreadCounts.value = counts;
+      } else {
+        unreadCounts.value = {};
       }
     }
     isLoadingChats.value = false;
@@ -102,13 +105,11 @@ export const useChat = () => {
       return;
     }
 
-    // Перевіряємо, чи є вже чат локально
     let existingChat = activeChats.value.find(
       (c) => c.product_id === productId && 
              (c.buyer_id === userId || c.seller_id === userId)
     );
 
-    // Якщо локально немає, робимо запит в БД (можливо список ще не завантажився)
     if (!existingChat) {
       const { data: dbChat } = await supabase
         .from('chats')
@@ -119,7 +120,6 @@ export const useChat = () => {
         
       if (dbChat) {
         existingChat = dbChat as any;
-        // Додаємо в локальний стейт, якщо його там не було
         if (!activeChats.value.find(c => c.id === existingChat!.id)) {
           activeChats.value.unshift(existingChat as any);
         }
@@ -134,13 +134,12 @@ export const useChat = () => {
         fetchProfile(existingChat.seller_id)
       ]);
     } else {
-      // Створюємо "віртуальний" чат локально (не в БД)
       currentChat.value = {
         id: 'temp-' + Date.now(),
         buyer_id: userId,
         seller_id: sellerId,
         product_id: productId,
-        product: productData, // Можемо передати дані товару, щоб вони відобразились в хедері чату
+        product: productData,
         is_temp: true
       } as any;
       currentMessages.value = [];
@@ -157,7 +156,6 @@ export const useChat = () => {
 
     let chatId = currentChat.value.id;
 
-    // Якщо це віртуальний чат, спочатку створюємо його в БД
     if (chatId.startsWith('temp-')) {
       const { data: newDbChat, error: chatError } = (await supabase
         .from('chats')
@@ -199,7 +197,6 @@ export const useChat = () => {
         }
       }
       
-      // Оновлюємо updated_at чату
       await supabase
         .from('chats')
         .update({ updated_at: new Date().toISOString() })
@@ -210,9 +207,8 @@ export const useChat = () => {
   // Підписка на нові повідомлення
   const subscribeToMessages = () => {
     const userId = getUserId();
-    if (!userId || isSubscribed) return;
+    if (!userId || messageSubscription) return;
 
-    isSubscribed = true;
     const uniqueChannelName = `messages-${Math.random().toString(36).substring(7)}`;
 
     messageSubscription = supabase
@@ -237,7 +233,6 @@ export const useChat = () => {
             // Якщо ми не в цьому чаті
             let chatForMsg = activeChats.value.find(c => c.id === newMsg.chat_id);
             
-            // Якщо чат новий і його ще немає в списку
             if (!chatForMsg) {
               const { data: newChat } = await supabase
                 .from('chats')
@@ -265,43 +260,53 @@ export const useChat = () => {
       .subscribe();
   };
 
-  // Очищення стейту при виході з акаунту або зміні юзера
-  watch(user, (newUser, oldUser) => {
-    if (newUser?.id !== oldUser?.id) {
-      activeChats.value = [];
-      currentChat.value = null;
-      currentMessages.value = [];
-      unreadCounts.value = {};
-      
-      if (messageSubscription) {
-        supabase.removeChannel(messageSubscription);
-        messageSubscription = null;
-        isSubscribed = false;
-      }
-      
-      if (newUser) {
-        fetchChats();
-        subscribeToMessages();
-      }
-    }
-  });
+  // Дедуплікація запитів, щоб кілька компонентів не робили однакові запити одночасно
+  const fetchChatsDeduplicated = async () => {
+    if (fetchChatsPromise) return fetchChatsPromise;
+    fetchChatsPromise = fetchChats().finally(() => {
+      fetchChatsPromise = null;
+    });
+    return fetchChatsPromise;
+  };
 
+  // Завжди перевіряємо при монтуванні (щоб оновлення сторінки працювало)
   onMounted(() => {
-    subscriberCount++;
-    fetchChats();
-    subscribeToMessages();
+    if (user.value) {
+      fetchChatsDeduplicated();
+      subscribeToMessages();
+    }
   });
 
-  onUnmounted(() => {
-    subscriberCount--;
-    if (subscriberCount <= 0) {
-      if (messageSubscription) {
-        supabase.removeChannel(messageSubscription);
-        messageSubscription = null;
-        isSubscribed = false;
+  // Відслідковуємо подію логіну/розлогіну безпосередньо через Supabase клієнт,
+  // що працює 100% надійно незалежно від того, які компоненти зараз на екрані.
+  if (import.meta.client && !isAuthListenerRegistered) {
+    isAuthListenerRegistered = true;
+    
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        // Даємо системі трохи часу, щоб токен зберігся в локальний стейт
+        setTimeout(() => {
+          fetchChatsDeduplicated();
+          subscribeToMessages();
+        }, 300);
+      } else if (event === 'SIGNED_OUT') {
+        activeChats.value = [];
+        currentChat.value = null;
+        currentMessages.value = [];
+        unreadCounts.value = {};
+        
+        if (messageSubscription) {
+          supabase.removeChannel(messageSubscription);
+          messageSubscription = null;
+        }
       }
-      subscriberCount = 0;
-    }
+    });
+  }
+
+  // Закриваємо чат при зміні маршруту (щоб повідомлення не читалися у фоні)
+  watch(() => route.path, () => {
+    isSlideoverOpen.value = false;
+    currentChat.value = null;
   });
 
   return {
