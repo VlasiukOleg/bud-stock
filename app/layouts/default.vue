@@ -1,11 +1,12 @@
 <template>
   <div>
-    <Header :class="route.path === '/' ? 'block' : 'hidden lg:block'" />
+    <Header />
     <UMain>
       <slot />
     </UMain>
     <Footer :class="route.path === '/' ? 'block' : 'hidden lg:block'" />
     <UiMobileMenu class="lg:hidden"/>
+    <ChatSlideover />
   </div>
 </template>
 

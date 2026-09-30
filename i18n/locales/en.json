@@ -85,7 +85,8 @@
       "main": "Home",
       "buy": "Buy",
       "sell": "Sell",
-      "profile": "Profile"
+      "profile": "Profile",
+      "messages": "Messages"
     }
   },
   "validation": {

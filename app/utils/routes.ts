@@ -5,6 +5,7 @@ export const APP_ROUTES = {
     ROOT: '/profile',
     LISTINGS: '/profile/listings',
     PURCHASES: '/profile/purchases',
+    CHATS: '/profile/chats',
     INFORMATION: '/profile/information',
     SECURITY: '/profile/security',
   },

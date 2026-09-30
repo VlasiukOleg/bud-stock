@@ -298,9 +298,9 @@
                 Продавець
               </h3>
               <div class="flex items-center gap-4 mb-4">
-                <UAvatar
+                <CommonUserAvatar
                   :src="product.sellerAvatar"
-                  :alt="product.sellerName"
+                  :name="product.sellerName"
                   size="lg"
                   class="bg-brand-500 text-white font-bold"
                 />
@@ -359,6 +359,8 @@
                   color="neutral"
                   icon="i-heroicons-chat-bubble-left-right-20-solid"
                   label="Написати повідомлення"
+                  @click="openChat(product.user_id, product.id, product)"
+                  v-if="(currentUser?.id || currentUser?.sub) !== product.user_id"
                 />
               </div>
             </UCard>
@@ -405,6 +407,8 @@ const showPhone = ref(false);
 const isOpenMapDrawer = ref(false);
 
 const currentUser = useSupabaseUser();
+const { openChat } = useChat();
+const { fetchProfile } = useProfile();
 
 const { data: product, pending } = useAsyncData(
   `product-${route.params.id}`, 
@@ -417,12 +421,8 @@ const { data: product, pending } = useAsyncData(
       
     if (error || !listingData) return null;
     
-    // Отримуємо профіль продавця через нашу нову View
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', listingData.user_id)
-      .single();
+    // Отримуємо профіль продавця (кешується, щоб в чаті не завантажувати ще раз)
+    const profileData = await fetchProfile(listingData.user_id);
       
     const isOwner = currentUser.value?.id === listingData.user_id;
     const canSeePhone = profileData?.is_phone_public || isOwner;

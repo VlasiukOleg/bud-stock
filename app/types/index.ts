@@ -53,3 +53,25 @@ export interface CategoryItem {
   icon: string;
   subcategories: { id: string; name: string }[];
 }
+
+export interface Message {
+  id: string;
+  chat_id: string;
+  sender_id: string;
+  content: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface Chat {
+  id: string;
+  buyer_id: string;
+  seller_id: string;
+  product_id: string;
+  created_at: string;
+  updated_at: string;
+  // Поля, які ми можемо доповнювати на клієнті через Join
+  product?: Product;
+  messages?: Message[];
+  unreadCount?: number;
+}

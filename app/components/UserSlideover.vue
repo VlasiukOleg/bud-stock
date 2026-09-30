@@ -46,6 +46,11 @@ const menuItems = computed(() => [
     label: t('userSlideover.myPurchases'),
     icon: 'i-heroicons-shopping-cart',
     to: APP_ROUTES.PROFILE.PURCHASES
+  },
+  {
+    label: 'Мої повідомлення', // fallback manually since translation might be missing
+    icon: 'i-heroicons-chat-bubble-left-right',
+    to: APP_ROUTES.PROFILE.CHATS
   }
 ])
 
@@ -70,7 +75,12 @@ const handleNavigation = async (path: string) => {
     <template #header>
       <div class="flex items-center justify-between w-full">
         <div class="flex items-center gap-3 overflow-hidden">
-          <UAvatar :src="avatarUrl" :alt="userName" size="md" />
+          <CommonUserAvatar
+            :src="avatarUrl"
+            :name="user?.user_metadata?.full_name"
+            :email="userEmail"
+            size="md"
+          />
           <div class="flex flex-col truncate text-left">
             <span class="font-semibold text-sm truncate">{{ userName }}</span>
             <span class="text-xs text-gray-500 truncate">{{ userEmail }}</span>

@@ -10,16 +10,28 @@
       :link-label="item.linkLabel"
       :is-active="isItemActive(item.to)"
       @click.capture="handleItemClick($event, item)"
+      class="relative"
     >
       <template #icon v-if="item.to === '/profile' && user">
-        <UAvatar
+        <CommonUserAvatar
           :src="user.user_metadata?.avatar_url"
-          :text="!user.user_metadata?.avatar_url ? userInitials : undefined"
-          :alt="userInitials"
+          :name="user.user_metadata?.full_name"
+          :email="user.email"
           size="sm"
           class="mb-1 transition-all"
-          :class="{ 'ring-2 ring-brand-500': isItemActive(item.to) }"
+          :uiClass="{ 'ring-2 ring-brand-500': isItemActive(item.to) }"
         />
+      </template>
+      
+      <!-- Бейдж для непрочитаних повідомлень -->
+      <template #icon v-else-if="item.iconName === 'i-heroicons-envelope'">
+        <div class="relative">
+          <UIcon :name="item.iconName" class="w-6 h-6 mb-1" />
+          <span 
+            v-if="unreadCount > 0"
+            class="absolute -top-1 -right-1 flex items-center justify-center w-3 h-3 bg-red-500 rounded-full border border-white dark:border-gray-900"
+          ></span>
+        </div>
       </template>
     </CommonMobileMenuLinkItem>
   </nav>
@@ -30,7 +42,9 @@ import { computed } from 'vue'
 import { MOBILE_MENU_LIST } from "~/constants/mobileMenu/mobileMenuList";
 import type { MobileMenuItem } from "~/types";
 import { useRoute } from 'vue-router';
+import { useChat } from '~/composables/useChat';
 
+const { unreadCount } = useChat();
 const user = useSupabaseUser()
 const isSlideoverOpen = useState('isSlideoverOpen', () => false)
 const route = useRoute()
@@ -41,15 +55,6 @@ const isItemActive = (itemTo: string) => {
   }
   return route.path.startsWith(itemTo)
 }
-
-const userInitials = computed(() => {
-  if (!user.value) return '';
-  const name = user.value.user_metadata?.full_name;
-  if (name) return name.substring(0, 2).toUpperCase();
-  const email = user.value.email;
-  if (email) return email.substring(0, 2).toUpperCase();
-  return 'U';
-})
 
 const handleItemClick = (e: MouseEvent, item: MobileMenuItem) => {
   if (item.to === '/profile' && user.value) {
