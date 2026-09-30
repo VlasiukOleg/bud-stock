@@ -20,7 +20,8 @@ export interface Product {
   images: string[];
   quantity: number;
   unit: string;
-  status: string;
+  status: string; // Новий чи залишок
+  listing_state?: 'active' | 'sold' | 'deactivated' | 'deleted'; // Життєвий цикл оголошення
   description?: string;
   location?: {
     address: string;

@@ -4,6 +4,7 @@ import type { Chat, Message, Product } from '~/types';
 let messageSubscription: any = null;
 let fetchChatsPromise: Promise<void> | null = null;
 let isAuthListenerRegistered = false;
+let lastFetchedUserId: string | null = null;
 
 export const useChat = () => {
   const supabase = useSupabaseClient();
@@ -262,7 +263,14 @@ export const useChat = () => {
 
   // Дедуплікація запитів, щоб кілька компонентів не робили однакові запити одночасно
   const fetchChatsDeduplicated = async () => {
+    const userId = getUserId();
+    // Якщо для цього юзера ми вже завантажили чати (або в процесі) – більше не завантажуємо,
+    // оскільки у нас працюють ріал-тайм вебсокети (subscribeToMessages), які і так оновлюють дані!
+    if (!userId || userId === lastFetchedUserId) return;
+
     if (fetchChatsPromise) return fetchChatsPromise;
+    
+    lastFetchedUserId = userId;
     fetchChatsPromise = fetchChats().finally(() => {
       fetchChatsPromise = null;
     });
@@ -290,6 +298,7 @@ export const useChat = () => {
           subscribeToMessages();
         }, 300);
       } else if (event === 'SIGNED_OUT') {
+        lastFetchedUserId = null;
         activeChats.value = [];
         currentChat.value = null;
         currentMessages.value = [];
