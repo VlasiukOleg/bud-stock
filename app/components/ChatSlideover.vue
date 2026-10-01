@@ -24,44 +24,70 @@
 
         <!-- Повідомлення (Body) -->
         <div ref="messagesContainer" class="flex flex-col gap-4 h-full">
+          <!-- Банер статусу товару -->
+          <div v-if="currentChat?.product?.listing_state === 'sold'" class="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-sm p-3 rounded-lg flex items-start gap-2 border border-amber-200 dark:border-amber-800/50 shrink-0">
+            <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 shrink-0 mt-0.5" />
+            <div>
+              <p class="font-medium mb-0.5">Товар продано</p>
+              <p class="text-xs opacity-80">Це оголошення більше не актуальне, але ви можете продовжувати спілкування.</p>
+            </div>
+          </div>
+          <div v-else-if="currentChat?.product?.listing_state === 'deactivated' || currentChat?.product?.listing_state === 'deleted'" class="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm p-3 rounded-lg flex items-start gap-2 border border-gray-300 dark:border-gray-700 shrink-0">
+            <UIcon name="i-heroicons-information-circle" class="w-5 h-5 shrink-0 mt-0.5" />
+            <div>
+              <p class="font-medium mb-0.5">Оголошення неактуальне</p>
+              <p class="text-xs opacity-80">Цей товар було приховано або видалено власником.</p>
+            </div>
+          </div>
+
           <div v-if="currentMessages.length === 0" class="text-center text-gray-500 m-auto">
             Немає повідомлень. Напишіть першим!
           </div>
           
-          <div
-            v-for="msg in currentMessages"
-            :key="msg.id"
-            :class="[
-              'flex gap-3 max-w-[85%]',
-              msg.sender_id === currentUserId ? 'ml-auto flex-row-reverse' : ''
-            ]"
-          >
-            <!-- Аватарка -->
-            <CommonUserAvatar
-              :src="msg.sender_id === currentUserId ? user?.user_metadata?.avatar_url : chatUserProfiles[msg.sender_id]?.avatar_url"
-              :name="(msg.sender_id === currentUserId ? user?.user_metadata?.full_name : chatUserProfiles[msg.sender_id]?.full_name)"
-              size="sm"
-              class="shrink-0"
-              :uiClass="{ 'bg-primary-100 dark:bg-primary-900': msg.sender_id === currentUserId, 'bg-gray-100 dark:bg-gray-800': msg.sender_id !== currentUserId }"
-            />
+          <template v-for="msg in currentMessages" :key="msg.id">
+            <div v-if="msg.content.startsWith('[SYSTEM_STATUS]:')" class="w-full flex justify-center my-2">
+              <div class="bg-gray-100 dark:bg-gray-800 text-gray-500 text-xs px-3 py-1 rounded-full shadow-sm">
+                {{ msg.content.includes('sold') ? 'Продавець позначив товар як проданий' : (msg.content.includes('active') ? 'Оголошення знову актуальне' : 'Оголошення деактивовано або видалено') }}
+              </div>
+            </div>
             
-            <!-- Бульбашка повідомлення -->
-            <div 
+            <div
+              v-else
               :class="[
-                'p-3 rounded-2xl text-sm',
-                msg.sender_id === currentUserId 
-                  ? 'bg-primary-500 text-white rounded-tr-sm' 
-                  : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-tl-sm shadow-sm'
+                'flex gap-3 max-w-[85%]',
+                msg.sender_id === currentUserId ? 'ml-auto flex-row-reverse' : ''
               ]"
             >
-              {{ msg.content }}
+              <!-- Аватарка -->
+              <CommonUserAvatar
+                :src="msg.sender_id === currentUserId ? user?.user_metadata?.avatar_url : chatUserProfiles[msg.sender_id]?.avatar_url"
+                :name="(msg.sender_id === currentUserId ? user?.user_metadata?.full_name : chatUserProfiles[msg.sender_id]?.full_name)"
+                size="sm"
+                class="shrink-0"
+                :uiClass="{ 'bg-primary-100 dark:bg-primary-900': msg.sender_id === currentUserId, 'bg-gray-100 dark:bg-gray-800': msg.sender_id !== currentUserId }"
+              />
+              
+              <!-- Бульбашка повідомлення -->
+              <div 
+                :class="[
+                  'p-3 rounded-2xl text-sm',
+                  msg.sender_id === currentUserId 
+                    ? 'bg-primary-500 text-white rounded-tr-sm' 
+                    : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-tl-sm shadow-sm'
+                ]"
+              >
+                {{ msg.content }}
+              </div>
             </div>
-          </div>
+          </template>
         </div>
 
         <!-- Поле вводу (Footer) -->
         <template #footer>
-          <form @submit.prevent="onSendMessage" class="flex items-center gap-2">
+          <div v-if="currentChat?.product?.listing_state === 'sold' || currentChat?.product?.listing_state === 'deactivated' || currentChat?.product?.listing_state === 'deleted'" class="text-center text-sm text-gray-500 py-2">
+            Чат заблоковано, оскільки оголошення неактуальне
+          </div>
+          <form v-else @submit.prevent="onSendMessage" class="flex items-center gap-2">
             <UInput
               v-model="newMessage"
               placeholder="Напишіть повідомлення..."

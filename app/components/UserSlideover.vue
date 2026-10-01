@@ -48,7 +48,7 @@ const menuItems = computed(() => [
     to: APP_ROUTES.PROFILE.PURCHASES
   },
   {
-    label: 'Мої повідомлення', // fallback manually since translation might be missing
+    label: 'Мої чати', // fallback manually since translation might be missing
     icon: 'i-heroicons-chat-bubble-left-right',
     to: APP_ROUTES.PROFILE.CHATS
   }

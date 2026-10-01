@@ -11,6 +11,7 @@ export const useChat = () => {
   const user = useSupabaseUser();
   const toast = useToast();
   const route = useRoute();
+  const { t } = useI18n();
 
   const activeChats = useState<Chat[]>('active-chats', () => []);
   const currentChat = useState<Chat | null>('current-chat', () => null);
@@ -77,7 +78,12 @@ export const useChat = () => {
     if (!error && data) {
       currentMessages.value = data as unknown as Message[];
       
-      // Помічаємо непрочитані повідомлення від іншого юзера як прочитані
+      // Завжди очищаємо лічильник для цього конкретного чату, бо ми щойно його відкрили
+      if (unreadCounts.value[chatId]) {
+        unreadCounts.value[chatId] = 0;
+      }
+      
+      // Помічаємо непрочитані повідомлення від іншого юзера як прочитані у базі
       if (userId) {
         const unreadMsgIds = (data as any[])
           .filter(m => m.is_read === false && m.sender_id !== userId)
@@ -88,11 +94,6 @@ export const useChat = () => {
             .from('messages')
             .update({ is_read: true })
             .in('id', unreadMsgIds);
-            
-          // Очищаємо лічильник для цього конкретного чату
-          if (unreadCounts.value[chatId]) {
-            unreadCounts.value[chatId] = 0;
-          }
         }
       }
     }
@@ -102,7 +103,16 @@ export const useChat = () => {
   const openChat = async (sellerId: string, productId: string, productData?: any) => {
     const userId = getUserId();
     if (!userId) {
-      toast.add({ title: 'Помилка', description: 'Необхідно увійти в систему', color: 'error' });
+      toast.add({ title: t('chat.errors.error'), description: t('chat.errors.notLoggedIn'), color: 'error' });
+      return;
+    }
+
+    if (productData && (productData.listing_state === 'sold' || productData.listing_state === 'deactivated' || productData.listing_state === 'deleted')) {
+      toast.add({ 
+        title: t('chat.errors.unavailableTitle'), 
+        description: t('chat.errors.listingUnavailable'), 
+        color: 'warning' 
+      });
       return;
     }
 
@@ -169,7 +179,7 @@ export const useChat = () => {
         .single()) as any;
 
       if (chatError || !newDbChat) {
-        toast.add({ title: 'Помилка', description: 'Не вдалося створити чат в БД', color: 'error' });
+        toast.add({ title: t('chat.errors.error'), description: t('chat.errors.createFailed'), color: 'error' });
         return;
       }
       
@@ -190,7 +200,7 @@ export const useChat = () => {
       .single()) as any;
 
     if (error) {
-      toast.add({ title: 'Помилка відправки', description: error.message, color: 'error' });
+      toast.add({ title: t('chat.errors.sendFailed'), description: error.message, color: 'error' });
     } else {
       if (insertedMsg && currentChat.value && currentChat.value.id === chatId) {
         if (!currentMessages.value.find(m => m.id === insertedMsg.id)) {
@@ -220,6 +230,18 @@ export const useChat = () => {
         async (payload) => {
           const newMsg = payload.new as Message;
           
+          if (newMsg.content.startsWith('[SYSTEM_STATUS]:')) {
+            const status = newMsg.content.replace('[SYSTEM_STATUS]:', '');
+            activeChats.value.forEach(c => {
+              if (c.id === newMsg.chat_id && c.product) {
+                c.product.listing_state = status as any;
+              }
+            });
+            if (currentChat.value && currentChat.value.id === newMsg.chat_id && currentChat.value.product) {
+              currentChat.value.product.listing_state = status as any;
+            }
+          }
+
           // Якщо це повідомлення для поточного відкритого чату
           if (currentChat.value && newMsg.chat_id === currentChat.value.id && isSlideoverOpen.value) {
             if (!currentMessages.value.find(m => m.id === newMsg.id)) {
@@ -248,12 +270,14 @@ export const useChat = () => {
             }
 
             if (chatForMsg && newMsg.sender_id !== userId) {
-              unreadCounts.value[newMsg.chat_id] = (unreadCounts.value[newMsg.chat_id] || 0) + 1;
-              toast.add({ 
-                title: 'Нове повідомлення', 
-                description: newMsg.content,
-                color: 'primary' 
-              });
+              if (!newMsg.content.startsWith('[SYSTEM_STATUS]:')) {
+                unreadCounts.value[newMsg.chat_id] = (unreadCounts.value[newMsg.chat_id] || 0) + 1;
+                toast.add({ 
+                  title: 'Нове повідомлення', 
+                  description: newMsg.content,
+                  color: 'primary' 
+                });
+              }
             }
           }
         }

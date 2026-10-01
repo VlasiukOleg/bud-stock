@@ -55,7 +55,7 @@ const isProfileRouteActive = computed(() => {
         variant="ghost"
         icon="i-heroicons-envelope"
         :to="APP_ROUTES.PROFILE.CHATS"
-        aria-label="Мої повідомлення"
+        aria-label="Мої чати"
         class="flex relative"
       >
         <span 

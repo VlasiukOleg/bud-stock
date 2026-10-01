@@ -167,13 +167,38 @@
       "loadError": "Error loading listings: ",
       "deleteConfirmTitle": "Confirm Deletion",
       "deleteConfirmDesc": "Are you sure you want to delete this listing? This action cannot be undone.",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "tabs": {
+        "active": "Active",
+        "sold": "Sold",
+        "deactivated": "Hidden"
+      },
+      "statusUpdated": "Status successfully updated",
+      "statusUpdateError": "Error updating status",
+      "noActive": "No active listings",
+      "noSold": "No sold items yet",
+      "noDeactivated": "No hidden listings"
     },
     "purchases": {
       "pageTitle": "My Purchases",
       "subtitle": "Your order history",
       "noPurchases": "You haven't bought anything yet.",
       "noPurchasesText": "Your orders will be displayed here."
+    },
+    "chats": {
+      "tabs": {
+        "buying": "I am buying",
+        "selling": "I am selling"
+      },
+      "title": "My chats",
+      "loading": "Loading chats...",
+      "noBuying": "You have no buying chats yet",
+      "noSelling": "You have no selling chats yet",
+      "listingDeleted": "Listing deleted",
+      "new": "New",
+      "sold": "Sold",
+      "hidden": "Hidden",
+      "updated": "Updated"
     }
   },
   "createListing": {
@@ -295,6 +320,16 @@
       "odesa": "Odesa",
       "dnipro": "Dnipro",
       "kharkiv": "Kharkiv"
+    }
+  },
+  "chat": {
+    "errors": {
+      "notLoggedIn": "You must log in",
+      "unavailableTitle": "Unavailable",
+      "listingUnavailable": "This listing is already sold or unpublished.",
+      "createFailed": "Failed to create chat in DB",
+      "sendFailed": "Send error",
+      "error": "Error"
     }
   }
 }

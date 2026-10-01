@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const nuxtApp = useNuxtApp();
 const user = useSupabaseUser();
-const { getUserListings, deleteListing } = useListings();
+const { getUserListings, deleteListing, updateListingState } = useListings();
 const { t } = useI18n();
 
 const { data: userListings, pending, error, refresh } = useAsyncData(
@@ -14,6 +14,27 @@ const { data: userListings, pending, error, refresh } = useAsyncData(
   }
 );
 
+const activeListings = computed(() => {
+  if (!userListings.value) return [];
+  return userListings.value.filter(l => !l.listing_state || l.listing_state === 'active');
+});
+
+const soldListings = computed(() => {
+  if (!userListings.value) return [];
+  return userListings.value.filter(l => l.listing_state === 'sold');
+});
+
+const deactivatedListings = computed(() => {
+  if (!userListings.value) return [];
+  return userListings.value.filter(l => l.listing_state === 'deactivated');
+});
+
+const tabItems = computed(() => [
+  { label: t('profile.listings.tabs.active'), slot: 'active', icon: 'i-heroicons-check-circle' },
+  { label: t('profile.listings.tabs.sold'), slot: 'sold', icon: 'i-heroicons-banknotes' },
+  { label: t('profile.listings.tabs.deactivated'), slot: 'deactivated', icon: 'i-heroicons-eye-slash' }
+]);
+
 const toast = useToast();
 
 const isDeleteModalOpen = ref(false);
@@ -23,6 +44,21 @@ const isDeleting = ref(false);
 const handleDelete = (id: string | number) => {
   listingToDelete.value = id;
   isDeleteModalOpen.value = true;
+};
+
+const handleUpdateState = async (id: string | number, newState: 'active' | 'sold' | 'deactivated') => {
+  try {
+    await updateListingState(String(id), newState);
+    toast.add({ title: t('profile.listings.statusUpdated'), color: 'success' });
+    
+    // Скидаємо кеш Nuxt
+    clearNuxtData(`user-listings-${user.value?.sub}`);
+    clearNuxtData('all-listings');
+    
+    refresh();
+  } catch (err) {
+    toast.add({ title: t('profile.listings.statusUpdateError'), color: 'error' });
+  }
 };
 
 const confirmDelete = async () => {
@@ -50,7 +86,7 @@ const confirmDelete = async () => {
 <template>
   <div class="relative bg-gray-50 dark:bg-gray-900 min-h-[calc(100vh-64px)]">
     <main class="w-full">
-      <div class="max-w-5xl mx-auto p-4 md:p-8">
+      <div class="max-w-5xl mx-auto p-4 pb-24 md:p-8 md:pb-8">
         <h1 class="text-3xl font-bold mb-8">{{ $t('profile.listings.pageTitle') }}</h1>
 
         <div v-if="pending" class="flex justify-center py-10">
@@ -67,14 +103,73 @@ const confirmDelete = async () => {
           <UButton :to="APP_ROUTES.CREATE_LISTING" class="mt-4" color="primary" variant="soft">{{ $t('profile.listings.createFirst') }}</UButton>
         </div>
         
-        <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-          <CommonProductCard
-            v-for="listing in userListings" 
-            :key="listing.id"
-            :product="listing"
-            :show-delete-button="true"
-            @delete="handleDelete"
-          />
+        <div v-else>
+          <UTabs 
+            :items="tabItems" 
+            class="w-full"
+            :ui="{
+              list: 'justify-around w-full',
+              trigger: 'grow flex-col gap-1 py-1',
+              label: 'text-[10px]/3'
+            }"
+          >
+            <template #active>
+              <div class="mt-6">
+                <div v-if="activeListings.length === 0" class="text-center py-10 text-gray-500 border border-dashed border-gray-300 rounded-lg">
+                  {{ $t('profile.listings.noActive') }}
+                </div>
+                <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <CommonProductCard
+                    v-for="listing in activeListings" 
+                    :key="listing.id"
+                    :product="listing"
+                    :show-delete-button="true"
+                    :show-status-actions="true"
+                    @delete="handleDelete"
+                    @updateState="handleUpdateState"
+                  />
+                </div>
+              </div>
+            </template>
+
+            <template #sold>
+              <div class="mt-6">
+                <div v-if="soldListings.length === 0" class="text-center py-10 text-gray-500 border border-dashed border-gray-300 rounded-lg">
+                  {{ $t('profile.listings.noSold') }}
+                </div>
+                <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <CommonProductCard
+                    v-for="listing in soldListings" 
+                    :key="listing.id"
+                    :product="listing"
+                    :show-delete-button="true"
+                    :show-status-actions="true"
+                    @delete="handleDelete"
+                    @updateState="handleUpdateState"
+                  />
+                </div>
+              </div>
+            </template>
+
+            <template #deactivated>
+              <div class="mt-6">
+                <div v-if="deactivatedListings.length === 0" class="text-center py-10 text-gray-500 border border-dashed border-gray-300 rounded-lg">
+                  {{ $t('profile.listings.noDeactivated') }}
+                </div>
+                <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <CommonProductCard
+                    v-for="listing in deactivatedListings" 
+                    :key="listing.id"
+                    :product="listing"
+                    :show-delete-button="true"
+                    :show-status-actions="true"
+                    @delete="handleDelete"
+                    @updateState="handleUpdateState"
+                  />
+                </div>
+              </div>
+            </template>
+          </UTabs>
         </div>
       </div>
     </main>
