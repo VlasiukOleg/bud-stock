@@ -4,6 +4,20 @@ const user = useSupabaseUser();
 const { getUserListings, deleteListing, updateListingState } = useListings();
 const { t } = useI18n();
 
+const editingListing = ref<any | null>(null);
+
+const handleEdit = (id: string | number) => {
+  const found = userListings.value?.find(l => l.id === id);
+  if (found) editingListing.value = found;
+};
+
+const handleSaved = () => {
+  editingListing.value = null;
+  clearNuxtData(`user-listings-${user.value?.sub}`);
+  clearNuxtData('all-listings');
+  refresh();
+};
+
 const { data: userListings, pending, error, refresh } = useAsyncData(
   `user-listings-${user.value?.sub}`,
   () => user.value?.sub ? getUserListings(user.value.sub) : Promise.resolve([]),
@@ -85,7 +99,14 @@ const confirmDelete = async () => {
 
 <template>
   <div class="relative bg-gray-50 dark:bg-gray-900 min-h-[calc(100vh-64px)]">
-    <main class="w-full">
+    <!-- Режим редагування -->
+    <EditListing
+      v-if="editingListing"
+      :listing="editingListing"
+      @cancel="editingListing = null"
+      @saved="handleSaved"
+    />
+    <main v-else class="w-full">
       <div class="max-w-5xl mx-auto p-4 pb-24 md:p-8 md:pb-8">
         <h1 class="text-3xl font-bold mb-8">{{ $t('profile.listings.pageTitle') }}</h1>
 
@@ -127,6 +148,7 @@ const confirmDelete = async () => {
                     :show-status-actions="true"
                     @delete="handleDelete"
                     @updateState="handleUpdateState"
+                    @edit="handleEdit"
                   />
                 </div>
               </div>
@@ -146,6 +168,7 @@ const confirmDelete = async () => {
                     :show-status-actions="true"
                     @delete="handleDelete"
                     @updateState="handleUpdateState"
+                    @edit="handleEdit"
                   />
                 </div>
               </div>
@@ -165,6 +188,7 @@ const confirmDelete = async () => {
                     :show-status-actions="true"
                     @delete="handleDelete"
                     @updateState="handleUpdateState"
+                    @edit="handleEdit"
                   />
                 </div>
               </div>

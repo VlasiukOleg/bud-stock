@@ -13,7 +13,7 @@ const profileForm = reactive({
   name: '',
   phone: '',
   avatar_url: '',
-  is_phone_public: false
+  phone_visibility: 'registered' as 'everyone' | 'registered' | 'hidden'
 })
 
 const schema = yup.object({
@@ -32,7 +32,15 @@ watch(user, (newUser) => {
     profileForm.name = newUser.user_metadata?.full_name || ''
     profileForm.phone = newUser.user_metadata?.phone || ''
     profileForm.avatar_url = newUser.user_metadata?.avatar_url || ''
-    profileForm.is_phone_public = newUser.user_metadata?.is_phone_public ?? false
+    // Backward compatibility: якщо є phone_visibility — використовуємо його,
+    // інакше дивимося на старий is_phone_public (true → 'registered')
+    if (newUser.user_metadata?.phone_visibility) {
+      profileForm.phone_visibility = newUser.user_metadata.phone_visibility
+    } else if (newUser.user_metadata?.is_phone_public) {
+      profileForm.phone_visibility = 'registered'
+    } else {
+      profileForm.phone_visibility = 'hidden'
+    }
   }
 }, { immediate: true })
 
@@ -45,14 +53,15 @@ const isFormChanged = computed(() => {
   
   const currentName = user.value?.user_metadata?.full_name || '';
   const currentPhone = user.value?.user_metadata?.phone || '';
-  const currentIsPhonePublic = user.value?.user_metadata?.is_phone_public ?? false;
+  const currentVisibility = user.value?.user_metadata?.phone_visibility
+    || (user.value?.user_metadata?.is_phone_public ? 'registered' : 'hidden');
   
   const rawFormPhone = profileForm.phone ? profileForm.phone.replace(/\D/g, '') : '';
   const rawCurrentPhone = currentPhone ? currentPhone.replace(/\D/g, '') : '';
 
   return profileForm.name !== currentName ||
          rawFormPhone !== rawCurrentPhone ||
-         profileForm.is_phone_public !== currentIsPhonePublic;
+         profileForm.phone_visibility !== currentVisibility;
 })
 
 watch(avatarFile, (newFile) => {
@@ -69,6 +78,27 @@ watch(avatarFile, (newFile) => {
 const currentAvatarUrl = computed(() => {
   return localAvatarPreview.value || profileForm.avatar_url
 })
+
+const phoneVisibilityOptions = computed(() => [
+  {
+    value: 'everyone',
+    label: t('profile.information.phoneVisibilityEveryone'),
+    help: t('profile.information.phoneVisibilityEveryoneHelp'),
+    icon: 'i-heroicons-globe-alt'
+  },
+  {
+    value: 'registered',
+    label: t('profile.information.phoneVisibilityRegistered'),
+    help: t('profile.information.phoneVisibilityRegisteredHelp'),
+    icon: 'i-heroicons-user-circle'
+  },
+  {
+    value: 'hidden',
+    label: t('profile.information.phoneVisibilityHidden'),
+    help: t('profile.information.phoneVisibilityHiddenHelp'),
+    icon: 'i-heroicons-eye-slash'
+  }
+])
 
 const saveProfile = async (event?: FormSubmitEvent<any>) => {
   isSavingProfile.value = true
@@ -97,7 +127,9 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
         full_name: profileForm.name,
         phone: '+' + profileForm.phone.replace(/\D/g, ''),
         avatar_url: finalAvatarUrl,
-        is_phone_public: profileForm.is_phone_public
+        phone_visibility: profileForm.phone_visibility,
+        // Backward compat: залишаємо is_phone_public синхронізованим
+        is_phone_public: profileForm.phone_visibility !== 'hidden'
       }
     })
     
@@ -132,7 +164,7 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
 <template>
   <div class="relative bg-gray-50 dark:bg-gray-900 min-h-[calc(100vh-64px)]">
     <main class="w-full">
-      <div class="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
+      <div class="max-w-5xl mx-auto pb-24 p-4 md:p-8 space-y-6">
         <h1 class="text-3xl font-bold mb-8">{{ $t('profile.information.pageTitle') }}</h1>
 
         <UCard>
@@ -158,12 +190,31 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
               </template>
             </UFormField>
 
-            <UFormField>
-              <UCheckbox
-                v-model="profileForm.is_phone_public"
-                :label="$t('profile.information.showPhoneLabel')"
-                :help="$t('profile.information.showPhoneHelp')"
-              />
+            <UFormField :label="$t('profile.information.phoneVisibilityLabel')" :help="$t('profile.information.phoneVisibilityHelp')">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
+                <label
+                  v-for="option in phoneVisibilityOptions"
+                  :key="option.value"
+                  :class="[
+                    'flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all',
+                    profileForm.phone_visibility === option.value
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  ]"
+                >
+                  <input
+                    type="radio"
+                    :value="option.value"
+                    v-model="profileForm.phone_visibility"
+                    class="sr-only"
+                  />
+                  <UIcon :name="option.icon" class="w-5 h-5 mt-0.5 shrink-0" :class="profileForm.phone_visibility === option.value ? 'text-primary-500' : 'text-gray-400'" />
+                  <div>
+                    <div class="font-medium text-sm">{{ option.label }}</div>
+                    <div class="text-xs text-gray-500 mt-0.5">{{ option.help }}</div>
+                  </div>
+                </label>
+              </div>
             </UFormField>
 
             <UFormField :label="$t('profile.information.avatarLabel')">

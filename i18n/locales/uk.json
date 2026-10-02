@@ -146,8 +146,14 @@
       "phoneRequired": "Введіть телефон",
       "phoneInvalid": "Введіть повний номер",
       "phoneHelp": "Для створення оголошень необхідно вказати телефон.",
-      "showPhoneLabel": "Показувати мій телефон в оголошеннях",
-      "showPhoneHelp": "Ваш телефон не будуть бачити інші користувачі, якщо ви вимкнете це налаштування (зв'язок буде тільки через повідомлення).",
+      "phoneVisibilityLabel": "Видимість номера телефону",
+      "phoneVisibilityHelp": "Оберіть, хто може бачити ваш номер телефону в оголошеннях.",
+      "phoneVisibilityEveryone": "Всім (в т.ч. незареєстрованим)",
+      "phoneVisibilityEveryoneHelp": "Телефон бачать усі відвідувачі сайту",
+      "phoneVisibilityRegistered": "Тільки зареєстрованим",
+      "phoneVisibilityRegisteredHelp": "Телефон бачать лише авторизовані користувачі",
+      "phoneVisibilityHidden": "Приховати від усіх",
+      "phoneVisibilityHiddenHelp": "Зв'язок тільки через повідомлення на сайті",
       "avatarLabel": "Аватарка",
       "selectPhoto": "Вибрати фото",
       "saveChanges": "Зберегти зміни",
@@ -331,5 +337,12 @@
       "sendFailed": "Помилка відправки",
       "error": "Помилка"
     }
+  },
+  "editListing": {
+    "title": "Редагування оголошення",
+    "subtitle": "Внесіть зміни та збережіть оголошення",
+    "saveBtn": "Зберегти зміни",
+    "saveSuccess": "Оголошення оновлено!",
+    "saveError": "Помилка збереження"
   }
 }

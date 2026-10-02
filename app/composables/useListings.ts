@@ -86,11 +86,26 @@ export const useListings = () => {
     return await updateListingState(listingId, 'deleted')
   }
 
+  const updateListing = async (listingId: string, payload: Record<string, any>) => {
+    const { error } = await client
+      .from('listings')
+      .update(payload)
+      .eq('id', listingId)
+
+    if (error) {
+      console.error('Помилка оновлення оголошення:', error)
+      throw error
+    }
+
+    return true
+  }
+
   return {
     getLatestListings,
     getUserListings,
     getAllListings,
     updateListingState,
-    deleteListing
+    deleteListing,
+    updateListing
   }
 }

@@ -337,13 +337,22 @@
                   :icon="
                     showPhone
                       ? 'i-heroicons-phone-20-solid'
-                      : 'i-heroicons-device-phone-mobile-20-solid'
+                      : (canSeePhone ? 'i-heroicons-device-phone-mobile-20-solid' : 'i-heroicons-lock-closed-20-solid')
                   "
-                  @click="() => { if(product.canSeePhone) showPhone = !showPhone }"
-                  :disabled="!product.canSeePhone"
+                  @click="() => { if(canSeePhone) showPhone = !showPhone }"
+                  :disabled="!canSeePhone"
                 >
-                  {{ !product.canSeePhone ? "Телефон приховано" : (showPhone ? product.sellerPhone : "Показати телефон") }}
+                  <template v-if="showPhone">{{ sellerPhone }}</template>
+                  <template v-else-if="canSeePhone">Показати телефон</template>
+                  <template v-else-if="!currentUser">Увійдіть, щоб побачити телефон</template>
+                  <template v-else>Телефон приховано продавцем</template>
                 </UButton>
+
+                <!-- Підказка для незареєстрованих -->
+                <div v-if="!canSeePhone && !currentUser" class="text-[11px] text-center text-neutral-500">
+                  <NuxtLink :to="APP_ROUTES.AUTH.LOGIN" class="text-primary-500 hover:underline font-medium">Зареєструйтеся</NuxtLink>
+                  , щоб отримати доступ до контактів продавця
+                </div>
 
                 <p
                   v-if="showPhone"
@@ -424,8 +433,10 @@ const { data: product, pending } = useAsyncData(
     // Отримуємо профіль продавця (кешується, щоб в чаті не завантажувати ще раз)
     const profileData = await fetchProfile(listingData.user_id);
       
-    const isOwner = currentUser.value?.id === listingData.user_id;
-    const canSeePhone = profileData?.is_phone_public || isOwner;
+    // Зберігаємо оригінальні дані видимості, щоб обчислити їх реактивно
+    const phoneVisibility = profileData?.phone_visibility 
+      || (profileData?.is_phone_public ? 'registered' : 'hidden');
+
     
     const getCategoryName = (categoryId: string) => {
       if (!categoryId) return "Без категорії";
@@ -447,8 +458,8 @@ const { data: product, pending } = useAsyncData(
       }, 
       sellerName: getUserDisplayName(profileData),
       sellerAvatar: profileData?.avatar_url || null,
-      sellerPhone: canSeePhone ? (profileData?.phone || "Не вказано") : "Приховано",
-      canSeePhone,
+      sellerPhoneRaw: profileData?.phone || "Не вказано",
+      phoneVisibility,
       sellerRating: 5.0,
       sellerReviewsCount: 0,
       category: getCategoryName(listingData.category_id)
@@ -460,6 +471,24 @@ const { data: product, pending } = useAsyncData(
     }
   }
 );
+
+// Реактивно обчислюємо видимість телефону, щоб вона миттєво реагувала на вхід/вихід з акаунту
+const canSeePhone = computed(() => {
+  if (!product.value) return false;
+  
+  const isOwner = currentUser.value?.id === product.value.user_id;
+  const isLoggedIn = !!currentUser.value;
+  const visibility = product.value.phoneVisibility;
+  
+  return isOwner
+    || visibility === 'everyone'
+    || (visibility === 'registered' && isLoggedIn);
+});
+
+const sellerPhone = computed(() => {
+  return canSeePhone.value ? product.value?.sellerPhoneRaw : "Приховано";
+});
+
 
 const googleMapsUrl = computed(() => {
   if (!product.value?.location) return "";

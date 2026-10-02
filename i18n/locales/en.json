@@ -146,8 +146,14 @@
       "phoneRequired": "Enter phone",
       "phoneInvalid": "Enter full number",
       "phoneHelp": "A phone number is required to create listings.",
-      "showPhoneLabel": "Show my phone in listings",
-      "showPhoneHelp": "Other users will not see your phone number if you disable this setting (communication will only be via messages).",
+      "phoneVisibilityLabel": "Phone number visibility",
+      "phoneVisibilityHelp": "Choose who can see your phone number in listings.",
+      "phoneVisibilityEveryone": "Everyone (incl. guests)",
+      "phoneVisibilityEveryoneHelp": "All visitors can see the phone number",
+      "phoneVisibilityRegistered": "Registered users only",
+      "phoneVisibilityRegisteredHelp": "Only logged-in users can see the phone number",
+      "phoneVisibilityHidden": "Hide from everyone",
+      "phoneVisibilityHiddenHelp": "Contact only via messages on site",
       "avatarLabel": "Avatar",
       "selectPhoto": "Select photo",
       "saveChanges": "Save changes",
@@ -331,5 +337,12 @@
       "sendFailed": "Send error",
       "error": "Error"
     }
+  },
+  "editListing": {
+    "title": "Edit listing",
+    "subtitle": "Make changes and save your listing",
+    "saveBtn": "Save changes",
+    "saveSuccess": "Listing updated!",
+    "saveError": "Save error"
   }
 }
