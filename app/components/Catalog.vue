@@ -571,7 +571,7 @@ const productsInRadius = computed(() => {
   if (!initialUserLocation.value) return [];
   
   // Об'єднуємо товари з бази даних (allListings) та замокані товари (MOCK_PRODUCTS)
-  const combinedListings = [...(allListings.value || []), ...MOCK_PRODUCTS];
+  const combinedListings = [...(allListings.value || [])];
 
   return combinedListings.filter((product) => {
     const lat = product.latitude || product.location?.lat;

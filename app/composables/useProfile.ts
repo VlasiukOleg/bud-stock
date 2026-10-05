@@ -4,11 +4,11 @@ export const useProfile = () => {
   const supabase = useSupabaseClient<any>()
   const profilesCache = useState<Record<string, any>>('profiles-cache', () => ({}))
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, options: { force?: boolean } = {}) => {
     if (!userId) return null;
     
-    // Якщо профіль вже є в кеші, повертаємо його
-    if (profilesCache.value[userId]) {
+    // Якщо профіль вже є в кеші, повертаємо його (крім випадків, коли потрібні свіжі дані)
+    if (!options.force && userId in profilesCache.value) {
       return profilesCache.value[userId];
     }
 
@@ -23,8 +23,8 @@ export const useProfile = () => {
       return data;
     }
     
-    // Якщо профілю немає (помилка або не знайдено), зберігаємо пустий об'єкт, щоб не робити зайвих запитів
-    profilesCache.value[userId] = {};
+    // Якщо профілю немає (помилка або не знайдено), кешуємо null, щоб не робити зайвих запитів
+    profilesCache.value[userId] = null;
     return null;
   };
 

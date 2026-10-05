@@ -339,7 +339,8 @@
                       ? 'i-heroicons-phone-20-solid'
                       : (canSeePhone ? 'i-heroicons-device-phone-mobile-20-solid' : 'i-heroicons-lock-closed-20-solid')
                   "
-                  @click="() => { if(canSeePhone) showPhone = !showPhone }"
+                  :loading="isLoadingPhone"
+                  @click="togglePhone"
                   :disabled="!canSeePhone"
                 >
                   <template v-if="showPhone">{{ sellerPhone }}</template>
@@ -430,12 +431,13 @@ const { data: product, pending } = useAsyncData(
       
     if (error || !listingData) return null;
     
-    // Отримуємо профіль продавця (кешується, щоб в чаті не завантажувати ще раз)
-    const profileData = await fetchProfile(listingData.user_id);
+    // Профіль продавця завжди свіжий: продавець міг змінити видимість телефону, ім'я чи аватар
+    // (заодно оновлює кеш, який використовує чат)
+    const profileData = await fetchProfile(listingData.user_id, { force: true });
       
-    // Зберігаємо оригінальні дані видимості, щоб обчислити їх реактивно
-    const phoneVisibility = profileData?.phone_visibility 
-      || (profileData?.is_phone_public ? 'registered' : 'hidden');
+    // Налаштування видимості потрібне лише для підказок в UI.
+    // Сам номер віддає БД-функція get_seller_phone, яка перевіряє права на сервері.
+    const phoneVisibility = profileData?.phone_visibility || 'hidden';
 
     
     const getCategoryName = (categoryId: string) => {
@@ -458,17 +460,11 @@ const { data: product, pending } = useAsyncData(
       }, 
       sellerName: getUserDisplayName(profileData),
       sellerAvatar: profileData?.avatar_url || null,
-      sellerPhoneRaw: profileData?.phone || "Не вказано",
       phoneVisibility,
       sellerRating: 5.0,
       sellerReviewsCount: 0,
       category: getCategoryName(listingData.category_id)
     };
-  },
-  {
-    getCachedData(key) {
-      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
-    }
   }
 );
 
@@ -485,8 +481,51 @@ const canSeePhone = computed(() => {
     || (visibility === 'registered' && isLoggedIn);
 });
 
-const sellerPhone = computed(() => {
-  return canSeePhone.value ? product.value?.sellerPhoneRaw : "Приховано";
+const sellerPhone = ref<string | null>(null);
+const isLoadingPhone = ref(false);
+
+// Телефон запитуємо в БД лише на клік (як на OLX).
+// Функція get_seller_phone сама перевіряє phone_visibility та auth.uid(),
+// тому підробити доступ з фронта неможливо.
+const togglePhone = async () => {
+  if (!canSeePhone.value || !product.value) return;
+
+  if (showPhone.value) {
+    showPhone.value = false;
+    return;
+  }
+
+  isLoadingPhone.value = true;
+  try {
+    const { data, error } = await supabase.rpc('get_seller_phone', {
+      p_seller_id: product.value.user_id,
+    });
+
+    if (!error && data) {
+      sellerPhone.value = data;
+      showPhone.value = true;
+      return;
+    }
+
+    // База не віддала номер. Можливо, продавець щойно змінив видимість —
+    // підтягуємо актуальне налаштування, щоб кнопка показала правильний стан.
+    const freshProfile = await fetchProfile(product.value.user_id, { force: true });
+    product.value.phoneVisibility = freshProfile?.phone_visibility || 'hidden';
+
+    // Якщо доступ все ще є — значить номер просто не вказаний
+    if (canSeePhone.value) {
+      sellerPhone.value = "Не вказано";
+      showPhone.value = true;
+    }
+  } finally {
+    isLoadingPhone.value = false;
+  }
+};
+
+// При вході/виході з акаунту скидаємо показаний номер — права могли змінитися
+watch(() => currentUser.value?.id, () => {
+  showPhone.value = false;
+  sellerPhone.value = null;
 });
 
 

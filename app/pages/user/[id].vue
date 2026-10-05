@@ -61,11 +61,12 @@ const { data: pageData, pending } = useAsyncData(
       .eq('id', userId)
       .single();
       
-    // Get user's listings
+    // Get user's active listings
     const { data: userListings } = await supabase
       .from('listings')
       .select('*')
       .eq('user_id', userId)
+      .eq('listing_state', 'active')
       .order('created_at', { ascending: false });
       
     return {

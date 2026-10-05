@@ -27,24 +27,16 @@ const schema = yup.object({
     })
 })
 
+const isSavingProfile = ref(false)
+
 watch(user, (newUser) => {
-  if (newUser) {
+  if (newUser && !isSavingProfile.value) {
     profileForm.name = newUser.user_metadata?.full_name || ''
     profileForm.phone = newUser.user_metadata?.phone || ''
     profileForm.avatar_url = newUser.user_metadata?.avatar_url || ''
-    // Backward compatibility: якщо є phone_visibility — використовуємо його,
-    // інакше дивимося на старий is_phone_public (true → 'registered')
-    if (newUser.user_metadata?.phone_visibility) {
-      profileForm.phone_visibility = newUser.user_metadata.phone_visibility
-    } else if (newUser.user_metadata?.is_phone_public) {
-      profileForm.phone_visibility = 'registered'
-    } else {
-      profileForm.phone_visibility = 'hidden'
-    }
+    profileForm.phone_visibility = newUser.user_metadata?.phone_visibility || 'hidden'
   }
 }, { immediate: true })
-
-const isSavingProfile = ref(false)
 const avatarFile = ref<File | null>(null)
 const localAvatarPreview = ref<string | null>(null)
 
@@ -53,8 +45,7 @@ const isFormChanged = computed(() => {
   
   const currentName = user.value?.user_metadata?.full_name || '';
   const currentPhone = user.value?.user_metadata?.phone || '';
-  const currentVisibility = user.value?.user_metadata?.phone_visibility
-    || (user.value?.user_metadata?.is_phone_public ? 'registered' : 'hidden');
+  const currentVisibility = user.value?.user_metadata?.phone_visibility || 'hidden';
   
   const rawFormPhone = profileForm.phone ? profileForm.phone.replace(/\D/g, '') : '';
   const rawCurrentPhone = currentPhone ? currentPhone.replace(/\D/g, '') : '';
@@ -127,9 +118,7 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
         full_name: profileForm.name,
         phone: '+' + profileForm.phone.replace(/\D/g, ''),
         avatar_url: finalAvatarUrl,
-        phone_visibility: profileForm.phone_visibility,
-        // Backward compat: залишаємо is_phone_public синхронізованим
-        is_phone_public: profileForm.phone_visibility !== 'hidden'
+        phone_visibility: profileForm.phone_visibility
       }
     })
     
