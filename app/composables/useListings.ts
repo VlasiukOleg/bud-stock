@@ -59,25 +59,6 @@ export const useListings = () => {
       throw error
     }
     
-    // Send system messages to all chats associated with this listing
-    const user = useSupabaseUser()
-    const userId = user.value?.id || (user.value as any)?.sub;
-    if (userId) {
-      const { data: chats } = await client.from('chats').select('id').eq('product_id', listingId);
-      if (chats && chats.length > 0) {
-        const systemMessages = chats.map((chat: any) => ({
-          chat_id: chat.id,
-          sender_id: userId,
-          content: `[SYSTEM_STATUS]:${newState}`,
-          is_read: false
-        }));
-        await client.from('messages').insert(systemMessages);
-        
-        const chatIds = chats.map((c: any) => c.id);
-        await client.from('chats').update({ updated_at: new Date().toISOString() }).in('id', chatIds);
-      }
-    }
-    
     return true
   }
 

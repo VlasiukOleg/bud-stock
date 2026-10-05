@@ -82,7 +82,7 @@ const openMyChat = async (chat: any) => {
                         <UBadge v-if="chat.product?.listing_state === 'sold'" color="success" variant="soft" size="xs">{{ $t('profile.chats.sold') }}</UBadge>
                         <UBadge v-else-if="chat.product?.listing_state === 'deactivated' || chat.product?.listing_state === 'deleted'" color="neutral" variant="soft" size="xs">{{ $t('profile.chats.hidden') }}</UBadge>
                         <p class="text-xs md:text-sm text-gray-500 truncate" :class="{'text-gray-900 dark:text-gray-300 font-medium': unreadCounts[chat.id]}">
-                          {{ $t('profile.chats.updated') }}: {{ new Date(chat.updated_at).toLocaleString() }}
+                          {{ $t('profile.chats.updated') }}: {{ new Date(chat.updated_at).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
                         </p>
                       </div>
                     </div>
@@ -125,7 +125,7 @@ const openMyChat = async (chat: any) => {
                         <UBadge v-if="chat.product?.listing_state === 'sold'" color="success" variant="soft" size="xs">{{ $t('profile.chats.sold') }}</UBadge>
                         <UBadge v-else-if="chat.product?.listing_state === 'deactivated' || chat.product?.listing_state === 'deleted'" color="neutral" variant="soft" size="xs">{{ $t('profile.chats.hidden') }}</UBadge>
                         <p class="text-xs md:text-sm text-gray-500 truncate" :class="{'text-gray-900 dark:text-gray-300 font-medium': unreadCounts[chat.id]}">
-                          {{ $t('profile.chats.updated') }}: {{ new Date(chat.updated_at).toLocaleString() }}
+                          {{ $t('profile.chats.updated') }}: {{ new Date(chat.updated_at).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
                         </p>
                       </div>
                     </div>

@@ -45,14 +45,8 @@
           </div>
           
           <template v-for="msg in currentMessages" :key="msg.id">
-            <div v-if="msg.content.startsWith('[SYSTEM_STATUS]:')" class="w-full flex justify-center my-2">
-              <div class="bg-gray-100 dark:bg-gray-800 text-gray-500 text-xs px-3 py-1 rounded-full shadow-sm">
-                {{ msg.content.includes('sold') ? 'Продавець позначив товар як проданий' : (msg.content.includes('active') ? 'Оголошення знову актуальне' : 'Оголошення деактивовано або видалено') }}
-              </div>
-            </div>
-            
             <div
-              v-else
+              v-if="!msg.content.startsWith('[SYSTEM_STATUS]:')"
               :class="[
                 'flex gap-3 max-w-[85%]',
                 msg.sender_id === currentUserId ? 'ml-auto flex-row-reverse' : ''
@@ -68,15 +62,26 @@
               />
               
               <!-- Бульбашка повідомлення -->
-              <div 
-                :class="[
-                  'p-3 rounded-2xl text-sm',
-                  msg.sender_id === currentUserId 
-                    ? 'bg-primary-500 text-white rounded-tr-sm' 
-                    : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-tl-sm shadow-sm'
-                ]"
-              >
-                {{ msg.content }}
+              <!-- Бульбашка повідомлення та час -->
+              <div class="flex flex-col gap-1 max-w-full">
+                <div 
+                  :class="[
+                    'p-3 rounded-2xl text-sm',
+                    msg.sender_id === currentUserId 
+                      ? 'bg-primary-500 text-white rounded-tr-sm' 
+                      : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-tl-sm shadow-sm'
+                  ]"
+                >
+                  {{ msg.content }}
+                </div>
+                <span 
+                  :class="[
+                    'text-[10px] text-gray-400 px-1',
+                    msg.sender_id === currentUserId ? 'text-right' : 'text-left'
+                  ]"
+                >
+                  {{ new Date(msg.created_at).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) }}
+                </span>
               </div>
             </div>
           </template>

@@ -163,7 +163,13 @@ export const useChat = () => {
   // Відправити повідомлення
   const sendMessage = async (content: string) => {
     const userId = getUserId();
-    if (!userId || !currentChat.value || !content.trim()) return;
+    const trimmedContent = content.trim();
+    if (!userId || !currentChat.value || !trimmedContent) return;
+
+    if (trimmedContent.startsWith('[SYSTEM_STATUS]:')) {
+      toast.add({ title: t('chat.errors.error'), description: 'Ви не можете відправляти системні команди вручну.', color: 'error' });
+      return;
+    }
 
     let chatId = currentChat.value.id;
 
@@ -212,6 +218,13 @@ export const useChat = () => {
         .from('chats')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', chatId);
+        
+      const chatIdx = activeChats.value.findIndex(c => c.id === chatId);
+      if (chatIdx !== -1) {
+        activeChats.value[chatIdx].updated_at = new Date().toISOString();
+        activeChats.value.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        activeChats.value = [...activeChats.value];
+      }
     }
   };
 
@@ -234,12 +247,23 @@ export const useChat = () => {
             const status = newMsg.content.replace('[SYSTEM_STATUS]:', '');
             activeChats.value.forEach(c => {
               if (c.id === newMsg.chat_id && c.product) {
-                c.product.listing_state = status as any;
+                if (c.product.listing_state !== status) {
+                  c.product.listing_state = status as any;
+                  activeChats.value = [...activeChats.value];
+                }
               }
             });
             if (currentChat.value && currentChat.value.id === newMsg.chat_id && currentChat.value.product) {
               currentChat.value.product.listing_state = status as any;
             }
+          }
+          
+          // Оновлюємо дату останнього повідомлення в списку чатів та сортуємо
+          const chatIdx = activeChats.value.findIndex(c => c.id === newMsg.chat_id);
+          if (chatIdx !== -1) {
+            activeChats.value[chatIdx].updated_at = newMsg.created_at || new Date().toISOString();
+            activeChats.value.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+            activeChats.value = [...activeChats.value];
           }
 
           // Якщо це повідомлення для поточного відкритого чату
