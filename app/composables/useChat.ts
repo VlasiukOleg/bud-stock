@@ -221,9 +221,12 @@ export const useChat = () => {
         
       const chatIdx = activeChats.value.findIndex(c => c.id === chatId);
       if (chatIdx !== -1) {
-        activeChats.value[chatIdx].updated_at = new Date().toISOString();
-        activeChats.value.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-        activeChats.value = [...activeChats.value];
+        const chat = activeChats.value[chatIdx];
+        if (chat) {
+          chat.updated_at = new Date().toISOString();
+          activeChats.value.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+          activeChats.value = [...activeChats.value];
+        }
       }
     }
   };
@@ -261,7 +264,10 @@ export const useChat = () => {
           // Оновлюємо дату останнього повідомлення в списку чатів та сортуємо
           const chatIdx = activeChats.value.findIndex(c => c.id === newMsg.chat_id);
           if (chatIdx !== -1) {
-            activeChats.value[chatIdx].updated_at = newMsg.created_at || new Date().toISOString();
+            const chatToUpdate = activeChats.value[chatIdx];
+            if (chatToUpdate) {
+              chatToUpdate.updated_at = newMsg.created_at || new Date().toISOString();
+            }
             activeChats.value.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
             activeChats.value = [...activeChats.value];
           }
@@ -301,6 +307,30 @@ export const useChat = () => {
                   description: newMsg.content,
                   color: 'primary' 
                 });
+              }
+            }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'messages' },
+        (payload) => {
+          const newMsg = payload.new as Message;
+          
+          // Якщо повідомлення від іншого користувача і воно тепер прочитане (прочитали на іншому пристрої/вкладці)
+          if (newMsg.sender_id !== userId && newMsg.is_read) {
+            // Зменшуємо лічильник непрочитаних
+            const currentCount = unreadCounts.value[newMsg.chat_id];
+            if (currentCount && currentCount > 0) {
+              unreadCounts.value[newMsg.chat_id] = currentCount - 1;
+            }
+            
+            // Оновлюємо статус у відкритому чаті
+            if (currentChat.value && currentChat.value.id === newMsg.chat_id) {
+              const msgInChat = currentMessages.value.find(m => m.id === newMsg.id);
+              if (msgInChat) {
+                msgInChat.is_read = true;
               }
             }
           }
