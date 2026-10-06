@@ -85,15 +85,10 @@ export const useChat = () => {
       
       // Помічаємо непрочитані повідомлення від іншого юзера як прочитані у базі
       if (userId) {
-        const unreadMsgIds = (data as any[])
-          .filter(m => m.is_read === false && m.sender_id !== userId)
-          .map(m => m.id);
+        const hasUnread = (data as any[]).some(m => m.is_read === false && m.sender_id !== userId);
 
-        if (unreadMsgIds.length > 0) {
-          await supabase
-            .from('messages')
-            .update({ is_read: true })
-            .in('id', unreadMsgIds);
+        if (hasUnread) {
+          await supabase.rpc('mark_chat_as_read', { p_chat_id: chatId });
         }
       }
     }
