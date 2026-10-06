@@ -331,7 +331,15 @@ export const useChat = () => {
           }
         }
       )
-      .subscribe();
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          // Відновлення після втрати з'єднання (офлайн/сплячий режим)
+          await fetchChats();
+          if (currentChat.value) {
+            await fetchMessages(currentChat.value.id);
+          }
+        }
+      });
   };
 
   // Дедуплікація запитів, щоб кілька компонентів не робили однакові запити одночасно
