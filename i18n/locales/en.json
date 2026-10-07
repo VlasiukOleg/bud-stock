@@ -336,7 +336,8 @@
       "createFailed": "Failed to create chat in DB",
       "sendFailed": "Send error",
       "error": "Error"
-    }
+    },
+    "newMessage": "New message"
   },
   "editListing": {
     "title": "Edit listing",

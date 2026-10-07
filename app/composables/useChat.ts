@@ -294,7 +294,7 @@ export const useChat = () => {
               if (!newMsg.content.startsWith('[SYSTEM_STATUS]:')) {
                 unreadCounts.value[newMsg.chat_id] = (unreadCounts.value[newMsg.chat_id] || 0) + 1;
                 toast.add({ 
-                  title: 'Нове повідомлення', 
+                  title: t('chat.newMessage'), 
                   description: newMsg.content,
                   color: 'primary' 
                 });
