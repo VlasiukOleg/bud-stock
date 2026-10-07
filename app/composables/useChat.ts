@@ -5,6 +5,7 @@ let messageSubscription: any = null;
 let fetchChatsPromise: Promise<void> | null = null;
 let isAuthListenerRegistered = false;
 let lastFetchedUserId: string | null = null;
+let isVisibilityListenerRegistered = false;
 
 export const useChat = () => {
   const supabase = useSupabaseClient();
@@ -26,14 +27,15 @@ export const useChat = () => {
   const { fetchProfile, profilesCache } = useProfile();
 
   // Отримати всі чати юзера
-  const fetchChats = async () => {
+  // silent: true — оновлення у фоні без показу лоадера (щоб список не "блимав")
+  const fetchChats = async (options: { silent?: boolean } = {}) => {
     const userId = getUserId();
     if (!userId) {
       isLoadingChats.value = false;
       return;
     }
     
-    isLoadingChats.value = true;
+    if (!options.silent) isLoadingChats.value = true;
     const { data, error } = await supabase
       .from('chats')
       .select('*, product:listings(*)')
@@ -330,7 +332,7 @@ export const useChat = () => {
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           // Відновлення після втрати з'єднання (офлайн/сплячий режим)
-          await fetchChats();
+          await fetchChats({ silent: activeChats.value.length > 0 });
           if (currentChat.value) {
             await fetchMessages(currentChat.value.id);
           }
@@ -388,6 +390,34 @@ export const useChat = () => {
           supabase.removeChannel(messageSubscription);
           messageSubscription = null;
         }
+      }
+    });
+  }
+
+  // Повернення на вкладку / розблокування телефону.
+  // Поки вкладка була у фоні (або браузер "заморожений" на мобілці), WebSocket міг бути розірваний,
+  // а пропущені події Realtime НЕ доставляє повторно. Тому досинхронізуємо дані вручну.
+  if (import.meta.client && !isVisibilityListenerRegistered) {
+    isVisibilityListenerRegistered = true;
+
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState !== 'visible' || !getUserId()) return;
+
+      // Якщо канал "мертвий" — перепідписуємось (після SUBSCRIBED чати підтягнуться автоматично)
+      if (messageSubscription && messageSubscription.state !== 'joined') {
+        supabase.removeChannel(messageSubscription);
+        messageSubscription = null;
+      }
+
+      if (!messageSubscription) {
+        subscribeToMessages();
+        return;
+      }
+
+      // Канал живий — просто тихо оновлюємо дані
+      await fetchChats({ silent: true });
+      if (currentChat.value) {
+        await fetchMessages(currentChat.value.id);
       }
     });
   }
