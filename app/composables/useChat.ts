@@ -209,11 +209,7 @@ export const useChat = () => {
         }
       }
       
-      await supabase
-        .from('chats')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', chatId);
-        
+      // Оновлення таблиці chats тепер робиться автоматично через тригер у базі даних.
       const chatIdx = activeChats.value.findIndex(c => c.id === chatId);
       if (chatIdx !== -1) {
         const chat = activeChats.value[chatIdx];
