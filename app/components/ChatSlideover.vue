@@ -146,6 +146,9 @@ watch(currentMessages, () => {
 watch(isSlideoverOpen, (isOpen) => {
   if (isOpen) {
     scrollToBottom();
+  } else {
+    currentChat.value = null;
+    currentMessages.value = [];
   }
 });
 
