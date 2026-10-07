@@ -564,8 +564,10 @@ const refreshClusters = async () => {
   });
 };
 
-// Показуємо лоадер, поки не отримаємо координати АБО помилку
-const isLocating = computed(() => !initialUserLocation.value && !error.value);
+// Показуємо лоадер, поки не отримаємо координати АБО якщо йде ручний запит
+const isLocating = computed(() => 
+  (!initialUserLocation.value && !error.value) || isManualLocationRequest.value
+);
 
 const productsInRadius = computed(() => {
   if (!initialUserLocation.value) return [];
@@ -753,11 +755,18 @@ watch(
   coords,
   (newCoords) => {
     if (newCoords.latitude !== Infinity && newCoords.longitude !== Infinity) {
+      // Якщо локація вже є в кеші (користувач її пересував) і це НЕ ручний клік по кнопці "Точна локація" - не збиваємо
+      if (initialUserLocation.value && !isManualLocationRequest.value) {
+        pause();
+        return;
+      }
+
       const latLng: PointTuple = [newCoords.latitude, newCoords.longitude];
 
       initialUserLocation.value = latLng;
       center.value = latLng;
       showDragHint.value = true;
+      isManualLocationRequest.value = false;
 
       if (map.value?.leafletObject) {
         map.value.leafletObject.flyTo(latLng, 12);

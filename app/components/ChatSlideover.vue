@@ -106,7 +106,7 @@
               icon="i-heroicons-paper-airplane" 
               size="lg"
               class="rounded-full w-10 h-10 flex items-center justify-center shrink-0"
-              :disabled="!newMessage.trim()"
+              :disabled="!newMessage.trim() || isSending"
             />
           </form>
         </template>
@@ -152,11 +152,22 @@ watch(isSlideoverOpen, (isOpen) => {
   }
 });
 
+const isSending = ref(false);
+
 const onSendMessage = async () => {
-  if (newMessage.value.trim()) {
-    await sendMessage(newMessage.value);
-    newMessage.value = ''; // Очищаємо поле
+  const text = newMessage.value.trim();
+  if (!text || isSending.value) return;
+
+  isSending.value = true;
+  try {
+    newMessage.value = ''; // Очищаємо поле одразу для кращого UX
+    await sendMessage(text);
     scrollToBottom();
+  } catch (error) {
+    newMessage.value = text; // Повертаємо текст, якщо сталася помилка
+    console.error('Failed to send message:', error);
+  } finally {
+    isSending.value = false;
   }
 };
 </script>
