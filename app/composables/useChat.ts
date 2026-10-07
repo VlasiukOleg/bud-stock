@@ -375,6 +375,9 @@ export const useChat = () => {
           subscribeToMessages();
         }, 300);
       } else if (event === 'SIGNED_OUT') {
+        // Очищаємо кеш Nuxt (всі useAsyncData та useFetch) для безпеки
+        clearNuxtData();
+        
         lastFetchedUserId = null;
         activeChats.value = [];
         currentChat.value = null;

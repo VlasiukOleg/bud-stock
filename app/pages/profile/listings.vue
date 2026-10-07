@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useDocumentVisibility } from '@vueuse/core';
 const nuxtApp = useNuxtApp();
 const user = useSupabaseUser();
 const { getUserListings, deleteListing, updateListingState } = useListings();
@@ -95,6 +96,19 @@ const confirmDelete = async () => {
     listingToDelete.value = null;
   }
 };
+
+const visibility = useDocumentVisibility();
+
+watch(visibility, async (current, previous) => {
+  console.log('Visibility changed:', current, 'previous:', previous);
+  if (current === 'visible') {
+    console.log('Refreshing listings...');
+    clearNuxtData(`user-listings-${user.value?.sub}`);
+    clearNuxtData('all-listings');
+    await refresh();
+    console.log('Refresh completed');
+  }
+});
 </script>
 
 <template>

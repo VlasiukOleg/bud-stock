@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, reactive, watch } from 'vue'
+import { useDocumentVisibility } from '@vueuse/core'
 import { vMaska } from 'maska/vue'
 import * as yup from 'yup'
 import type { FormSubmitEvent } from '@nuxt/ui'
@@ -148,6 +149,14 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
     isSavingProfile.value = false
   }
 }
+
+const visibility = useDocumentVisibility();
+
+watch(visibility, async (current) => {
+  if (current === 'visible') {
+    await client.auth.refreshSession();
+  }
+});
 </script>
 
 <template>
