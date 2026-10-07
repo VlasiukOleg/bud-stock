@@ -38,6 +38,7 @@ export default defineNuxtConfig({
   routeRules: {
     // Якщо твоя сторінка називається pages/catalog.vue
     "/catalog": { ssr: false },
+    "/profile": { redirect: "/profile/listings" }
   },
   leaflet: {
     markerCluster: true,
