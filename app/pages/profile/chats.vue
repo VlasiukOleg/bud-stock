@@ -16,6 +16,14 @@ const buyingChats = computed(() => {
   return activeChats.value.filter(chat => chat.buyer_id === currentUserId.value);
 });
 
+const unreadBuyingCount = computed(() => {
+  return buyingChats.value.reduce((sum, chat) => sum + (unreadCounts.value[chat.id] || 0), 0);
+});
+
+const unreadSellingCount = computed(() => {
+  return sellingChats.value.reduce((sum, chat) => sum + (unreadCounts.value[chat.id] || 0), 0);
+});
+
 const tabItems = computed(() => [
   { label: t('profile.chats.tabs.buying'), slot: 'buying', icon: 'i-heroicons-shopping-bag' },
   { label: t('profile.chats.tabs.selling'), slot: 'selling', icon: 'i-heroicons-tag' }
@@ -44,20 +52,31 @@ const openMyChat = async (chat: any) => {
         </div>
 
         <div v-else>
+          <!-- Контейнер нульової висоти виключно для позиціонування червоних крапок над табами -->
+          <div class="relative w-full max-w-sm h-0 z-10">
+            <span 
+              v-if="unreadBuyingCount > 0"
+              class="absolute top-2 left-[45%] flex items-center justify-center w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-gray-900 pointer-events-none"
+            ></span>
+            <span 
+              v-if="unreadSellingCount > 0"
+              class="absolute top-2 right-[5%] flex items-center justify-center w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-gray-900 pointer-events-none"
+            ></span>
+          </div>
           <UTabs 
             :items="tabItems" 
             class="w-full"
             :ui="{ list: 'w-full max-w-sm mb-6' }"
           >
-            <template #buying>
-              <div v-if="buyingChats.length === 0" class="text-center py-16 text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm">
-                <UIcon name="i-heroicons-chat-bubble-left-right" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p class="text-lg">{{ $t('profile.chats.noBuying') }}</p>
-              </div>
-              <div v-else class="flex flex-col gap-4">
-                <UCard
-                  v-for="chat in buyingChats"
-                  :key="chat.id"
+              <template #buying>
+                <div v-if="buyingChats.length === 0" class="text-center py-16 text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm">
+                  <UIcon name="i-heroicons-chat-bubble-left-right" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <p class="text-lg">{{ $t('profile.chats.noBuying') }}</p>
+                </div>
+                <div v-else class="flex flex-col gap-4">
+                  <UCard
+                    v-for="chat in buyingChats"
+                    :key="chat.id"
                   class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   @click="openMyChat(chat)"
                 >

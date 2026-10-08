@@ -133,7 +133,7 @@
                     >
                       Перегляди
                     </div>
-                    <div class="font-medium">{{ product.views }}</div>
+                    <div class="font-medium">{{ product.views || 0 }}</div>
                   </div>
                 </div>
               </div>
@@ -528,6 +528,38 @@ watch(() => currentUser.value?.id, () => {
   sellerPhone.value = null;
 });
 
+
+import { useStorage } from '@vueuse/core';
+
+const viewedListings = useStorage<string[]>('viewed_listings', [], sessionStorage);
+
+// Використовуємо watch замість onMounted, бо при переходах між сторінками 
+// onMounted може спрацювати раніше, ніж завантажиться product
+watch(product, async (newProduct) => {
+  if (!newProduct) return;
+  
+  // Правило 1: Свої перегляди не рахуємо
+  const currentUserId = currentUser.value?.id || (currentUser.value as any)?.sub;
+  if (currentUserId === newProduct.user_id) return;
+
+  // Правило 2: Перевіряємо sessionStorage
+  const listingId = String(newProduct.id);
+  
+  if (!viewedListings.value.includes(listingId)) {
+    const { incrementViews } = useListings();
+    const success = await incrementViews(listingId);
+    
+    if (success) {
+      // Переприсвоюємо масив для 100% гарантії, що useStorage помітить зміну
+      viewedListings.value = [...viewedListings.value, listingId];
+      
+      // Опціонально: збільшуємо візуально для себе одразу
+      if (newProduct.views !== undefined) {
+        newProduct.views++;
+      }
+    }
+  }
+}, { immediate: true });
 
 const googleMapsUrl = computed(() => {
   if (!product.value?.location) return "";

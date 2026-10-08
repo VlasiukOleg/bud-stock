@@ -81,12 +81,26 @@ export const useListings = () => {
     return true
   }
 
+  const incrementViews = async (listingId: string) => {
+    // Виклик RPC функції на стороні бази даних (Supabase)
+    const { error } = await client.rpc('increment_views', {
+      p_listing_id: listingId
+    })
+
+    if (error) {
+      console.error('Помилка збільшення переглядів:', error)
+      return false
+    }
+    return true
+  }
+
   return {
     getLatestListings,
     getUserListings,
     getAllListings,
     updateListingState,
     deleteListing,
-    updateListing
+    updateListing,
+    incrementViews
   }
 }
