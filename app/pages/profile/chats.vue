@@ -53,7 +53,7 @@ const openMyChat = async (chat: any) => {
 
         <div v-else>
           <!-- Контейнер нульової висоти виключно для позиціонування червоних крапок над табами -->
-          <div class="relative w-full max-w-sm h-0 z-10">
+          <div class="relative w-full max-w-sm h-0 z-10 mx-auto">
             <span 
               v-if="unreadBuyingCount > 0"
               class="absolute top-2 left-[45%] flex items-center justify-center w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-gray-900 pointer-events-none"
@@ -66,7 +66,7 @@ const openMyChat = async (chat: any) => {
           <UTabs 
             :items="tabItems" 
             class="w-full"
-            :ui="{ list: 'w-full max-w-sm mb-6' }"
+            :ui="{ list: 'w-full max-w-sm mx-auto mb-6' }"
           >
               <template #buying>
                 <div v-if="buyingChats.length === 0" class="text-center py-16 text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm">
