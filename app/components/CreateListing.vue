@@ -357,31 +357,78 @@
                   />
                 </UFormField>
               </div>
+              
+              <!-- Інформація про баланс перед публікацією -->
+              <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 mt-4 mb-2 text-sm">
+                <div class="flex items-center gap-2">
+                  <UIcon name="i-heroicons-banknotes" class="w-5 h-5 text-primary-500" />
+                  <span class="font-medium text-gray-700 dark:text-gray-300">{{ $t('createListing.step3.yourBalance') }} <span class="font-bold text-gray-900 dark:text-white">{{ balance ?? 0 }} стоків</span></span>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-500 hidden sm:inline">{{ $t('createListing.step3.cost') }}</span>
+                  <span class="text-error-500 font-bold">-{{ COST_PER_LISTING }}</span>
+                  
+                  <UPopover mode="hover">
+                    <UIcon name="i-heroicons-information-circle" class="w-4 h-4 text-gray-400 cursor-help" />
+                    <template #content>
+                      <div class="p-3 w-64 text-xs text-gray-600 dark:text-gray-300">
+                        {{ $t('createListing.step3.publishWarning', { cost: COST_PER_LISTING }) }} 
+                        <strong class="text-gray-900 dark:text-white" v-if="(balance ?? 0) >= COST_PER_LISTING">
+                          {{ (balance ?? 0) - COST_PER_LISTING }} стоків
+                        </strong>
+                        <strong class="text-error-500" v-else>
+                          (не вистачає {{ COST_PER_LISTING - (balance ?? 0) }})
+                        </strong>. <br><br>
+                        {{ $t('createListing.step3.publishWarningNoStocks') }}
+                      </div>
+                    </template>
+                  </UPopover>
+                </div>
+              </div>
 
               <!-- Кнопки керування -->
-              <div
-                class="flex flex-col-reverse sm:flex-row gap-4 pt-4 border-t border-gray-200"
-              >
-                <UButton
-                  type="button"
-                  color="neutral"
+              <div class="space-y-4 pt-4 border-t border-gray-200">
+                <UAlert
+                  v-if="(balance ?? 0) < COST_PER_LISTING"
+                  icon="i-heroicons-exclamation-triangle"
+                  color="warning"
                   variant="soft"
-                  size="lg"
-                  class="w-full sm:w-1/3 justify-center"
-                  @click="resetForm"
-                >
-                  {{ $t('createListing.step3.cancelBtn') }}
-                </UButton>
+                  :title="$t('createListing.step3.notEnoughStocksTitle', 'Недостатньо стоків')"
+                  :description="$t('createListing.step3.notEnoughStocksDesc', 'Для публікації оголошення потрібно мати на балансі необхідну кількість стоків.')"
+                  :actions="[
+                    { label: $t('createListing.step3.replenishBtn', 'Поповнити баланс'), to: '/profile/balance', target: '_blank', color: 'primary' },
+                    { label: 'Оновити баланс', onClick: async () => { await fetchBalance(true); }, color: 'neutral' }
+                  ]"
+                />
 
-                <UButton
-                  type="submit"
-                  color="primary"
-                  size="lg"
-                  class="w-full sm:w-2/3 justify-center font-bold"
-                  :disabled="!isFormValid"
-                >
-                  {{ $t('createListing.step3.publishBtn') }}
-                </UButton>
+                <div class="flex flex-col-reverse sm:flex-row gap-4">
+                  <UButton
+                    type="button"
+                    color="neutral"
+                    variant="soft"
+                    size="lg"
+                    class="w-full sm:w-1/3 justify-center"
+                    @click="resetForm"
+                  >
+                    {{ $t('createListing.step3.cancelBtn') }}
+                  </UButton>
+
+                  <UButton
+                    type="submit"
+                    color="primary"
+                    size="lg"
+                    class="w-full sm:w-2/3 justify-center font-bold relative group"
+                    :disabled="!isFormValid || (balance ?? 0) < COST_PER_LISTING"
+                  >
+                    <span>{{ $t('createListing.step3.publishBtn') }}</span>
+                    <div class="absolute right-3 flex items-center gap-1 text-primary-100 bg-primary-600/50 px-2 py-0.5 rounded text-xs transition-colors group-hover:bg-primary-600/70">
+                      <span class="hidden sm:inline">{{ $t('createListing.step3.cost') }} </span>
+                      <span class="font-bold">{{ COST_PER_LISTING }}</span>
+                      <UIcon name="i-heroicons-banknotes" class="w-4 h-4" />
+                    </div>
+                  </UButton>
+                </div>
               </div>
             </UForm>
           </div>
@@ -443,6 +490,7 @@
 import * as yup from "yup";
 import type { DropdownMenuItem, FormSubmitEvent, StepperItem } from "@nuxt/ui";
 import type { PointTuple } from "leaflet";
+import { COST_PER_LISTING } from "~/constants/balance";
 
 import { CATEGORY_DATA } from "~/constants/category/category";
 import ListingForm from "./ui/ListingForm.vue";
@@ -453,6 +501,8 @@ const user = useSupabaseUser();
 const { t } = useI18n();
 const shouldShowProductRelevantBanner = ref(false);
 const isLoading = ref(false);
+
+const { balance, fetchBalance, deductBalanceLocally } = useBalance();
 
 // --- ДОВІДНИКИ ДЛЯ НОВИХ ПОЛІВ ---
 const productStatuses = computed(() => [
@@ -707,6 +757,13 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
       uploadedImageUrls.push(publicUrl);
     }
 
+    // Знімаємо стоки перед збереженням
+    const { data: chargeSuccess, error: chargeError } = await supabase.rpc('charge_balance', { amount: COST_PER_LISTING });
+    
+    if (chargeError || !chargeSuccess) {
+      throw new Error(t('createListing.step3.publishWarningNoStocks'));
+    }
+
     // Зберігаємо в базу даних
     const { error: dbError } = await supabase
       .from('listings')
@@ -739,6 +796,9 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
     
     // Очищаємо кеш сторінки "Мої оголошення", щоб при переході завантажились нові дані
     clearNuxtData(`user-listings-${user.value?.sub}`);
+    
+    // Оновлюємо локальний кеш балансу
+    deductBalanceLocally(COST_PER_LISTING);
     
     // Перенаправляємо на сторінку "Мої оголошення" (профіль)
     navigateTo(APP_ROUTES.PROFILE.LISTINGS);

@@ -8,7 +8,7 @@
         class="mb-4"
         @click="router.back()"
       >
-        Назад
+        {{ $t('catalog.backBtn') }}
       </UButton>
 
       <div v-if="pending" class="flex flex-col items-center justify-center py-32 text-brand-500">
@@ -64,7 +64,7 @@
 
             <div class="space-y-6">
               <div>
-                <h3 class="font-semibold mb-2">Опис</h3>
+                <h3 class="font-semibold mb-2">{{ $t('catalog.description') }}</h3>
                 <p
                   class="text-neutral-600 dark:text-neutral-400 whitespace-pre-line leading-relaxed"
                 >
@@ -81,7 +81,7 @@
                     <div
                       class="text-[11px] uppercase tracking-wider text-neutral-500 font-bold"
                     >
-                      Кількість
+                      {{ $t('catalog.quantity') }}
                     </div>
                     <div class="font-medium">
                       {{ product.quantity }} {{ product.unit }}
@@ -99,7 +99,7 @@
                     <div
                       class="text-[11px] uppercase tracking-wider text-neutral-500 font-bold"
                     >
-                      Стан
+                      {{ $t('catalog.status') }}
                     </div>
                     <div class="font-medium capitalize">
                       {{ product.status }}
@@ -131,7 +131,7 @@
                     <div
                       class="text-[11px] uppercase tracking-wider text-neutral-500 font-bold"
                     >
-                      Перегляди
+                      {{ $t('catalog.views') }}
                     </div>
                     <div class="font-medium">{{ product.views || 0 }}</div>
                   </div>
@@ -156,7 +156,7 @@
                   name="i-heroicons-map-pin-20-solid"
                   class="text-brand-500"
                 />
-                Розташування
+                {{ $t('catalog.location') }}
               </h3>
               <UButton
                 variant="link"
@@ -295,7 +295,7 @@
               <h3
                 class="font-semibold mb-4 text-sm uppercase tracking-widest text-neutral-500"
               >
-                Продавець
+                {{ $t('catalog.seller') }}
               </h3>
               <div class="flex items-center gap-4 mb-4">
                 <CommonUserAvatar
@@ -306,16 +306,6 @@
                 />
                 <div class="flex-1 min-w-0">
                   <div class="font-bold truncate">{{ product.sellerName }}</div>
-                  <div class="flex items-center gap-1 mt-0.5">
-                    <UIcon
-                      name="i-heroicons-star-20-solid"
-                      class="w-4 h-4 text-yellow-400"
-                    />
-                    <span class="text-sm font-bold">{{
-                      product.sellerRating
-                    }}</span>
-                    <span class="text-xs text-neutral-500">({{ product.sellerReviewsCount }} відгуків)</span>
-                  </div>
                 </div>
               </div>
               <UButton
@@ -473,8 +463,6 @@ const { data: product, pending } = useAsyncData(
       sellerName: getUserDisplayName(profileData),
       sellerAvatar: profileData?.avatar_url || null,
       phoneVisibility,
-      sellerRating: 5.0,
-      sellerReviewsCount: 0,
       category: getCategoryName(listingData.category_id)
     };
   }

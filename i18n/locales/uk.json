@@ -111,7 +111,15 @@
     "gotIt": "Зрозумів",
     "list": "Список ({count})",
     "showOnMap": "Показати на мапі",
-    "showMore": "Показати ще ({remaining})"
+    "showMore": "Показати ще ({remaining})",
+    "backBtn": "Назад",
+    "description": "Опис",
+    "quantity": "Кількість",
+    "status": "Стан",
+    "views": "Перегляди",
+    "location": "Розташування",
+    "seller": "Продавець",
+    "productNumber": "Оголошення № {id}"
   },
   "header": {
     "sellMaterial": "Продати матеріал",
@@ -129,7 +137,9 @@
     "myListings": "Мої оголошення",
     "myPurchases": "Мої покупки",
     "logout": "Вийти",
-    "defaultUser": "Користувач"
+    "defaultUser": "Користувач",
+    "myChats": "Мої чати",
+    "myBalance": "Мій баланс"
   },
   "profile": {
     "myData": "Мої дані",
@@ -256,7 +266,11 @@
       "descriptionLabel": "Коментар / Опис *",
       "descriptionPlaceholder": "Додаткова інформація про товар...",
       "cancelBtn": "Скасувати",
-      "publishBtn": "Опублікувати"
+      "publishBtn": "Опублікувати",
+      "yourBalance": "Ваш баланс:",
+      "cost": "Вартість:",
+      "publishWarning": "При публікації оголошення з вашого балансу буде знято {cost} стоків. Залишок:",
+      "publishWarningNoStocks": "Якщо стоки закінчаться, ви можете безкоштовно поповнити їх у розділі \"Мій баланс\"."
     },
     "mapModal": {
       "title": "Вкажіть точку на карті",
@@ -345,5 +359,29 @@
     "saveBtn": "Зберегти зміни",
     "saveSuccess": "Оголошення оновлено!",
     "saveError": "Помилка збереження"
+  },
+  "balance": {
+    "title": "Мій баланс",
+    "currentBalance": "Поточний баланс",
+    "stocks": "стоків",
+    "getFreeStocks": "Отримати безкоштовні стоки",
+    "replenishNote": "*Доступно для поповнення, якщо на вашому рахунку менше 100 стоків.",
+    "howItWorks": "Як це працює?",
+    "rules": {
+      "publishCost": "Публікація нового оголошення коштує {cost} стоків.",
+      "welcomeBonus": "Кожен новий користувач автоматично отримує {bonus} стоків при реєстрації.",
+      "replenishInfo": "Коли ваші стоки закінчуються, ви завжди можете отримати додаткові абсолютно безкоштовно, натиснувши кнопку вище."
+    }
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Пароль",
+    "signIn": "Увійти",
+    "signUp": "Зареєструватися",
+    "loggingIn": "Вхід...",
+    "loggingInWithGoogle": "Вхід через Google...",
+    "googleBtn": "Продовжити з Google",
+    "noAccount": "Немає акаунту?",
+    "hasAccount": "Вже є акаунт?"
   }
 }

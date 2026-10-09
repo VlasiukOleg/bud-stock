@@ -43,12 +43,12 @@ const menuItems = computed(() => [
     to: APP_ROUTES.PROFILE.LISTINGS
   },
   {
-    label: t('userSlideover.myPurchases'),
-    icon: 'i-heroicons-shopping-cart',
-    to: APP_ROUTES.PROFILE.PURCHASES
+    label: t('userSlideover.myBalance'),
+    icon: 'i-heroicons-banknotes',
+    to: APP_ROUTES.PROFILE.BALANCE
   },
   {
-    label: 'Мої чати', // fallback manually since translation might be missing
+    label: t('userSlideover.myChats'),
     icon: 'i-heroicons-chat-bubble-left-right',
     to: APP_ROUTES.PROFILE.CHATS
   }
@@ -59,6 +59,20 @@ const userName = computed(() => user.value?.user_metadata?.full_name || t('userS
 const userEmail = computed(() => user.value?.email)
 
 const router = useRouter()
+
+const { balance, fetchBalance } = useBalance()
+
+watch(() => user.value?.sub, async (newId) => {
+  if (newId) {
+    fetchBalance()
+  }
+}, { immediate: true })
+
+watch(() => isOpen.value, (opened) => {
+  if (opened && user.value?.sub) {
+    fetchBalance()
+  }
+})
 
 const handleNavigation = async (path: string) => {
   isOpen.value = false
@@ -84,6 +98,10 @@ const handleNavigation = async (path: string) => {
           <div class="flex flex-col truncate text-left">
             <span class="font-semibold text-sm truncate">{{ userName }}</span>
             <span class="text-xs text-gray-500 truncate">{{ userEmail }}</span>
+            <div class="flex items-center gap-1 mt-1 text-primary-600">
+              <UIcon name="i-heroicons-banknotes" class="w-4 h-4" />
+              <span class="text-xs font-bold">{{ balance ?? 0 }} стоків</span>
+            </div>
           </div>
         </div>
         <UButton

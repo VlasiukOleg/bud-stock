@@ -36,21 +36,21 @@ const rawSchema = object({
 
 type Schema = InferType<typeof rawSchema>
 
-const fields: AuthFormField[] = [{
+const fields = computed<AuthFormField[]>(() => [{
   name: 'email',
   type: 'text' as const,
-  label: 'Email',
-  placeholder: 'Enter your email',
+  label: t('auth.email'),
+  placeholder: t('auth.email'),
   required: true,
 }, {
   name: 'password',
-  label: 'Password',
+  label: t('auth.password'),
   type: 'password' as const,
-  placeholder: 'Enter your password',
-}]
+  placeholder: t('auth.password'),
+}])
 
-const providers = [{
-  label: 'GitHub',
+const providers = computed(() => [{
+  label: t('auth.githubBtn', 'GitHub'),
   icon: 'i-simple-icons-github',
   onClick: async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -61,7 +61,7 @@ const providers = [{
     })
     if (error) displayError(error)
   },
-}]
+}]);
 
 const signIn = async (email: string, password: string) => {
   const { error } = await supabase.auth.signInWithPassword({
@@ -109,24 +109,25 @@ const displayError = (error: {message: string}) => {
   <UContainer class="h-[calc(100vh-var(--ui-header-height))] flex items-center justify-center px-4">
     <UPageCard class="max-w-sm w-full">
       <UAuthForm
-        :title="sign === 'in' ? 'Login' : 'Sign up'"
+        :title="sign === 'in' ? $t('auth.signIn') : $t('auth.signUp')"
         icon="i-lucide-user"
         :fields="fields"
         :providers="providers"
         :schema="schema"
+        :submit-button="{ label: sign === 'in' ? $t('auth.signIn') : $t('auth.signUp') }"
         @submit="onSubmit"
       >
         <template
           #description
         >
-          {{ sign === 'up' ? 'Already have an account?' : 'Don\'t have an account?' }}
+          {{ sign === 'up' ? $t('auth.hasAccount') : $t('auth.noAccount') }}
           <UButton
             variant="link"
             class="p-0"
             @click="toggleSign"
           >
-            {{ sign === 'in' ? 'Sign up' : 'Sign in' }}
-          </UButton>.
+            {{ sign === 'in' ? $t('auth.signUp') : $t('auth.signIn') }}
+          </UButton>
         </template>
       </UAuthForm>
     </UPageCard>

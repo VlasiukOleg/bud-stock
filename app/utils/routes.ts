@@ -4,7 +4,7 @@ export const APP_ROUTES = {
   PROFILE: {
     ROOT: '/profile',
     LISTINGS: '/profile/listings',
-    PURCHASES: '/profile/purchases',
+    BALANCE: '/profile/balance',
     CHATS: '/profile/chats',
     INFORMATION: '/profile/information',
     SECURITY: '/profile/security',
