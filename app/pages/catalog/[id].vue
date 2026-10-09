@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-neutral-50 dark:bg-neutral-950">
-    <UContainer class="py-6">
+    <UContainer class="pt-6 pb-16">
       <UButton
         variant="ghost"
         color="neutral"
@@ -370,17 +370,20 @@
                   icon="i-heroicons-chat-bubble-left-right-20-solid"
                   label="Написати повідомлення"
                   @click="openChat(product.user_id, product.id, product)"
-                  v-if="(currentUser?.id || currentUser?.sub) !== product.user_id"
+                  v-if="!isUserOwnerProduct"
                 />
               </div>
             </UCard>
 
+
             <UButton
+              v-if="!isUserOwnerProduct"
               variant="ghost"
               icon="i-heroicons-flag-20-solid"
               label="Поскаржитись на оголошення"
               block
               class="text-xs opacity-60 hover:opacity-100 transition-opacity"
+              @click="() => {isReportModalOpen = true}"
             />
           </div>
         </div>
@@ -401,10 +404,18 @@
         <UButton :to="APP_ROUTES.CATALOG" color="primary">Повернутися до каталогу</UButton>
       </div>
     </UContainer>
+    
+    <ReportModal 
+      v-if="isReportModalOpen && product" 
+      :listingId="String(product.id)" 
+      @close="isReportModalOpen = false" 
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { useSessionStorage } from '@vueuse/core';
+
 import { CATEGORY_DATA } from '~/constants/category/category';
 
 const nuxtApp = useNuxtApp();
@@ -415,6 +426,7 @@ const supabase = useSupabaseClient<any>();
 const currentImageIndex = ref(0);
 const showPhone = ref(false);
 const isOpenMapDrawer = ref(false);
+const isReportModalOpen = ref(false);
 
 const currentUser = useSupabaseUser();
 const { openChat } = useChat();
@@ -468,15 +480,21 @@ const { data: product, pending } = useAsyncData(
   }
 );
 
+const isUserOwnerProduct = computed(() => {
+  if (!product.value) return false;
+  
+  const isOwner = (currentUser.value as any)?.sub === product.value.user_id;
+  return isOwner;
+})
+
 // Реактивно обчислюємо видимість телефону, щоб вона миттєво реагувала на вхід/вихід з акаунту
 const canSeePhone = computed(() => {
   if (!product.value) return false;
   
-  const isOwner = currentUser.value?.id === product.value.user_id;
   const isLoggedIn = !!currentUser.value;
   const visibility = product.value.phoneVisibility;
   
-  return isOwner
+  return isUserOwnerProduct.value
     || visibility === 'everyone'
     || (visibility === 'registered' && isLoggedIn);
 });
@@ -523,15 +541,12 @@ const togglePhone = async () => {
 };
 
 // При вході/виході з акаунту скидаємо показаний номер — права могли змінитися
-watch(() => currentUser.value?.id, () => {
+watch(() => (currentUser.value as any)?.sub, () => {
   showPhone.value = false;
   sellerPhone.value = null;
 });
 
-
-import { useStorage } from '@vueuse/core';
-
-const viewedListings = useStorage<string[]>('viewed_listings', [], sessionStorage);
+const viewedListings = useSessionStorage<string[]>('viewed_listings', []);
 
 // Використовуємо watch замість onMounted, бо при переходах між сторінками 
 // onMounted може спрацювати раніше, ніж завантажиться product
@@ -539,7 +554,7 @@ watch(product, async (newProduct) => {
   if (!newProduct) return;
   
   // Правило 1: Свої перегляди не рахуємо
-  const currentUserId = currentUser.value?.id || (currentUser.value as any)?.sub;
+  const currentUserId = (currentUser.value as any)?.sub;
   if (currentUserId === newProduct.user_id) return;
 
   // Правило 2: Перевіряємо sessionStorage
