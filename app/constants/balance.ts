@@ -1,1 +1,2 @@
-export const COST_PER_LISTING = 1000;
+export const COST_PER_LISTING = 50;
+

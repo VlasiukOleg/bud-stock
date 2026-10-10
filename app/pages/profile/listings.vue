@@ -4,6 +4,7 @@ const nuxtApp = useNuxtApp();
 const user = useSupabaseUser();
 const { getUserListings, deleteListing, updateListingState } = useListings();
 const { t } = useI18n();
+useSeoMeta({ title: t('profile.listings.title', 'Мої оголошення') });
 
 const editingListing = ref<any | null>(null);
 

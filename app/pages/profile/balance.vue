@@ -3,6 +3,8 @@ import { watch } from 'vue';
 import { COST_PER_LISTING } from '~/constants/balance';
 
 const { balance, isFetching, fetchBalance, addBalanceLocally } = useBalance();
+const { t } = useI18n();
+useSeoMeta({ title: t('balance.title') });
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
 const toast = useToast();

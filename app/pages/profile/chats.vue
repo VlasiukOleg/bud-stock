@@ -3,6 +3,7 @@ import { computed } from 'vue';
 
 const { activeChats, currentChat, isSlideoverOpen, fetchMessages, unreadCounts, isLoadingChats } = useChat();
 const { t } = useI18n();
+useSeoMeta({ title: t('profile.chats.title') });
 const { fetchProfile } = useProfile();
 const user = useSupabaseUser();
 

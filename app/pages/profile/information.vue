@@ -9,6 +9,7 @@ const client = useSupabaseClient<any>()
 const user = useSupabaseUser()
 const toast = useToast()
 const { t } = useI18n()
+useSeoMeta({ title: t('profile.information.title', 'Профіль') })
 
 const profileForm = reactive({
   name: '',
