@@ -17,8 +17,18 @@
             color="neutral"
             variant="soft"
             icon="i-heroicons-adjustments-horizontal"
-            >{{ $t('catalog.filters') }}</UButton
+            @click="isFiltersModalOpen = true"
           >
+            {{ $t('catalog.filters') }}
+            <UBadge
+              v-if="activeFilterCount > 0"
+              size="xs"
+              color="primary"
+              class="ml-1 px-1.5 py-0.5 rounded-full"
+            >
+              {{ activeFilterCount }}
+            </UBadge>
+          </UButton>
         </div>
 
         <div class="w-full md:w-64 space-y-1">
@@ -50,8 +60,29 @@
       <aside
         class="hidden lg:block w-100 overflow-y-auto p-4 bg-neutral-50 dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 scroll-smooth"
       >
+        <!-- Активний фільтр категорії (десктоп) -->
+        <div
+          v-if="activeCategoryInfo"
+          class="flex items-center gap-2 mb-3 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800/60 p-2.5 px-3 rounded-xl"
+        >
+          <UIcon :name="activeCategoryInfo.icon" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
+          <span class="text-xs font-semibold text-brand-900 dark:text-brand-100 flex-1 truncate">
+            {{ activeCategoryInfo.name }}
+          </span>
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            icon="i-heroicons-x-mark"
+            class="hover:bg-brand-200/50 dark:hover:bg-brand-900/50 -my-1 -mr-1"
+            @click="updateCategoryFilter('')"
+          />
+        </div>
+
         <div class="grid grid-cols-1 gap-4" v-if="productsInRadius.length > 0">
-          <div>{{ $t('catalog.foundItems', { count: productsInRadius.length }) }}</div>
+          <div class="font-medium text-sm text-neutral-600 dark:text-neutral-400">
+            {{ $t('catalog.foundItems', { count: productsInRadius.length }) }}
+          </div>
           <CommonProductCard
             v-for="product in displayedProducts"
             :key="product.id"
@@ -78,8 +109,21 @@
             {{ $t('catalog.showMoreItems', { count: 20, remaining: productsInRadius.length - displayLimit }) }}
           </UButton>
         </div>
-        <div v-else>
-          {{ $t('catalog.noResults') }}
+        <div v-else class="text-center py-10 px-2">
+          <UIcon name="i-heroicons-inbox" class="w-12 h-12 mx-auto text-neutral-300 dark:text-neutral-700 mb-3" />
+          <p class="font-medium text-neutral-700 dark:text-neutral-300 mb-1">{{ $t('catalog.noResults') }}</p>
+          <p v-if="activeCategoryInfo" class="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
+            У поточному радіусі немає залишків у категорії "{{ activeCategoryInfo.name }}"
+          </p>
+          <UButton
+            v-if="activeCategoryInfo || selectedStatus !== 'all'"
+            color="primary"
+            variant="soft"
+            size="sm"
+            @click="resetAllFilters"
+          >
+            Скинути фільтри
+          </UButton>
         </div>
       </aside>
 
@@ -269,6 +313,25 @@
         }"
       >
         <template #body>
+          <!-- Активний фільтр категорії (мобільний) -->
+          <div
+            v-if="activeCategoryInfo"
+            class="flex items-center gap-2 mb-3 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800/60 p-2 px-3 rounded-xl mx-1"
+          >
+            <UIcon :name="activeCategoryInfo.icon" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
+            <span class="text-xs font-semibold text-brand-900 dark:text-brand-100 flex-1 truncate">
+              {{ activeCategoryInfo.name }}
+            </span>
+            <UButton
+              size="xs"
+              color="neutral"
+              variant="ghost"
+              icon="i-heroicons-x-mark"
+              class="hover:bg-brand-200/50 dark:hover:bg-brand-900/50 -my-1 -mr-1"
+              @click="updateCategoryFilter('')"
+            />
+          </div>
+
           <div
             class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10 scroll-smooth"
           >
@@ -343,6 +406,108 @@
         </template>
       </USlideover>
 
+      <!-- Шторка фільтрів пошуку -->
+      <USlideover
+        v-model:open="isFiltersModalOpen"
+        title="Фільтри пошуку"
+      >
+        <template #body>
+          <div class="space-y-6 p-4">
+            <!-- Радіус пошуку -->
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-medium text-sm text-neutral-700 dark:text-neutral-300">Радіус пошуку</span>
+                <UBadge size="md" color="neutral" variant="soft">{{ searchRadius / 1000 }} км</UBadge>
+              </div>
+              <USlider
+                v-model="searchRadius"
+                :min="1000"
+                :max="50000"
+                :step="1000"
+                size="md"
+                :ui="{
+                  range: 'bg-brand-400',
+                  thumb: 'ring-brand-400 focus-visible:outline-brand-400/50',
+                }"
+              />
+            </div>
+
+            <!-- Категорія матеріалів -->
+            <div class="space-y-2">
+              <label class="block font-medium text-sm text-neutral-700 dark:text-neutral-300">
+                Категорія матеріалів
+              </label>
+              
+              <UDropdownMenu
+                :items="filterCategoryDropdownItems"
+                :ui="{ content: 'w-72 max-h-96 overflow-y-auto z-1050' }"
+                class="w-full"
+              >
+                <UButton
+                  block
+                  color="neutral"
+                  variant="outline"
+                  size="lg"
+                  class="justify-between text-left font-normal w-full"
+                >
+                  <span v-if="activeCategoryInfo" class="truncate font-medium text-neutral-900 dark:text-white flex items-center gap-2">
+                    <UIcon :name="activeCategoryInfo.icon" class="w-4 h-4 text-brand-500 shrink-0" />
+                    {{ activeCategoryInfo.name }}
+                  </span>
+                  <span v-else class="text-neutral-400">
+                    Всі категорії
+                  </span>
+                  <UIcon name="i-lucide-chevron-down" class="w-5 h-5 text-neutral-400 shrink-0" />
+                </UButton>
+              </UDropdownMenu>
+            </div>
+
+            <!-- Стан матеріалів -->
+            <div class="space-y-2">
+              <label class="block font-medium text-sm text-neutral-700 dark:text-neutral-300">
+                Стан матеріалів
+              </label>
+              <div class="grid grid-cols-3 gap-2">
+                <UButton
+                  v-for="st in [
+                    { label: 'Будь-який', value: 'all' },
+                    { label: 'Новий', value: 'новий' },
+                    { label: 'Залишок', value: 'залишок' }
+                  ]"
+                  :key="st.value"
+                  :color="selectedStatus === st.value ? 'primary' : 'neutral'"
+                  :variant="selectedStatus === st.value ? 'solid' : 'soft'"
+                  size="sm"
+                  class="justify-center"
+                  @click="selectedStatus = st.value"
+                >
+                  {{ st.label }}
+                </UButton>
+              </div>
+            </div>
+
+            <!-- Кнопки керування -->
+            <div class="pt-6 border-t border-neutral-200 dark:border-neutral-800 flex gap-3">
+              <UButton
+                color="neutral"
+                variant="soft"
+                class="flex-1 justify-center"
+                @click="resetAllFilters"
+              >
+                Скинути
+              </UButton>
+              <UButton
+                color="primary"
+                class="flex-1 justify-center"
+                @click="isFiltersModalOpen = false"
+              >
+                Показати ({{ productsInRadius.length }})
+              </UButton>
+            </div>
+          </div>
+        </template>
+      </USlideover>
+
       <CitySelectorModal
         v-model="isCityModalOpen"
         :detected-city="detectedCityName"
@@ -360,6 +525,8 @@ import type { PointTuple } from "leaflet";
 import { useGeolocation, useStorage, refDebounced } from "@vueuse/core";
 import { isPointWithinRadius } from "geolib";
 import { ref, computed, watch, nextTick, onMounted } from "vue"; 
+import type { DropdownMenuItem } from "@nuxt/ui";
+import { CATEGORY_DATA } from "~/constants/category/category";
 
 import CitySelectorModal from "~/components/common/CitySelectorModal.vue";
 
@@ -369,6 +536,94 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 import type { Product } from "~/types";
 import { MOCK_PRODUCTS } from "~/constants/products/products";
+
+const route = useRoute();
+const router = useRouter();
+
+const isFiltersModalOpen = ref(false);
+const selectedCategory = ref<string>((route.query.category as string) || "");
+const selectedStatus = ref<string>("all");
+
+// Синхронізація вибраної категорії з query в URL
+watch(
+  () => route.query.category,
+  (newCat) => {
+    selectedCategory.value = (newCat as string) || "";
+  }
+);
+
+const updateCategoryFilter = (catId: string) => {
+  selectedCategory.value = catId;
+  router.replace({
+    query: {
+      ...route.query,
+      category: catId || undefined,
+    },
+  });
+};
+
+const resetAllFilters = () => {
+  selectedStatus.value = "all";
+  updateCategoryFilter("");
+};
+
+const activeFilterCount = computed(() => {
+  let count = 0;
+  if (selectedCategory.value) count++;
+  if (selectedStatus.value !== "all") count++;
+  return count;
+});
+
+const activeCategoryInfo = computed(() => {
+  if (!selectedCategory.value) return null;
+  for (const cat of CATEGORY_DATA) {
+    if (cat.id === selectedCategory.value) {
+      return { id: cat.id, name: cat.name, icon: cat.icon, isParent: true };
+    }
+    const sub = cat.subcategories.find((s) => s.id === selectedCategory.value);
+    if (sub) {
+      return { id: sub.id, name: `${cat.name} › ${sub.name}`, icon: cat.icon, isParent: false };
+    }
+  }
+  return { id: selectedCategory.value, name: selectedCategory.value, icon: "i-lucide-tag", isParent: false };
+});
+
+const filterCategoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
+  return [
+    [
+      {
+        label: "Всі категорії",
+        icon: "i-lucide-grid",
+        onSelect: () => {
+          updateCategoryFilter("");
+        },
+      },
+    ],
+    CATEGORY_DATA.map((category) => ({
+      label: category.name,
+      icon: category.icon,
+      children: [
+        [
+          {
+            label: `Всі в "${category.name}"`,
+            icon: "i-lucide-check-circle",
+            onSelect: () => {
+              updateCategoryFilter(category.id);
+            },
+          },
+        ],
+        [
+          ...category.subcategories.map((sub) => ({
+            label: sub.name,
+            onSelect: () => {
+              updateCategoryFilter(sub.id);
+            },
+          })),
+        ],
+      ],
+    })),
+  ];
+});
 
 // 1. РОЗДІЛЯЄМО ЛОКАЦІЮ І ЦЕНТР КАРТИ
 
@@ -596,8 +851,25 @@ const productsInRadius = computed(() => {
     // 2. Фільтр по назві (searchQuery)
     if (debouncedSearchQuery.value.trim()) {
       const query = debouncedSearchQuery.value.toLowerCase();
-      return product.title.toLowerCase().includes(query);
-      // Можна додати ще пошук по опису: || product.description.toLowerCase().includes(query)
+      const matchesTitle = product.title?.toLowerCase().includes(query);
+      const matchesDesc = product.description?.toLowerCase().includes(query);
+      if (!matchesTitle && !matchesDesc) return false;
+    }
+
+    // 3. Фільтр по категорії
+    if (selectedCategory.value) {
+      const productCat = (product as any).category_id || (product as any).category;
+      if (!productCat) return false;
+      const isMatch = productCat === selectedCategory.value || productCat.startsWith(`${selectedCategory.value}-`);
+      if (!isMatch) return false;
+    }
+
+    // 4. Фільтр по стану матеріалів
+    if (selectedStatus.value !== 'all') {
+      const productStatus = ((product as any).status || '').toLowerCase();
+      if (!productStatus.includes(selectedStatus.value.toLowerCase())) {
+        return false;
+      }
     }
 
     return true;

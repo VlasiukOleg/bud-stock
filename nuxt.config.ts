@@ -13,7 +13,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
-      exclude: ['/', '/catalog', '/catalog/*'],
+      exclude: ['/', '/catalog', '/catalog/*', '/user/*'],
     }
   },
   css: ["~/assets/css/main.css"],

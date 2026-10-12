@@ -38,6 +38,7 @@ export interface Product {
   delivery?: string;
   deliveryDetails?: string;
   category?: string;
+  category_id?: string;
   sellerPhone?: string;
   created_at?: string;
 }

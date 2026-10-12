@@ -1,6 +1,45 @@
 <script setup lang="ts">
+import { computed } from "vue";
+import type { DropdownMenuItem } from "@nuxt/ui";
 import { SELLER_STEPS } from "~/constants/sliders/sliders";
 import { BUYER_STEPS } from "~/constants/sliders/sliders";
+import { CATEGORY_DATA } from "~/constants/category/category";
+
+const router = useRouter();
+
+const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
+  return [
+    CATEGORY_DATA.map((category) => ({
+      label: category.name,
+      icon: category.icon,
+      children: [
+        [
+          {
+            label: `Всі в категорії "${category.name}"`,
+            icon: "i-lucide-arrow-right",
+            onSelect: () => {
+              router.push({
+                path: APP_ROUTES.CATALOG,
+                query: { category: category.id },
+              });
+            },
+          },
+        ],
+        [
+          ...category.subcategories.map((sub) => ({
+            label: sub.name,
+            onSelect: () => {
+              router.push({
+                path: APP_ROUTES.CATALOG,
+                query: { category: sub.id },
+              });
+            },
+          })),
+        ],
+      ],
+    })),
+  ];
+});
 </script>
 
 <template>
@@ -51,12 +90,52 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
             </UButton>
           </div>
 
-          <div class="mt-8 lg:mt-12 text-sm text-neutral-500">
-            Вже більше
-            <span class="font-medium text-neutral-700 dark:text-neutral-300"
-              >10 000+</span
+          <!-- Блок спеціалізації платформи замість фіктивних цифр -->
+          <div
+            class="mt-8 lg:mt-10 p-4 rounded-2xl bg-neutral-100/80 dark:bg-neutral-800/60 border border-neutral-200/80 dark:border-neutral-700/60 backdrop-blur-sm shadow-xs max-w-xl mx-auto lg:mx-0 text-left"
+          >
+            <div class="flex items-start gap-3">
+              <div
+                class="p-2 rounded-xl bg-brand-500/10 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400 shrink-0 mt-0.5"
+              >
+                <UIcon name="i-lucide-boxes" class="w-5 h-5" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p
+                  class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400 mb-0.5"
+                >
+                  Спеціалізація платформи
+                </p>
+                <p
+                  class="text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-snug"
+                >
+                  Залишки будматеріалів: від чорнових робіт до чистового оздоблення (все до меблювання).
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="mt-3 pt-3 border-t border-neutral-200/60 dark:border-neutral-700/60 flex flex-wrap items-center justify-between gap-2"
             >
-            оголошень по всій Україні
+              <span class="text-xs text-neutral-500 dark:text-neutral-400">
+                11 категорій для будівництва та ремонту:
+              </span>
+
+              <UDropdownMenu
+                :items="categoryDropdownItems"
+                :ui="{ content: 'w-72 max-h-96 overflow-y-auto' }"
+              >
+                <UButton
+                  color="neutral"
+                  variant="soft"
+                  size="sm"
+                  class="font-medium text-xs rounded-lg cursor-pointer"
+                  trailing-icon="i-lucide-chevron-down"
+                >
+                  Подивитися категорії
+                </UButton>
+              </UDropdownMenu>
+            </div>
           </div>
         </div>
 
