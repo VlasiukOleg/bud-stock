@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { getSupabaseAuthErrorMessage } from "~/utils/supabaseErrors";
 
+const { t } = useI18n();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
@@ -59,7 +61,7 @@ const updateUserPassword = async () => {
   if (!newPassword.value) return;
 
   if (newPassword.value.length < 8) {
-    errorMessage.value = 'Пароль повинен містити щонайменше 8 символів.';
+    errorMessage.value = t('auth.errors.weak_password', 'Пароль занадто простий. Він повинен містити щонайменше 8 символів.');
     return;
   }
 
@@ -72,7 +74,7 @@ const updateUserPassword = async () => {
   });
 
   if (error) {
-    errorMessage.value = error.message || "Сталася помилка при оновленні пароля.";
+    errorMessage.value = getSupabaseAuthErrorMessage(error, t);
   } else {
     successMessage.value = 'Пароль успішно оновлено! Перенаправлення...';
     setTimeout(() => {

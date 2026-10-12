@@ -345,5 +345,29 @@
     "saveBtn": "Save changes",
     "saveSuccess": "Listing updated!",
     "saveError": "Save error"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "loggingIn": "Signing in...",
+    "loggingInWithGoogle": "Signing in with Google...",
+    "googleBtn": "Continue with Google",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "errors": {
+      "invalid_credentials": "Invalid email or password.",
+      "user_already_exists": "A user with this email already exists.",
+      "email_not_confirmed": "Email is not confirmed. Please check your inbox.",
+      "over_request_rate_limit": "Too many requests. Please wait a minute and try again.",
+      "weak_password": "Password is too weak. It must be at least 8 characters long.",
+      "otp_expired": "The link has expired or is invalid. Please request a new one.",
+      "user_not_found": "User with this email was not found.",
+      "email_address_invalid": "Please enter a valid email address.",
+      "same_password": "The new password must be different from the old one.",
+      "network_error": "Network error. Please check your internet connection.",
+      "general": "An error occurred during authentication."
+    }
   }
 }

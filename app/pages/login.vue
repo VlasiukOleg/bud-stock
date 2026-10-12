@@ -2,7 +2,9 @@
 import { ref, computed, watchEffect } from 'vue'
 import type { FormSubmitEvent, AuthFormField } from '@nuxt/ui'
 import * as yup from 'yup'
+import { getSupabaseAuthErrorMessage } from '~/utils/supabaseErrors'
 
+const { t } = useI18n()
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
@@ -93,7 +95,7 @@ const handleAuth = async (payload: FormSubmitEvent<any>) => {
 
       // Перевірка на вже існуючого користувача
       if (data.user && data.user.identities && data.user.identities.length === 0) {
-        throw new Error('Користувач з такою поштою вже зареєстрований')
+        throw { code: 'user_already_exists', message: 'User already registered' }
       }
 
       successMessage.value =
@@ -117,7 +119,7 @@ const handleAuth = async (payload: FormSubmitEvent<any>) => {
       authMode.value = 'login'
     }
   } catch (error: any) {
-    errorMessage.value = error.message || 'Сталася помилка під час авторизації.'
+    errorMessage.value = getSupabaseAuthErrorMessage(error, t)
   } finally {
     isLoading.value = false
   }
@@ -133,7 +135,7 @@ const loginWithGoogle = async () => {
     })
     if (error) throw error
   } catch (error: any) {
-    errorMessage.value = error.message || 'Помилка при вході через Google.'
+    errorMessage.value = getSupabaseAuthErrorMessage(error, t)
   }
 }
 
