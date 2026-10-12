@@ -1,4 +1,4 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+// https://nuxt.com/docs/api/configuration/nuxt-config - reload: 2026-10-12
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
@@ -13,7 +13,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
-      exclude: ['/', '/catalog', '/catalog/*', '/user/*'],
+      exclude: ['/', '/catalog', '/catalog/*', '/user/*', '/update-password'],
     }
   },
   css: ["~/assets/css/main.css"],
@@ -38,7 +38,8 @@ export default defineNuxtConfig({
   routeRules: {
     // Якщо твоя сторінка називається pages/catalog.vue
     "/catalog": { ssr: false },
-    "/profile": { redirect: "/profile/listings" }
+    "/profile": { redirect: "/profile/listings" },
+    "/update-password": { ssr: false },
   },
   leaflet: {
     markerCluster: true,

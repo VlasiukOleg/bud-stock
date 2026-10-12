@@ -218,7 +218,7 @@ watch(visibility, async (current) => {
 
             <UFormField :label="$t('profile.information.avatarLabel')">
               <div class="flex items-center gap-4">
-                <UAvatar :src="currentAvatarUrl" size="xl" />
+                <UAvatar :src="currentAvatarUrl" size="xl" referrerpolicy="no-referrer" />
                 <UFileUpload
                   v-model="avatarFile"
                   accept="image/*"

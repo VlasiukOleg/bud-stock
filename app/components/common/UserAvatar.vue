@@ -5,6 +5,7 @@
     :alt="name || initials"
     :size="size"
     :class="uiClass"
+    referrerpolicy="no-referrer"
   />
 </template>
 
