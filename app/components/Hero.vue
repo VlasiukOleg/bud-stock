@@ -115,24 +115,23 @@ const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
             </div>
 
             <div
-              class="mt-3 pt-3 border-t border-neutral-200/60 dark:border-neutral-700/60 flex flex-wrap items-center justify-between gap-2"
+              class="mt-3 pt-3 border-t border-neutral-200/60 dark:border-neutral-700/60"
             >
-              <span class="text-xs text-neutral-500 dark:text-neutral-400">
-                11 категорій для будівництва та ремонту:
-              </span>
-
               <UDropdownMenu
                 :items="categoryDropdownItems"
                 :ui="{ content: 'w-72 max-h-96 overflow-y-auto' }"
+                class="w-full"
               >
                 <UButton
+                  block
                   color="neutral"
                   variant="soft"
                   size="sm"
-                  class="font-medium text-xs rounded-lg cursor-pointer"
+                  class="w-full justify-between font-medium text-xs rounded-xl cursor-pointer py-2 px-3"
+                  icon="i-lucide-layout-grid"
                   trailing-icon="i-lucide-chevron-down"
                 >
-                  Подивитися категорії
+                  Обрати категорію
                 </UButton>
               </UDropdownMenu>
             </div>

@@ -17,7 +17,7 @@
             color="neutral"
             variant="soft"
             icon="i-heroicons-adjustments-horizontal"
-            @click="isFiltersModalOpen = true"
+            @click="() => {isFiltersModalOpen = true}"
           >
             {{ $t('catalog.filters') }}
             <UBadge
@@ -479,7 +479,7 @@
                   :variant="selectedStatus === st.value ? 'solid' : 'soft'"
                   size="sm"
                   class="justify-center"
-                  @click="selectedStatus = st.value"
+                  @click="() => {selectedStatus = st.value}"
                 >
                   {{ st.label }}
                 </UButton>
@@ -499,7 +499,7 @@
               <UButton
                 color="primary"
                 class="flex-1 justify-center"
-                @click="isFiltersModalOpen = false"
+                @click="() => {isFiltersModalOpen = false}"
               >
                 Показати ({{ productsInRadius.length }})
               </UButton>

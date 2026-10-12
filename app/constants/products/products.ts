@@ -26,7 +26,7 @@ export const generateMockProducts = (count: number): Product[] => {
     // Випадкові координати в межах Києва
     const lat = 50.45 + (Math.random() - 0.5) * 0.2;
     const lng = 30.52 + (Math.random() - 0.5) * 0.3;
-    const item = mockItems[Math.floor(Math.random() * mockItems.length)];
+    const item = mockItems[Math.floor(Math.random() * mockItems.length)]!;
 
     return {
       id: i + 1,
@@ -47,7 +47,7 @@ export const generateMockProducts = (count: number): Product[] => {
       },
       latitude: lat,
       longitude: lng,
-      sellerName: sellers[Math.floor(Math.random() * sellers.length)],
+      sellerName: sellers[Math.floor(Math.random() * sellers.length)] ?? sellers[0],
       sellerRating: 4.5 + Math.random() * 0.5,
     };
   });
