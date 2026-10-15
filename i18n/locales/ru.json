@@ -111,7 +111,8 @@
     "gotIt": "Понятно",
     "list": "Список ({count})",
     "showOnMap": "Показать на карте",
-    "showMore": "Показать еще ({remaining})"
+    "showMore": "Показать еще ({remaining})",
+    "searchingListings": "Ищем объявления..."
   },
   "header": {
     "sellMaterial": "Продать материал",

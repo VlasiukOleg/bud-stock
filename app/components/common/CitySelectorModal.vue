@@ -123,7 +123,7 @@ const handleExactLocation = () => {
           </div>
         </div>
 
-        <UDivider :label="$t('citySelector.or')" />
+        <USeparator :label="$t('citySelector.or')" />
 
         <UButton
           block

@@ -5,29 +5,52 @@
     <header
       class="p-4 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 z-20"
     >
-      <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-end">
-        <div class="flex-1 w-full flex gap-2">
-          <UInput
-            v-model="searchQuery"
-            icon="i-heroicons-magnifying-glass"
-            :placeholder="$t('catalog.searchPlaceholder')"
-            class="w-full max-w-sm"
-          />
-          <UButton
-            color="neutral"
-            variant="soft"
-            icon="i-heroicons-adjustments-horizontal"
-            @click="() => {isFiltersModalOpen = true}"
-          >
-            {{ $t('catalog.filters') }}
-            <UBadge
-              v-if="activeFilterCount > 0"
-              size="xs"
-              color="primary"
-              class="ml-1 px-1.5 py-0.5 rounded-full"
+      <div class="w-full flex flex-col md:flex-row gap-4 items-stretch md:items-end justify-start">
+        <div class="w-full md:w-auto flex items-center gap-2 shrink-0">
+          <!-- Кнопка-тригер єдиної шторки «Пошук та фільтри» -->
+          <div class="flex-1 md:flex-initial md:w-72 lg:w-80 min-w-0">
+            <UButton
+              color="neutral"
+              variant="outline"
+              icon="i-heroicons-magnifying-glass"
+              class="w-full justify-between text-left h-10 shadow-xs px-3 bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 hover:border-brand-500 transition-colors"
+              @click="() => { isSearchFiltersOpen = true }"
             >
-              {{ activeFilterCount }}
-            </UBadge>
+              <div class="flex items-center gap-2 min-w-0 truncate">
+                <span v-if="searchQuery" class="truncate font-semibold text-neutral-900 dark:text-white text-xs sm:text-sm">
+                  «{{ searchQuery }}»
+                </span>
+                <span v-else class="truncate text-neutral-600 dark:text-neutral-300 text-xs sm:text-sm font-medium">
+                  Пошук та фільтри
+                </span>
+              </div>
+
+              <div class="flex items-center gap-1.5 shrink-0">
+                <UBadge
+                  v-if="activeFilterCount > 0"
+                  size="xs"
+                  color="primary"
+                  class="rounded-full px-1.5 py-0.5 font-bold"
+                >
+                  {{ activeFilterCount }}
+                </UBadge>
+                <UIcon name="i-heroicons-adjustments-horizontal" class="w-4 h-4 text-neutral-400" />
+              </div>
+            </UButton>
+          </div>
+
+          <!-- Dev перемикач: Тестова таблиця mock_listings (5k) vs Жива таблиця listings -->
+          <UButton
+            size="xs"
+            :color="useMockTable ? 'warning' : 'neutral'"
+            :variant="useMockTable ? 'solid' : 'outline'"
+            icon="i-heroicons-circle-stack"
+            class="shrink-0 whitespace-nowrap h-10 text-xs"
+            :title="useMockTable ? 'Активна тестова таблиця mock_listings (15 000 товарів). Натисніть для переходу на живу базу.' : 'Активна робоча таблиця listings (оголошення друзів). Натисніть для переходу на тестову базу 15 000 товарів.'"
+            @click="() => { useMockTable = !useMockTable }"
+          >
+            <span class="hidden sm:inline">{{ useMockTable ? 'Тест (15k)' : 'Жива база' }}</span>
+            <span class="sm:hidden">{{ useMockTable ? '15k' : 'Live' }}</span>
           </UButton>
         </div>
 
@@ -38,8 +61,7 @@
               size="md"
               class="bg-brand-100 text-neutral-800"
               variant="soft"
-              >{{ searchRadius / 1000 }} {{ $t('catalog.km') }}</UBadge
-            >
+            >{{ searchRadiusKm }} {{ $t('catalog.km') }}</UBadge>
           </div>
           <USlider
             v-model="searchRadius"
@@ -63,10 +85,10 @@
         <!-- Активний фільтр категорії (десктоп) -->
         <div
           v-if="activeCategoryInfo"
-          class="flex items-center gap-2 mb-3 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800/60 p-2.5 px-3 rounded-xl"
+          class="flex items-start gap-2 mb-3 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800/60 p-2.5 px-3 rounded-xl"
         >
-          <UIcon :name="activeCategoryInfo.icon" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
-          <span class="text-xs font-semibold text-brand-900 dark:text-brand-100 flex-1 truncate">
+          <UIcon :name="activeCategoryInfo.icon" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0 mt-0.5" />
+          <span class="text-xs font-semibold text-brand-900 dark:text-brand-100 flex-1 break-words leading-snug">
             {{ activeCategoryInfo.name }}
           </span>
           <UButton
@@ -74,12 +96,35 @@
             color="neutral"
             variant="ghost"
             icon="i-heroicons-x-mark"
-            class="hover:bg-brand-200/50 dark:hover:bg-brand-900/50 -my-1 -mr-1"
+            class="hover:bg-brand-200/50 dark:hover:bg-brand-900/50 shrink-0 -my-1 -mr-1"
             @click="updateCategoryFilter('')"
           />
         </div>
 
-        <div class="grid grid-cols-1 gap-4" v-if="productsInRadius.length > 0">
+        <!-- Активний пошуковий запит (десктоп) -->
+        <div
+          v-if="searchQuery"
+          class="flex items-center gap-2 mb-3 bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 p-2 px-3 rounded-xl min-w-0"
+        >
+          <UIcon name="i-heroicons-magnifying-glass" class="w-4 h-4 text-brand-600 shrink-0" />
+          <span class="text-xs text-neutral-700 dark:text-neutral-300 flex-1 truncate min-w-0">
+            Пошук: <strong>«{{ searchQuery }}»</strong>
+          </span>
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            icon="i-heroicons-x-mark"
+            class="hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60 shrink-0 -my-1 -mr-1"
+            @click="() => { searchQuery = '' }"
+          />
+        </div>
+
+        <div v-if="isLoadingBackendListings" class="py-12 flex flex-col items-center justify-center gap-3">
+          <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 text-primary animate-spin" />
+          <p class="text-xs text-neutral-500 font-medium">Пошук товарів у радіусі...</p>
+        </div>
+        <div class="grid grid-cols-1 gap-4" v-else-if="productsInRadius.length > 0">
           <div class="font-medium text-sm text-neutral-600 dark:text-neutral-400">
             {{ $t('catalog.foundItems', { count: productsInRadius.length }) }}
           </div>
@@ -91,7 +136,7 @@
             :show-map-button="true"
             @map-click="handleZoomToProduct"
             :class="[
-              'transition-all duration-300 rounded-xl',
+              'transition-all duration-300 rounded-xl scroll-mt-4',
               selectedProductOnMap === product.id
                 ? 'ring-2 ring-brand-500 shadow-lg'
                 : '',
@@ -104,9 +149,10 @@
             block
             size="lg"
             class="mt-2"
+            :loading="isLoadingMoreCards"
             @click="loadMoreProducts"
           >
-            {{ $t('catalog.showMoreItems', { count: 20, remaining: productsInRadius.length - displayLimit }) }}
+            {{ $t('catalog.showMoreItems', { count: Math.min(20, productsInRadius.length - cardListings.length), remaining: productsInRadius.length - cardListings.length }) }}
           </UButton>
         </div>
         <div v-else class="text-center py-10 px-2">
@@ -178,18 +224,11 @@
           </LMarker>
         </LMap>
 
-        <Transition name="fade">
-          <div
-            v-if="isLocating"
-            class="absolute inset-0 z-2000 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm flex flex-col items-center justify-center"
-          >
-            <UIcon
-              name="i-heroicons-arrow-path"
-              class="w-8 h-8 animate-spin text-primary-500 mb-2"
-            />
-            <p class="text-sm font-medium">{{ $t('catalog.locating') }}</p>
-          </div>
-        </Transition>
+        <!-- Універсальний лоадер над картою (для геолокації або завантаження оголошень на мобілці/планшеті/десктопі) -->
+        <MapOverlayLoader
+          :show="isLocating || isLoadingBackendListings"
+          :text="isLocating ? $t('catalog.locating') : $t('catalog.searchingListings')"
+        />
 
         <Transition
           enter-active-class="transition duration-500 ease-out"
@@ -307,7 +346,7 @@
       <USlideover
         v-model:open="isProductsSliderOpen"
         side="bottom"
-        :title="$t('catalog.foundItems', { count: productsInRadius.length })"
+        :title="isLoadingBackendListings ? $t('catalog.searchingListings') : $t('catalog.foundItems', { count: productsInRadius.length })"
         :ui="{
           content: 'h-[75%]',
         }"
@@ -316,10 +355,10 @@
           <!-- Активний фільтр категорії (мобільний) -->
           <div
             v-if="activeCategoryInfo"
-            class="flex items-center gap-2 mb-3 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800/60 p-2 px-3 rounded-xl mx-1"
+            class="flex items-start gap-2 mb-3 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800/60 p-2 px-3 rounded-xl mx-1"
           >
-            <UIcon :name="activeCategoryInfo.icon" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
-            <span class="text-xs font-semibold text-brand-900 dark:text-brand-100 flex-1 truncate">
+            <UIcon :name="activeCategoryInfo.icon" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0 mt-0.5" />
+            <span class="text-xs font-semibold text-brand-900 dark:text-brand-100 flex-1 break-words leading-snug">
               {{ activeCategoryInfo.name }}
             </span>
             <UButton
@@ -327,181 +366,79 @@
               color="neutral"
               variant="ghost"
               icon="i-heroicons-x-mark"
-              class="hover:bg-brand-200/50 dark:hover:bg-brand-900/50 -my-1 -mr-1"
+              class="hover:bg-brand-200/50 dark:hover:bg-brand-900/50 shrink-0 -my-1 -mr-1"
               @click="updateCategoryFilter('')"
+            />
+          </div>
+
+          <!-- Активний пошуковий запит (мобільний) -->
+          <div
+            v-if="searchQuery"
+            class="flex items-center gap-2 mb-3 bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 p-2 px-3 rounded-xl mx-1 min-w-0"
+          >
+            <UIcon name="i-heroicons-magnifying-glass" class="w-4 h-4 text-brand-600 shrink-0" />
+            <span class="text-xs text-neutral-700 dark:text-neutral-300 flex-1 truncate min-w-0">
+              Пошук: <strong>«{{ searchQuery }}»</strong>
+            </span>
+            <UButton
+              size="xs"
+              color="neutral"
+              variant="ghost"
+              icon="i-heroicons-x-mark"
+              class="hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60 shrink-0 -my-1 -mr-1"
+              @click="() => { searchQuery = '' }"
             />
           </div>
 
           <div
             class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10 scroll-smooth"
           >
-          <CommonProductCard
-            v-for="product in displayedProducts"
-            :key="product.id"
-            :id="`mobile-product-${product.id}`"
-            :product="product"
-            :show-map-button="true"
-            @map-click="handleZoomToProduct"
-            :class="[
-              'transition-all duration-300 rounded-xl',
-              selectedProductOnMap === product.id
-                ? 'ring-2 ring-brand-500 shadow-lg'
-                : '',
-            ]"
-          />
-            <!-- <NuxtLink
-              v-for="item in displayedProducts"
-              :to="`/catalog/${item.id}`"
-              :key="item.id"
-              :id="`mobile-product-${item.id}`"
-              :class="[
-                'flex flex-col rounded-xl border overflow-hidden shadow-sm transition-all duration-300',
-                selectedProductOnMap === item.id
-                  ? 'border-brand-500 ring-2 ring-brand-500 bg-brand-50 dark:bg-brand-900/20'
-                  : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700',
-              ]"
-            >
-              <div class="aspect-square w-full relative">
-                <img
-                  :src="item.images[0]"
-                  class="absolute inset-0 w-full h-full object-cover"
-                />
-              </div>
-
-              <div class="p-2 flex flex-col flex-1 justify-between">
-                <div>
-                  <p
-                    class="font-bold text-[13px] leading-tight line-clamp-2 mb-1"
-                  >
-                    {{ item.title }}
-                  </p>
-                  <p class="text-primary-600 font-bold text-sm">
-                    {{ item.price }} ₴
-                  </p>
-                </div>
-
-                <UButton
-                  size="xs"
-                  block
-                  class="mt-2"
-                  variant="soft"
-                  @click="handleZoomToProduct(item)"
-                >
-                  {{ $t('catalog.showOnMap') }}
-                </UButton>
-              </div>
-            </NuxtLink> -->
-          </div>
-          <div v-if="hasMoreProducts" class="col-span-full mt-2">
-            <UButton
-              color="primary"
-              variant="soft"
-              block
-              size="md"
-              @click="loadMoreProducts"
-            >
-              {{ $t('catalog.showMore', { remaining: productsInRadius.length - displayLimit }) }}
-            </UButton>
-          </div>
-        </template>
-      </USlideover>
-
-      <!-- Шторка фільтрів пошуку -->
-      <USlideover
-        v-model:open="isFiltersModalOpen"
-        title="Фільтри пошуку"
-      >
-        <template #body>
-          <div class="space-y-6 p-4">
-            <!-- Радіус пошуку -->
-            <div class="space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-medium text-sm text-neutral-700 dark:text-neutral-300">Радіус пошуку</span>
-                <UBadge size="md" color="neutral" variant="soft">{{ searchRadius / 1000 }} км</UBadge>
-              </div>
-              <USlider
-                v-model="searchRadius"
-                :min="1000"
-                :max="50000"
-                :step="1000"
-                size="md"
-                :ui="{
-                  range: 'bg-brand-400',
-                  thumb: 'ring-brand-400 focus-visible:outline-brand-400/50',
-                }"
+            <div v-if="isLoadingBackendListings" class="col-span-full py-12 flex flex-col items-center justify-center gap-2 min-h-[200px]">
+              <UIcon name="i-heroicons-arrow-path" class="w-7 h-7 text-primary animate-spin" />
+              <p class="text-xs text-neutral-500 font-medium">Пошук товарів...</p>
+            </div>
+            <template v-else-if="productsInRadius.length > 0">
+              <CommonProductCard
+                v-for="product in displayedProducts"
+                :key="product.id"
+                :id="`mobile-product-${product.id}`"
+                :product="product"
+                :show-map-button="true"
+                @map-click="handleZoomToProduct"
+                :class="[
+                  'transition-all duration-300 rounded-xl scroll-mt-2',
+                  selectedProductOnMap === product.id
+                    ? 'ring-2 ring-brand-500 shadow-lg'
+                    : '',
+                ]"
               />
-            </div>
-
-            <!-- Категорія матеріалів -->
-            <div class="space-y-2">
-              <label class="block font-medium text-sm text-neutral-700 dark:text-neutral-300">
-                Категорія матеріалів
-              </label>
-              
-              <UDropdownMenu
-                :items="filterCategoryDropdownItems"
-                :ui="{ content: 'w-72 max-h-96 overflow-y-auto z-1050' }"
-                class="w-full"
-              >
+              <div v-if="hasMoreProducts" class="col-span-full mt-2">
                 <UButton
+                  color="primary"
+                  variant="soft"
                   block
-                  color="neutral"
-                  variant="outline"
-                  size="lg"
-                  class="justify-between text-left font-normal w-full"
+                  size="md"
+                  :loading="isLoadingMoreCards"
+                  @click="loadMoreProducts"
                 >
-                  <span v-if="activeCategoryInfo" class="truncate font-medium text-neutral-900 dark:text-white flex items-center gap-2">
-                    <UIcon :name="activeCategoryInfo.icon" class="w-4 h-4 text-brand-500 shrink-0" />
-                    {{ activeCategoryInfo.name }}
-                  </span>
-                  <span v-else class="text-neutral-400">
-                    Всі категорії
-                  </span>
-                  <UIcon name="i-lucide-chevron-down" class="w-5 h-5 text-neutral-400 shrink-0" />
-                </UButton>
-              </UDropdownMenu>
-            </div>
-
-            <!-- Стан матеріалів -->
-            <div class="space-y-2">
-              <label class="block font-medium text-sm text-neutral-700 dark:text-neutral-300">
-                Стан матеріалів
-              </label>
-              <div class="grid grid-cols-3 gap-2">
-                <UButton
-                  v-for="st in [
-                    { label: 'Будь-який', value: 'all' },
-                    { label: 'Новий', value: 'новий' },
-                    { label: 'Залишок', value: 'залишок' }
-                  ]"
-                  :key="st.value"
-                  :color="selectedStatus === st.value ? 'primary' : 'neutral'"
-                  :variant="selectedStatus === st.value ? 'solid' : 'soft'"
-                  size="sm"
-                  class="justify-center"
-                  @click="() => {selectedStatus = st.value}"
-                >
-                  {{ st.label }}
+                  {{ $t('catalog.showMoreItems', { count: Math.min(20, productsInRadius.length - cardListings.length), remaining: productsInRadius.length - cardListings.length }) }}
                 </UButton>
               </div>
-            </div>
-
-            <!-- Кнопки керування -->
-            <div class="pt-6 border-t border-neutral-200 dark:border-neutral-800 flex gap-3">
+            </template>
+            <div v-else class="col-span-full text-center py-10 px-2">
+              <UIcon name="i-heroicons-inbox" class="w-12 h-12 mx-auto text-neutral-300 dark:text-neutral-700 mb-3" />
+              <p class="font-medium text-neutral-700 dark:text-neutral-300 mb-1">{{ $t('catalog.noResults') }}</p>
+              <p v-if="activeCategoryInfo" class="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
+                У поточному радіусі немає залишків у категорії "{{ activeCategoryInfo.name }}"
+              </p>
               <UButton
-                color="neutral"
+                v-if="activeCategoryInfo || selectedStatus !== 'all'"
+                color="primary"
                 variant="soft"
-                class="flex-1 justify-center"
+                size="sm"
                 @click="resetAllFilters"
               >
-                Скинути
-              </UButton>
-              <UButton
-                color="primary"
-                class="flex-1 justify-center"
-                @click="() => {isFiltersModalOpen = false}"
-              >
-                Показати ({{ productsInRadius.length }})
+                Скинути фільтри
               </UButton>
             </div>
           </div>
@@ -514,6 +451,29 @@
         @select="onCitySelect"
         @exact-location="triggerExactLocation"
       />
+
+      <!-- Єдина шторка швидкого розумного пошуку та фільтрів -->
+      <SearchFiltersSlideover
+        :open="isSearchFiltersOpen"
+        :search-query="searchQuery"
+        :search-in-description="searchInDescription"
+        :all-products-in-radius="rawProductsInRadius"
+        :search-radius="searchRadius"
+        :search-radius-km="searchRadiusKm"
+        :current-category="selectedCategory"
+        :current-status="selectedStatus"
+        :loading="isLoadingBackendListings"
+        :user-coords="initialUserLocation || center"
+        :use-mock="useMockTable"
+        @update:open="isSearchFiltersOpen = $event"
+        @update:search-query="searchQuery = $event"
+        @update:search-in-description="searchInDescription = $event"
+        @update:search-radius="searchRadius = $event"
+        @select-category="updateCategoryFilter"
+        @update:status="selectedStatus = $event"
+        @reset-all="resetAllFilters"
+        @apply="onApplyFilters"
+      />
     </div>
   </div>
 </template>
@@ -525,30 +485,42 @@ import type { PointTuple } from "leaflet";
 import { useGeolocation, useStorage, refDebounced } from "@vueuse/core";
 import { isPointWithinRadius } from "geolib";
 import { ref, computed, watch, nextTick, onMounted } from "vue"; 
-import type { DropdownMenuItem } from "@nuxt/ui";
 import { CATEGORY_DATA } from "~/constants/category/category";
+import { matchesSmartSearch, getUkrainianSearchQuery } from "~/utils/smartSearch";
+import SearchFiltersSlideover from "~/components/catalog/SearchFiltersSlideover.vue";
 
 import CitySelectorModal from "~/components/common/CitySelectorModal.vue";
+import MapOverlayLoader from "~/components/common/MapOverlayLoader.vue";
 
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 import type { Product } from "~/types";
-import { MOCK_PRODUCTS } from "~/constants/products/products";
 
 const route = useRoute();
 const router = useRouter();
 
-const isFiltersModalOpen = ref(false);
+const isSearchFiltersOpen = ref(false);
+const searchQuery = ref<string>((route.query.q as string) || (route.query.search as string) || "");
+const searchInDescription = ref(false);
 const selectedCategory = ref<string>((route.query.category as string) || "");
 const selectedStatus = ref<string>("all");
 
-// Синхронізація вибраної категорії з query в URL
+// Синхронізація вибраної категорії та пошуку з query в URL
 watch(
   () => route.query.category,
   (newCat) => {
     selectedCategory.value = (newCat as string) || "";
+  }
+);
+
+watch(
+  () => route.query.q,
+  (newQ) => {
+    if (typeof newQ === "string") {
+      searchQuery.value = newQ;
+    }
   }
 );
 
@@ -564,13 +536,35 @@ const updateCategoryFilter = (catId: string) => {
 
 const resetAllFilters = () => {
   selectedStatus.value = "all";
-  updateCategoryFilter("");
+  searchInDescription.value = false;
+  searchQuery.value = "";
+  selectedCategory.value = "";
+  router.replace({
+    query: {
+      ...route.query,
+      q: undefined,
+      category: undefined,
+    },
+  });
+};
+
+const onApplyFilters = () => {
+  router.replace({
+    query: {
+      ...route.query,
+      q: searchQuery.value || undefined,
+      category: selectedCategory.value || undefined,
+    },
+  });
+  isSearchFiltersOpen.value = false;
 };
 
 const activeFilterCount = computed(() => {
   let count = 0;
+  if (searchQuery.value.trim()) count++;
   if (selectedCategory.value) count++;
   if (selectedStatus.value !== "all") count++;
+  if (searchInDescription.value) count++;
   return count;
 });
 
@@ -586,43 +580,6 @@ const activeCategoryInfo = computed(() => {
     }
   }
   return { id: selectedCategory.value, name: selectedCategory.value, icon: "i-lucide-tag", isParent: false };
-});
-
-const filterCategoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
-  return [
-    [
-      {
-        label: "Всі категорії",
-        icon: "i-lucide-grid",
-        onSelect: () => {
-          updateCategoryFilter("");
-        },
-      },
-    ],
-    CATEGORY_DATA.map((category) => ({
-      label: category.name,
-      icon: category.icon,
-      children: [
-        [
-          {
-            label: `Всі в "${category.name}"`,
-            icon: "i-lucide-check-circle",
-            onSelect: () => {
-              updateCategoryFilter(category.id);
-            },
-          },
-        ],
-        [
-          ...category.subcategories.map((sub) => ({
-            label: sub.name,
-            onSelect: () => {
-              updateCategoryFilter(sub.id);
-            },
-          })),
-        ],
-      ],
-    })),
-  ];
 });
 
 // 1. РОЗДІЛЯЄМО ЛОКАЦІЮ І ЦЕНТР КАРТИ
@@ -644,6 +601,10 @@ const initialUserLocation = useStorage<PointTuple | null>(
 const zoom = ref(12);
 const searchRadius = useStorage<number>("search-radius", 5000);
 const debouncedRadius = refDebounced(searchRadius, 500);
+const searchRadiusKm = computed(() => {
+  const r = Number(searchRadius.value);
+  return isNaN(r) || r <= 0 ? 5 : Math.round(r / 1000);
+});
 
 const isProductsSliderOpen = ref(false);
 const map = ref<any>(null);
@@ -653,9 +614,6 @@ const mapMarkers = ref<any[]>([]);
 const selectedProductOnMap = ref<string | number | null>(null);
 const isMapReady = ref<boolean>(false);
 const showDragHint = ref<boolean>(false);
-const displayLimit = ref(20);
-const searchQuery = ref("");
-const debouncedSearchQuery = refDebounced(searchQuery, 300);
 const isGeolocationErrorPopoverOpen = ref(false);
 
 const isCityModalOpen = ref(false);
@@ -684,8 +642,9 @@ const triggerExactLocation = () => {
   }
 };
 
-const { getAllListings } = useListings();
-const { data: allListings } = useAsyncData('all-listings', getAllListings);
+const { searchListings, getListingById } = useListings();
+const useMockTable = useStorage<boolean>("budstock-use-mock-table", true);
+const isLoadingBackendListings = ref(false);
 
 const createPriceIcon = (price: number, isSelected: boolean): any => {
   const bgClass = isSelected ? "bg-green-500 scale-110 text-white" : "bg-white";
@@ -824,56 +783,146 @@ const isLocating = computed(() =>
   (!initialUserLocation.value && !error.value) || isManualLocationRequest.value
 );
 
-const productsInRadius = computed(() => {
-  if (!initialUserLocation.value) return [];
-  
-  // Об'єднуємо товари з бази даних (allListings) та замокані товари (MOCK_PRODUCTS)
-  const combinedListings = [...(allListings.value || [])];
+// 1. Легкі маркери для карти (тільки id, title, price, lat, lng, is_exact, category_id)
+const rawProductsInRadius = ref<any[]>([]);
 
-  return combinedListings.filter((product) => {
-    const lat = product.latitude || product.location?.lat;
-    const lng = product.longitude || product.location?.lng;
+// 2. Повноцінні картки товарів (по 20 штук за раз з фото та описами)
+const cardListings = ref<Product[]>([]);
+const isLoadingMoreCards = ref(false);
 
-    if (!lat || !lng) return false;
+let lastFetchKey = "";
 
-    // 1. Фільтр по радіусу
-    const isWithin = isPointWithinRadius(
-      {
-        latitude: initialUserLocation.value![0],
-        longitude: initialUserLocation.value![1],
-      },
-      { latitude: lat, longitude: lng },
-      debouncedRadius.value ?? 5000,
-    );
+const fetchRadiusProducts = async () => {
+  const userCoords = initialUserLocation.value || center.value;
+  if (!userCoords) return;
 
-    if (!isWithin) return false;
+  // Не повторюємо запит з тими самими параметрами (напр. категорія змінилась одразу, а радіус — через debounce)
+  const fetchKey = JSON.stringify([
+    userCoords,
+    searchRadius.value,
+    selectedCategory.value,
+    searchQuery.value.trim(),
+    selectedStatus.value,
+    searchInDescription.value,
+    useMockTable.value,
+  ]);
+  if (fetchKey === lastFetchKey) return;
+  lastFetchKey = fetchKey;
 
-    // 2. Фільтр по назві (searchQuery)
-    if (debouncedSearchQuery.value.trim()) {
-      const query = debouncedSearchQuery.value.toLowerCase();
-      const matchesTitle = product.title?.toLowerCase().includes(query);
-      const matchesDesc = product.description?.toLowerCase().includes(query);
-      if (!matchesTitle && !matchesDesc) return false;
-    }
+  isLoadingBackendListings.value = true;
+  try {
+    const rawQ = searchQuery.value.trim();
+    const cleanQuery = rawQ.length >= 3 ? rawQ : undefined;
 
-    // 3. Фільтр по категорії
-    if (selectedCategory.value) {
-      const productCat = (product as any).category_id || (product as any).category;
-      if (!productCat) return false;
-      const isMatch = productCat === selectedCategory.value || productCat.startsWith(`${selectedCategory.value}-`);
-      if (!isMatch) return false;
-    }
+    // Паралельно завантажуємо:
+    // 1) Точки для карти (легкі поля, без фото та описів, до 1 000 шт. за 1 швидкий запит)
+    // 2) Перші 20 повних карток товарів
+    const [mapData, cardsData] = await Promise.all([
+      searchListings({
+        userLat: userCoords[0],
+        userLng: userCoords[1],
+        radiusMeters: searchRadius.value || 5000,
+        categoryId: selectedCategory.value || undefined,
+        searchQuery: cleanQuery,
+        status: selectedStatus.value,
+        searchInDescription: searchInDescription.value,
+        useMock: useMockTable.value,
+        onlyMapFields: true,
+        fetchAll: true,
+      }),
+      searchListings({
+        userLat: userCoords[0],
+        userLng: userCoords[1],
+        radiusMeters: searchRadius.value || 5000,
+        categoryId: selectedCategory.value || undefined,
+        searchQuery: cleanQuery,
+        status: selectedStatus.value,
+        searchInDescription: searchInDescription.value,
+        useMock: useMockTable.value,
+        onlyMapFields: false,
+        limit: 20,
+        offset: 0,
+        fetchAll: false,
+      }),
+    ]);
 
-    // 4. Фільтр по стану матеріалів
-    if (selectedStatus.value !== 'all') {
-      const productStatus = ((product as any).status || '').toLowerCase();
-      if (!productStatus.includes(selectedStatus.value.toLowerCase())) {
-        return false;
+    rawProductsInRadius.value = (mapData as any[]) || [];
+    cardListings.value = (cardsData as any[]) || [];
+  } catch (err) {
+    console.error("Помилка під час завантаження товарів у радіусі:", err);
+    lastFetchKey = "";
+  } finally {
+    isLoadingBackendListings.value = false;
+  }
+};
+
+const loadMoreProducts = async () => {
+  const userCoords = initialUserLocation.value || center.value;
+  if (!userCoords || isLoadingMoreCards.value) return;
+
+  isLoadingMoreCards.value = true;
+  try {
+    const rawQ = searchQuery.value.trim();
+    const cleanQuery = rawQ.length >= 3 ? rawQ : undefined;
+
+    const moreData = await searchListings({
+      userLat: userCoords[0],
+      userLng: userCoords[1],
+      radiusMeters: searchRadius.value || 5000,
+      categoryId: selectedCategory.value || undefined,
+      searchQuery: cleanQuery,
+      status: selectedStatus.value,
+      searchInDescription: searchInDescription.value,
+      useMock: useMockTable.value,
+      onlyMapFields: false,
+      limit: 20,
+      offset: cardListings.value.length,
+      fetchAll: false,
+    });
+
+    if (moreData && moreData.length > 0) {
+      const firstNewId = moreData[0]?.id;
+      cardListings.value.push(...(moreData as any[]));
+
+      await nextTick();
+      if (firstNewId) {
+        const targetId = isProductsSliderOpen.value
+          ? `mobile-product-${firstNewId}`
+          : `product-${firstNewId}`;
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }
     }
+  } catch (err) {
+    console.error("Помилка довантаження товарів:", err);
+  } finally {
+    isLoadingMoreCards.value = false;
+  }
+};
 
-    return true;
-  });
+// Запит у базу ініціюється при зміні геопозиції, радіуса, категорії, пошуку, статусу або бази даних
+watch(
+  [
+    () => initialUserLocation.value,
+    () => debouncedRadius.value,
+    () => selectedCategory.value,
+    () => searchQuery.value,
+    () => selectedStatus.value,
+    () => searchInDescription.value,
+    () => useMockTable.value,
+  ],
+  () => {
+    fetchRadiusProducts();
+  },
+  { immediate: true, deep: true }
+);
+
+// Товари для карти з миттєвою локальною фільтрацією при необхідності
+// Товари для карти (всі 13 000 точок вже точно відфільтровані бекендом Supabase)
+const productsInRadius = computed(() => {
+  return rawProductsInRadius.value;
 });
 
 const handleUserLocationCenter = () => {
@@ -884,37 +933,16 @@ const handleUserLocationCenter = () => {
 
 const handleForceUpdateLocation = () => {
   isGeolocationErrorPopoverOpen.value = false;
-  isCityModalOpen.value = true; // Завжди відкриваємо модалку
+  isCityModalOpen.value = true;
 };
 
 const displayedProducts = computed(() => {
-  const all = productsInRadius.value;
-  const limit = displayLimit.value;
-
-  const visible = [...all.slice(0, limit)];
-
-  // 2. Розумний трюк: якщо є вибраний товар на карті, і його зараз немає у видимому списку
-  if (selectedProductOnMap.value) {
-    const isVisible = visible.some((p) => p.id === selectedProductOnMap.value);
-
-    if (!isVisible) {
-      const selected = all.find((p) => p.id === selectedProductOnMap.value);
-      if (selected) {
-        visible.push(selected); // Додаємо його просто в кінець списку!
-      }
-    }
-  }
-
-  return visible;
+  return cardListings.value;
 });
 
 const hasMoreProducts = computed(
-  () => productsInRadius.value.length > displayLimit.value,
+  () => !isLoadingBackendListings.value && cardListings.value.length < productsInRadius.value.length,
 );
-
-const loadMoreProducts = () => {
-  displayLimit.value += 20;
-};
 
 const handleZoomToProduct = (product: Product) => {
   selectedProductOnMap.value = product.id;
@@ -948,6 +976,17 @@ const handleZoomToProduct = (product: Product) => {
 // Обробка кліку на маркер (Виділення та Скрол)
 const handleClickProductMarker = async (productId: string | number) => {
   selectedProductOnMap.value = productId;
+  // Якщо цього товару немає серед завантажених карток списку, довантажуємо його
+  if (!cardListings.value.some((p) => p.id === productId)) {
+    try {
+      const fullItem = await getListingById(productId);
+      if (fullItem && !cardListings.value.some((p) => p.id === productId)) {
+        cardListings.value.unshift(fullItem);
+      }
+    } catch (e) {
+      console.error("Не вдалося завантажити картку вибраного товару:", e);
+    }
+  }
 
   await nextTick();
 
@@ -1007,13 +1046,6 @@ const onMapReady = async () => {
 
   refreshClusters();
 };
-
-watch(
-  () => productsInRadius.value,
-  () => {
-    displayLimit.value = 20;
-  },
-);
 
 watch(
   () => [productsInRadius.value, selectedProductOnMap.value],

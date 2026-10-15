@@ -421,17 +421,13 @@ const isReportModalOpen = ref(false);
 const currentUser = useSupabaseUser();
 const { openChat } = useChat();
 const { fetchProfile } = useProfile();
+const { getListingById } = useListings();
 
 const { data: product, pending } = useAsyncData(
   `product-${route.params.id}`, 
   async () => {
-    const { data: listingData, error } = await supabase
-      .from('listings')
-      .select('*')
-      .eq('id', route.params.id)
-      .single();
-      
-    if (error || !listingData) return null;
+    const listingData = await getListingById(route.params.id as string);
+    if (!listingData) return null;
     
     // Профіль продавця завжди свіжий: продавець міг змінити видимість телефону, ім'я чи аватар
     // (заодно оновлює кеш, який використовує чат)

@@ -36,8 +36,8 @@ export default defineNuxtConfig({
     strategy: "no_prefix",
   },
   routeRules: {
-    // Якщо твоя сторінка називається pages/catalog.vue
     "/catalog": { ssr: false },
+    "/catalog/**": { ssr: false },
     "/profile": { redirect: "/profile/listings" },
     "/update-password": { ssr: false },
   },

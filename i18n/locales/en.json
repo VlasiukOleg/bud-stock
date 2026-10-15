@@ -111,7 +111,8 @@
     "gotIt": "Got it",
     "list": "List ({count})",
     "showOnMap": "Show on map",
-    "showMore": "Show more ({remaining})"
+    "showMore": "Show more ({remaining})",
+    "searchingListings": "Searching listings..."
   },
   "header": {
     "sellMaterial": "Sell material",

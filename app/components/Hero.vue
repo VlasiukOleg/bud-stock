@@ -1,45 +1,16 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import type { DropdownMenuItem } from "@nuxt/ui";
 import { SELLER_STEPS } from "~/constants/sliders/sliders";
 import { BUYER_STEPS } from "~/constants/sliders/sliders";
-import { CATEGORY_DATA } from "~/constants/category/category";
 
 const router = useRouter();
 
-const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
-  return [
-    CATEGORY_DATA.map((category) => ({
-      label: category.name,
-      icon: category.icon,
-      children: [
-        [
-          {
-            label: `Всі в категорії "${category.name}"`,
-            icon: "i-lucide-arrow-right",
-            onSelect: () => {
-              router.push({
-                path: APP_ROUTES.CATALOG,
-                query: { category: category.id },
-              });
-            },
-          },
-        ],
-        [
-          ...category.subcategories.map((sub) => ({
-            label: sub.name,
-            onSelect: () => {
-              router.push({
-                path: APP_ROUTES.CATALOG,
-                query: { category: sub.id },
-              });
-            },
-          })),
-        ],
-      ],
-    })),
-  ];
-});
+// Вибір категорії на головній одразу веде в каталог з відповідним фільтром
+const goToCategory = (categoryId: string) => {
+  router.push({
+    path: APP_ROUTES.CATALOG,
+    query: categoryId ? { category: categoryId } : {},
+  });
+};
 </script>
 
 <template>
@@ -117,23 +88,12 @@ const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
             <div
               class="mt-3 pt-3 border-t border-neutral-200/60 dark:border-neutral-700/60"
             >
-              <UDropdownMenu
-                :items="categoryDropdownItems"
-                :ui="{ content: 'w-72 max-h-96 overflow-y-auto' }"
-                class="w-full"
-              >
-                <UButton
-                  block
-                  color="neutral"
-                  variant="soft"
-                  size="sm"
-                  class="w-full justify-between font-medium text-xs rounded-xl cursor-pointer py-2 px-3"
-                  icon="i-lucide-layout-grid"
-                  trailing-icon="i-lucide-chevron-down"
-                >
-                  Обрати категорію
-                </UButton>
-              </UDropdownMenu>
+              <CommonCategoryPicker
+                size="sm"
+                variant="soft"
+                trigger-class="rounded-xl text-xs py-2 px-3"
+                @select="goToCategory"
+              />
             </div>
           </div>
         </div>

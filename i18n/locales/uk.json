@@ -119,7 +119,8 @@
     "views": "Перегляди",
     "location": "Розташування",
     "seller": "Продавець",
-    "productNumber": "Оголошення № {id}"
+    "productNumber": "Оголошення № {id}",
+    "searchingListings": "Шукаємо оголошення..."
   },
   "header": {
     "sellMaterial": "Продати матеріал",

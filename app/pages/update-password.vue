@@ -145,7 +145,7 @@ const updateUserPassword = async () => {
                   size="sm"
                   :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
                   :aria-label="showPassword ? 'Приховати пароль' : 'Показати пароль'"
-                  @click="showPassword = !showPassword"
+                  @click="() => { showPassword = !showPassword }"
                 />
               </template>
             </UInput>
