@@ -1,6 +1,6 @@
 <template>
   <nav
-    class="fixed bottom-0 left-0 w-full bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 z-[99] flex justify-around items-center h-16 lg:hidden pb-safe"
+    class="fixed bottom-0 left-0 w-full bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 z-[99] grid grid-cols-5 items-center h-16 lg:hidden pb-safe"
   >
     <CommonMobileMenuLinkItem
       v-for="item in MOBILE_MENU_LIST"
@@ -24,12 +24,12 @@
       </template>
       
       <!-- Бейдж для непрочитаних повідомлень -->
-      <template #icon v-else-if="item.iconName === 'i-heroicons-envelope'">
-        <div class="relative">
-          <UIcon :name="item.iconName" class="w-6 h-6 mb-1" />
+      <template #icon v-else-if="item.to === APP_ROUTES.PROFILE.CHATS">
+        <div class="relative flex items-center justify-center w-6 h-6 mb-1">
+          <UIcon :name="item.iconName" class="w-6 h-6" />
           <span 
-            v-if="unreadCount > 0"
-            class="absolute -top-1 -right-1 flex items-center justify-center w-3 h-3 bg-red-500 rounded-full border border-white dark:border-gray-900"
+            v-if="user && unreadCount > 0"
+            class="absolute -top-0.5 -right-0.5 flex items-center justify-center w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-gray-900"
           ></span>
         </div>
       </template>
@@ -53,14 +53,27 @@ const isItemActive = (itemTo: string) => {
   if (itemTo === '/') {
     return route.path === '/'
   }
+  if (itemTo === '/profile') {
+    return route.path.startsWith('/profile') && !route.path.startsWith('/profile/chats')
+  }
   return route.path.startsWith(itemTo)
 }
 
 const handleItemClick = (e: MouseEvent, item: MobileMenuItem) => {
-  if (item.to === '/profile' && user.value) {
+  if (item.to === '/profile') {
+    if (user.value) {
+      e.preventDefault()
+      e.stopPropagation()
+      isSlideoverOpen.value = true
+    } else {
+      e.preventDefault()
+      e.stopPropagation()
+      navigateTo(APP_ROUTES.AUTH.LOGIN)
+    }
+  } else if (item.to === APP_ROUTES.PROFILE.CHATS && !user.value) {
     e.preventDefault()
     e.stopPropagation()
-    isSlideoverOpen.value = true
+    navigateTo(APP_ROUTES.AUTH.LOGIN)
   }
 }
 </script>

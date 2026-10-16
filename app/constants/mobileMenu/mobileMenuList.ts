@@ -17,6 +17,11 @@ export const MOBILE_MENU_LIST: MobileMenuItem[] = [
     linkLabel: "mobileMenu.list.sell",
   },
   {
+    to: APP_ROUTES.PROFILE.CHATS,
+    iconName: "i-heroicons-chat-bubble-left-right",
+    linkLabel: "mobileMenu.list.messages",
+  },
+  {
     to: APP_ROUTES.PROFILE.ROOT,
     iconName: "i-heroicons-user",
     linkLabel: "mobileMenu.list.profile",

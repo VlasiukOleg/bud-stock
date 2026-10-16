@@ -53,10 +53,10 @@ const isProfileRouteActive = computed(() => {
         v-if="user"
         color="neutral"
         variant="ghost"
-        icon="i-heroicons-envelope"
+        icon="i-heroicons-chat-bubble-left-right"
         :to="APP_ROUTES.PROFILE.CHATS"
         aria-label="Мої чати"
-        class="flex relative"
+        class="hidden lg:flex relative"
       >
         <span 
           v-if="unreadCount > 0"
@@ -88,6 +88,7 @@ const isProfileRouteActive = computed(() => {
           :to="APP_ROUTES.AUTH.LOGIN"
           icon="i-icon-park-solid:people"
           :aria-label="t('header.login')"
+          class="hidden lg:flex"
         />
     </template>
   </UHeader>

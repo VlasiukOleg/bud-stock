@@ -85,7 +85,7 @@
       "main": "Home",
       "buy": "Buy",
       "sell": "Sell",
-      "profile": "Profile",
+      "profile": "Cabinet",
       "messages": "Messages"
     }
   },
@@ -126,7 +126,7 @@
   "userSlideover": {
     "userMenu": "User Menu",
     "profileNav": "Profile Navigation",
-    "myData": "My Data",
+    "myData": "My Profile",
     "myListings": "My Listings",
     "myPurchases": "My Purchases",
     "logout": "Logout",
