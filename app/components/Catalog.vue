@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col h-[calc(100dvh-64px)] pb-16 md:pb-0 overflow-hidden relative"
+    class="flex flex-col h-[calc(100dvh-var(--ui-header-height))] pb-16 md:pb-0 overflow-hidden relative"
   >
     <header
       class="p-4 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 z-20"

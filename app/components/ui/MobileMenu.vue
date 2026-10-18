@@ -1,6 +1,6 @@
 <template>
   <nav
-    class="fixed bottom-0 left-0 w-full bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 z-[99] grid grid-cols-5 items-center h-16 lg:hidden pb-safe"
+    class="fixed bottom-0 left-0 w-full bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.4)] z-[99] grid grid-cols-5 items-center h-16 lg:hidden pb-safe"
   >
     <CommonMobileMenuLinkItem
       v-for="item in MOBILE_MENU_LIST"

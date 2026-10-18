@@ -38,7 +38,13 @@ const isProfileRouteActive = computed(() => {
 </script>
 
 <template>
-  <UHeader :toggle="false">
+  <UHeader
+    :toggle="false"
+    :ui="{
+      root: 'h-12 md:h-(--ui-header-height) sticky top-0 z-50 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800',
+      container: 'py-0 px-3 md:px-6 lg:px-8 flex items-center justify-between gap-2 h-full',
+    }"
+  >
     <template #left>
       <CommonLogo />
     </template>
