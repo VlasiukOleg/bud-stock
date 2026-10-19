@@ -381,10 +381,6 @@
                     {{ $t('createListing.step3.mapLocationBtn') }}
                   </UButton>
                 </div>
-                <div v-if="formData.latitude && formData.longitude" class="text-xs text-green-600 flex items-center gap-1 font-medium -mt-2">
-                  <UIcon name="i-heroicons-check-circle" class="w-4 h-4" />
-                  {{ $t('createListing.step3.coordinatesSet') }} ({{ formData.latitude.toFixed(4) }}, {{ formData.longitude.toFixed(4) }})
-                </div>
 
                 <!-- Спосіб отримання (Нове) -->
                 <UFormField name="delivery" :label="$t('createListing.step3.deliveryLabel')">
@@ -422,32 +418,59 @@
                 </UFormField>
               </div>
               
-              <!-- Інформація про баланс перед публікацією -->
-              <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 mt-4 mb-2 text-sm">
-                <div class="flex items-center gap-2">
-                  <UIcon name="i-heroicons-banknotes" class="w-5 h-5 text-primary-500" />
-                  <span class="font-medium text-gray-700 dark:text-gray-300">{{ $t('createListing.step3.yourBalance') }} <span class="font-bold text-gray-900 dark:text-white">{{ balance ?? 0 }} стоків</span></span>
+              <!-- Інформація про термін та баланс перед публікацією -->
+              <div class="bg-gray-50 dark:bg-gray-800/80 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3 mt-6 mb-2">
+                <!-- Термін публікації -->
+                <div class="flex items-start gap-3">
+                  <div class="p-2 rounded-lg bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 shrink-0">
+                    <UIcon name="i-heroicons-calendar-days" class="w-5 h-5" />
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-gray-900 dark:text-white">
+                      <span>{{ $t('createListing.step3.durationLabel') }}</span>
+                      <span class="font-bold text-primary-600 dark:text-primary-400">
+                        {{ $t('createListing.step3.durationValue', { days: LISTING_DURATION_DAYS }) }}
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">
+                        ({{ $t('createListing.step3.activeUntil', { date: formattedExpiryDate }) }})
+                      </span>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                      {{ $t('createListing.step3.durationHint') }}
+                    </p>
+                  </div>
                 </div>
-                
-                <div class="flex items-center gap-2">
-                  <span class="text-gray-500 hidden sm:inline">{{ $t('createListing.step3.cost') }}</span>
-                  <span class="text-error-500 font-bold">-{{ COST_PER_LISTING }}</span>
-                  
-                  <UPopover mode="hover">
-                    <UIcon name="i-heroicons-information-circle" class="w-4 h-4 text-gray-400 cursor-help" />
-                    <template #content>
-                      <div class="p-3 w-64 text-xs text-gray-600 dark:text-gray-300">
-                        {{ $t('createListing.step3.publishWarning', { cost: COST_PER_LISTING }) }} 
-                        <strong class="text-gray-900 dark:text-white" v-if="(balance ?? 0) >= COST_PER_LISTING">
-                          {{ (balance ?? 0) - COST_PER_LISTING }} стоків
-                        </strong>
-                        <strong class="text-error-500" v-else>
-                          (не вистачає {{ COST_PER_LISTING - (balance ?? 0) }})
-                        </strong>. <br><br>
-                        {{ $t('createListing.step3.publishWarningNoStocks') }}
-                      </div>
-                    </template>
-                  </UPopover>
+
+                <!-- Вартість та баланс користувача -->
+                <div class="border-t border-gray-200 dark:border-gray-700/60 pt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <div class="flex items-center gap-2">
+                    <UIcon name="i-heroicons-banknotes" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                    <span class="text-gray-700 dark:text-gray-300">
+                      {{ $t('createListing.step3.yourBalance') }}
+                      <span class="font-bold text-gray-900 dark:text-white">{{ balance ?? 0 }} стоків</span>
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <span class="text-gray-500">{{ $t('createListing.step3.cost') }}</span>
+                    <span class="text-error-500 font-bold">-{{ COST_PER_LISTING }} стоків</span>
+
+                    <UPopover mode="hover">
+                      <UIcon name="i-heroicons-information-circle" class="w-4 h-4 text-gray-400 cursor-help" />
+                      <template #content>
+                        <div class="p-3 w-64 text-xs text-gray-600 dark:text-gray-300">
+                          {{ $t('createListing.step3.publishWarning', { cost: COST_PER_LISTING }) }}
+                          <strong class="text-gray-900 dark:text-white" v-if="(balance ?? 0) >= COST_PER_LISTING">
+                            {{ (balance ?? 0) - COST_PER_LISTING }} стоків
+                          </strong>
+                          <strong class="text-error-500" v-else>
+                            (не вистачає {{ COST_PER_LISTING - (balance ?? 0) }})
+                          </strong>. <br><br>
+                          {{ $t('createListing.step3.publishWarningNoStocks') }}
+                        </div>
+                      </template>
+                    </UPopover>
+                  </div>
                 </div>
               </div>
 
@@ -482,15 +505,10 @@
                     type="submit"
                     color="primary"
                     size="lg"
-                    class="w-full sm:w-2/3 justify-center font-bold relative group"
+                    class="w-full sm:w-2/3 justify-center font-bold"
                     :disabled="!isFormValid || (balance ?? 0) < COST_PER_LISTING"
                   >
-                    <span>{{ $t('createListing.step3.publishBtn') }}</span>
-                    <div class="absolute right-3 flex items-center gap-1 text-primary-100 bg-primary-600/50 px-2 py-0.5 rounded text-xs transition-colors group-hover:bg-primary-600/70">
-                      <span class="hidden sm:inline">{{ $t('createListing.step3.cost') }} </span>
-                      <span class="font-bold">{{ COST_PER_LISTING }}</span>
-                      <UIcon name="i-heroicons-banknotes" class="w-4 h-4" />
-                    </div>
+                    {{ $t('createListing.step3.publishBtn') }}
                   </UButton>
                 </div>
               </div>
@@ -563,11 +581,26 @@ import ListingForm from "./ui/ListingForm.vue";
 const toast = useToast();
 const supabase = useSupabaseClient<any>();
 const user = useSupabaseUser();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const shouldShowProductRelevantBanner = ref(false);
 const isLoading = ref(false);
 
 const { balance, fetchBalance, deductBalanceLocally } = useBalance();
+
+const formattedExpiryDate = computed(() => {
+  const expiryDate = new Date(Date.now() + LISTING_DURATION_DAYS * 24 * 60 * 60 * 1000);
+  const localeMap: Record<string, string> = {
+    uk: 'uk-UA',
+    en: 'en-US',
+    ru: 'ru-RU'
+  };
+  const activeLocale = localeMap[locale.value] || 'uk-UA';
+  return expiryDate.toLocaleDateString(activeLocale, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+});
 
 // --- ДОВІДНИКИ ДЛЯ НОВИХ ПОЛІВ ---
 const productStatuses = computed(() => [
@@ -807,7 +840,7 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
     for (const file of formData.images) {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const userId = user.value?.id || user.value?.sub || 'unknown';
+      const userId = (user.value as any)?.sub || 'unknown';
       const filePath = `${userId}/${fileName}`;
 
       const { data, error } = await supabase.storage
@@ -839,7 +872,7 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
     const { error: dbError } = await supabase
       .from('listings')
       .insert({
-        user_id: user.value?.sub,
+        user_id: (user.value as any)?.sub,
         title: formData.title,
         category_id: formData.categoryId,
         status: formData.status,

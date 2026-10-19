@@ -267,14 +267,21 @@
       "locationDesc": "Адреса определяется автоматически с помощью кнопок ниже.",
       "myLocationBtn": "Получить мою позицию",
       "mapLocationBtn": "Указать на карте",
-      "coordinatesSet": "Координаты установлены",
       "deliveryLabel": "Способ получения *",
       "deliveryDetailsLabel": "Условия доставки *",
       "deliveryDetailsPlaceholder": "Например: Доставка по Киеву - 200 грн",
       "descriptionLabel": "Комментарий / Описание *",
       "descriptionPlaceholder": "Дополнительная информация о товаре...",
       "cancelBtn": "Отменить",
-      "publishBtn": "Опубликовать"
+      "publishBtn": "Опубликовать",
+      "yourBalance": "Ваш баланс:",
+      "cost": "Стоимость:",
+      "durationLabel": "Срок публикации:",
+      "durationValue": "{days} дней",
+      "activeUntil": "активно до {date}",
+      "durationHint": "После окончания срока объявление перейдет в неактивные. Вы сможете бесплатно продлить его в профиле.",
+      "publishWarning": "При публикации объявления с вашего баланса будет снято {cost} стоков. Остаток:",
+      "publishWarningNoStocks": "Если стоки закончатся, вы можете бесплатно пополнить их в разделе \"Мой баланс\"."
     },
     "mapModal": {
       "title": "Укажите точку на карте",

@@ -177,10 +177,6 @@
               <UButton color="neutral" variant="outline" icon="i-heroicons-map-pin" type="button" @click="useMyLocation" :loading="isGettingLocation">{{ $t('createListing.step3.myLocationBtn') }}</UButton>
               <UButton color="primary" variant="soft" icon="i-heroicons-map" type="button" @click="openMapModal">{{ $t('createListing.step3.mapLocationBtn') }}</UButton>
             </div>
-            <div v-if="formData.latitude && formData.longitude" class="text-xs text-green-600 flex items-center gap-1 font-medium -mt-2">
-              <UIcon name="i-heroicons-check-circle" class="w-4 h-4" />
-              {{ $t('createListing.step3.coordinatesSet') }} ({{ formData.latitude.toFixed(4) }}, {{ formData.longitude.toFixed(4) }})
-            </div>
             <UFormField name="delivery" :label="$t('createListing.step3.deliveryLabel')">
               <UCheckboxGroup v-model="formData.delivery" :items="deliveryOptions" class="mt-2" />
             </UFormField>

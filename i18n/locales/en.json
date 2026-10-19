@@ -267,14 +267,21 @@
       "locationDesc": "Address is determined automatically using the buttons below.",
       "myLocationBtn": "Get my location",
       "mapLocationBtn": "Select on map",
-      "coordinatesSet": "Coordinates set",
       "deliveryLabel": "Delivery method *",
       "deliveryDetailsLabel": "Delivery details *",
       "deliveryDetailsPlaceholder": "Example: Delivery in Kyiv - 200 UAH",
       "descriptionLabel": "Comment / Description *",
       "descriptionPlaceholder": "Additional information about the item...",
       "cancelBtn": "Cancel",
-      "publishBtn": "Publish"
+      "publishBtn": "Publish",
+      "yourBalance": "Your balance:",
+      "cost": "Cost:",
+      "durationLabel": "Publication period:",
+      "durationValue": "{days} days",
+      "activeUntil": "active until {date}",
+      "durationHint": "After this period expires, the listing will become inactive. You can prolong it for free in your profile.",
+      "publishWarning": "Publishing a listing will deduct {cost} stocks from your balance. Remaining:",
+      "publishWarningNoStocks": "If you run out of stocks, you can replenish them for free in the \"My Balance\" section."
     },
     "mapModal": {
       "title": "Set point on map",
