@@ -1,44 +1,124 @@
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-950">
-    <UContainer class="pt-6 pb-16">
-      <UButton
-        variant="ghost"
-        color="neutral"
-        icon="i-heroicons-arrow-left-20-solid"
-        class="mb-4"
-        @click="router.back()"
-      >
-        {{ $t('catalog.backBtn') }}
-      </UButton>
-
-      <div v-if="product && product.listing_state === 'moderation'" class="mb-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 flex items-center gap-3 text-amber-800 dark:text-amber-200">
-        <UIcon name="i-heroicons-clock" class="w-6 h-6 text-amber-500 shrink-0" />
-        <div>
-          <h4 class="font-bold text-sm">Оголошення на ручній модерації</h4>
-          <p class="text-xs text-amber-700 dark:text-amber-300">Оголошення приховане з публічного пошуку та очікує швидкої перевірки адміністратором.</p>
-        </div>
-      </div>
-      <div v-else-if="product && product.listing_state === 'rejected'" class="mb-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/50 flex items-center gap-3 text-red-800 dark:text-red-200">
-        <UIcon name="i-heroicons-x-circle" class="w-6 h-6 text-red-500 shrink-0" />
-        <div>
-          <h4 class="font-bold text-sm">Оголошення відхилено</h4>
-          <p class="text-xs text-red-700 dark:text-red-300">Фото товару не відповідає правилам або не є будівельним матеріалом.</p>
-        </div>
-      </div>
-      <div v-else-if="product && product.expires_at && new Date(product.expires_at).getTime() <= Date.now() && (!product.listing_state || product.listing_state === 'active')" class="mb-4 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/50 flex items-center gap-3 text-rose-800 dark:text-rose-200">
-        <UIcon name="i-heroicons-exclamation-triangle" class="w-6 h-6 text-rose-500 shrink-0" />
-        <div>
-          <h4 class="font-bold text-sm">Термін публікації оголошення завершився</h4>
-          <p class="text-xs text-rose-700 dark:text-rose-300">Оголошення знято з пошуку. Власник може продовжити його в кабінеті «Мої оголошення».</p>
-        </div>
-      </div>
-
+  <div class="flex-1 flex flex-col bg-neutral-50 dark:bg-neutral-950">
+    <UContainer class="flex-1 w-full py-2 sm:py-4 flex flex-col">
+      <!-- Завантаження -->
       <div v-if="pending" class="flex flex-col items-center justify-center py-32 text-brand-500">
         <UIcon name="i-heroicons-arrow-path" class="w-12 h-12 animate-spin mb-4" />
         <p class="font-medium animate-pulse">Завантаження деталей...</p>
       </div>
 
-      <div v-else-if="product" class="grid lg:grid-cols-3 gap-6">
+      <!-- Повна заглушка для неактивних / проданих оголошень для сторонніх користувачів -->
+      <div v-else-if="product && !canViewFullDetails" class="max-w-sm w-full mx-auto my-auto px-2">
+        <UCard class="text-center p-4 sm:p-5 shadow-sm border border-neutral-200 dark:border-neutral-800 rounded-2xl bg-white dark:bg-neutral-900">
+          <div 
+            class="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center transition-transform hover:scale-105"
+            :class="isSold ? 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400' : 'bg-amber-50 text-amber-500 dark:bg-amber-950/40 dark:text-amber-400'"
+          >
+            <UIcon :name="isSold ? 'i-heroicons-check-badge' : 'i-heroicons-archive-box-x-mark'" class="w-6 h-6" />
+          </div>
+
+          <h2 class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white mb-1.5">
+            {{ isSold ? 'Товар уже продано' : 'Оголошення більше не актуальне' }}
+          </h2>
+
+          <p class="text-neutral-500 dark:text-neutral-400 text-xs max-w-xs mx-auto mb-4 leading-relaxed">
+            <template v-if="isSold">
+              Це оголошення позначено як продане і більше не доступне для покупки.
+            </template>
+            <template v-else>
+              Продавець призупинив публікацію або завершився термін дії оголошення.
+            </template>
+          </p>
+
+          <div class="flex flex-col gap-2 w-full max-w-xs mx-auto">
+            <UButton
+              to="/catalog"
+              color="primary"
+              size="sm"
+              block
+              icon="i-heroicons-arrow-left-20-solid"
+              class="font-bold rounded-lg justify-center py-2"
+            >
+              Перейти до каталогу
+            </UButton>
+
+            <UButton
+              v-if="product.category_id"
+              :to="`/catalog?category=${product.category_id}`"
+              variant="soft"
+              color="neutral"
+              size="sm"
+              block
+              icon="i-heroicons-squares-2x2-20-solid"
+              class="font-medium rounded-lg justify-center py-2"
+            >
+              Інші товари у цій категорії
+            </UButton>
+          </div>
+        </UCard>
+      </div>
+
+      <!-- Повний перегляд товару (для активних або для автора) -->
+      <div v-else-if="product">
+        <UButton
+          variant="ghost"
+          color="neutral"
+          icon="i-heroicons-arrow-left-20-solid"
+          class="mb-3 sm:mb-4 self-start"
+          @click="router.back()"
+        >
+          {{ $t('catalog.backBtn') }}
+        </UButton>
+
+        <!-- Банери статусів для автора при неактивному товарі -->
+        <div v-if="isInactive" class="mb-6 space-y-3">
+          <!-- На модерації -->
+          <div v-if="isModeration" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 flex items-center gap-3 text-amber-800 dark:text-amber-200">
+            <UIcon name="i-heroicons-clock" class="w-6 h-6 text-amber-500 shrink-0" />
+            <div>
+              <h4 class="font-bold text-sm">Оголошення на ручній модерації</h4>
+              <p class="text-xs text-amber-700 dark:text-amber-300">Оголошення приховане з публічного пошуку та очікує перевірки адміністратором.</p>
+            </div>
+          </div>
+
+          <!-- Відхилено -->
+          <div v-else-if="isRejected" class="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/50 flex items-center gap-3 text-red-800 dark:text-red-200">
+            <UIcon name="i-heroicons-x-circle" class="w-6 h-6 text-red-500 shrink-0" />
+            <div>
+              <h4 class="font-bold text-sm">Оголошення відхилено</h4>
+              <p class="text-xs text-red-700 dark:text-red-300">Фото товару не відповідає правилам або не є будівельним матеріалом.</p>
+            </div>
+          </div>
+
+          <!-- Деактивовано (Приховано) -->
+          <div v-else-if="isDeactivated" class="p-4 rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center gap-3 text-neutral-800 dark:text-neutral-200">
+            <UIcon name="i-heroicons-eye-slash" class="w-6 h-6 text-neutral-500 shrink-0" />
+            <div>
+              <h4 class="font-bold text-sm">Оголошення приховано вами (деактивовано)</h4>
+              <p class="text-xs text-neutral-600 dark:text-neutral-400">Товар прихований з пошуку і не відображається іншим користувачам.</p>
+            </div>
+          </div>
+
+          <!-- Закінчився термін -->
+          <div v-else-if="isExpired" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/50 flex items-center gap-3 text-rose-800 dark:text-rose-200">
+            <UIcon name="i-heroicons-exclamation-triangle" class="w-6 h-6 text-rose-500 shrink-0" />
+            <div>
+              <h4 class="font-bold text-sm">Термін публікації оголошення завершився</h4>
+              <p class="text-xs text-rose-700 dark:text-rose-300">Оголошення знято з пошуку. Ви можете продовжити його в особистому кабінеті.</p>
+            </div>
+          </div>
+
+          <!-- Продано -->
+          <div v-else-if="isSold" class="p-4 rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center gap-3 text-neutral-800 dark:text-neutral-200">
+            <UIcon name="i-heroicons-check-circle" class="w-6 h-6 text-neutral-500 shrink-0" />
+            <div>
+              <h4 class="font-bold text-sm">Товар позначено як проданий</h4>
+              <p class="text-xs text-neutral-600 dark:text-neutral-400">Оголошення завершене і зберігається в історії проданих товарів протягом 45 днів.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
           <UCard>
             <div
@@ -359,6 +439,7 @@
           </div>
         </div>
       </div>
+      </div>
 
       <div
         v-else
@@ -485,11 +566,32 @@ const deliveryDetailsText = computed(() => {
 });
 
 const isUserOwnerProduct = computed(() => {
+  if (!product.value || !currentUser.value) return false;
+  const currentUserId = (currentUser.value as any)?.sub;
+  return currentUserId === product.value.user_id;
+});
+
+const isSold = computed(() => product.value?.listing_state === 'sold');
+const isDeactivated = computed(() => product.value?.listing_state === 'deactivated');
+const isModeration = computed(() => product.value?.listing_state === 'moderation');
+const isRejected = computed(() => product.value?.listing_state === 'rejected');
+const isExpired = computed(() => {
   if (!product.value) return false;
-  
-  const isOwner = (currentUser.value as any)?.sub === product.value.user_id;
-  return isOwner;
-})
+  if (isSold.value || isDeactivated.value || isModeration.value || isRejected.value) return false;
+  return !!product.value.expires_at && new Date(product.value.expires_at).getTime() <= Date.now();
+});
+
+const isInactive = computed(() => {
+  return isSold.value || isDeactivated.value || isModeration.value || isRejected.value || isExpired.value;
+});
+
+const canViewFullDetails = computed(() => {
+  if (!product.value) return false;
+  // Якщо оголошення активне — бачать усі
+  if (!isInactive.value) return true;
+  // Якщо неактивне/продане/приховане — бачить виключно автор оголошення
+  return isUserOwnerProduct.value;
+});
 
 // Реактивно обчислюємо видимість телефону, щоб вона миттєво реагувала на вхід/вихід з акаунту
 const canSeePhone = computed(() => {
@@ -561,7 +663,10 @@ watch(product, async (newProduct) => {
   const currentUserId = (currentUser.value as any)?.sub;
   if (currentUserId === newProduct.user_id) return;
 
-  // Правило 2: Перевіряємо sessionStorage
+  // Правило 2: Для неактивних оголошень перегляди не рахуємо
+  if (isInactive.value) return;
+
+  // Правило 3: Перевіряємо sessionStorage
   const listingId = String(newProduct.id);
   
   if (!viewedListings.value.includes(listingId)) {
@@ -590,8 +695,18 @@ const googleMapsUrl = computed(() => {
 
 // SEO Мета-теги
 useSeoMeta({
-  title: () =>
-    product.value ? `${product.value.title} | BudStock` : "Товар не знайдено",
-  description: () => product.value?.description,
+  title: () => {
+    if (!product.value) return "Товар не знайдено | BudStock";
+    if (!canViewFullDetails.value) {
+      return isSold.value ? "Товар уже продано | BudStock" : "Оголошення більше не актуальне | BudStock";
+    }
+    return `${product.value.title} | BudStock`;
+  },
+  description: () => {
+    if (!product.value || !canViewFullDetails.value) {
+      return "Будівельні матеріали поруч на BudStock";
+    }
+    return product.value.description;
+  },
 });
 </script>

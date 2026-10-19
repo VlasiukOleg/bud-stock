@@ -49,7 +49,7 @@ const supabase = useSupabaseClient<any>();
 const currentUser = useSupabaseUser();
 
 const userId = route.params.id as string;
-const isOwner = computed(() => currentUser.value?.id === userId);
+const isOwner = computed(() => (currentUser.value as any)?.sub === userId);
 
 const { data: pageData, pending } = useAsyncData(
   `user-profile-${userId}`,
