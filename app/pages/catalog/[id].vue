@@ -11,6 +11,28 @@
         {{ $t('catalog.backBtn') }}
       </UButton>
 
+      <div v-if="product && product.listing_state === 'moderation'" class="mb-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 flex items-center gap-3 text-amber-800 dark:text-amber-200">
+        <UIcon name="i-heroicons-clock" class="w-6 h-6 text-amber-500 shrink-0" />
+        <div>
+          <h4 class="font-bold text-sm">Оголошення на ручній модерації</h4>
+          <p class="text-xs text-amber-700 dark:text-amber-300">Оголошення приховане з публічного пошуку та очікує швидкої перевірки адміністратором.</p>
+        </div>
+      </div>
+      <div v-else-if="product && product.listing_state === 'rejected'" class="mb-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/50 flex items-center gap-3 text-red-800 dark:text-red-200">
+        <UIcon name="i-heroicons-x-circle" class="w-6 h-6 text-red-500 shrink-0" />
+        <div>
+          <h4 class="font-bold text-sm">Оголошення відхилено</h4>
+          <p class="text-xs text-red-700 dark:text-red-300">Фото товару не відповідає правилам або не є будівельним матеріалом.</p>
+        </div>
+      </div>
+      <div v-else-if="product && product.expires_at && new Date(product.expires_at).getTime() <= Date.now() && (!product.listing_state || product.listing_state === 'active')" class="mb-4 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/50 flex items-center gap-3 text-rose-800 dark:text-rose-200">
+        <UIcon name="i-heroicons-exclamation-triangle" class="w-6 h-6 text-rose-500 shrink-0" />
+        <div>
+          <h4 class="font-bold text-sm">Термін публікації оголошення завершився</h4>
+          <p class="text-xs text-rose-700 dark:text-rose-300">Оголошення знято з пошуку. Власник може продовжити його в кабінеті «Мої оголошення».</p>
+        </div>
+      </div>
+
       <div v-if="pending" class="flex flex-col items-center justify-center py-32 text-brand-500">
         <UIcon name="i-heroicons-arrow-path" class="w-12 h-12 animate-spin mb-4" />
         <p class="font-medium animate-pulse">Завантаження деталей...</p>

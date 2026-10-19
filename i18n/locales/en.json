@@ -130,7 +130,10 @@
     "myListings": "My Listings",
     "myPurchases": "My Purchases",
     "logout": "Logout",
-    "defaultUser": "User"
+    "defaultUser": "User",
+    "myChats": "My Chats",
+    "myBalance": "My Balance",
+    "moderation": "Moderation"
   },
   "profile": {
     "myData": "My Data",
@@ -177,14 +180,18 @@
       "cancel": "Cancel",
       "tabs": {
         "active": "Active",
-        "sold": "Sold",
-        "deactivated": "Hidden"
+        "moderation": "On Moderation",
+        "deactivated": "Inactive",
+        "sold": "Sold"
       },
       "statusUpdated": "Status successfully updated",
       "statusUpdateError": "Error updating status",
+      "renewSuccess": "Listing renewed for 25 days!",
+      "renewError": "Error renewing listing",
       "noActive": "No active listings",
+      "noModeration": "No listings on moderation",
       "noSold": "No sold items yet",
-      "noDeactivated": "No hidden listings"
+      "noDeactivated": "No inactive listings"
     },
     "purchases": {
       "pageTitle": "My Purchases",
@@ -315,6 +322,8 @@
       "authError": "You must be logged in to create a listing",
       "createSuccessTitle": "Success!",
       "createSuccessDesc": "Your listing has been created.",
+      "moderationTitle": "Sent to moderation",
+      "moderationDesc": "Your listing will be reviewed by an administrator before publishing",
       "createErrorTitle": "Creation error",
       "createErrorDesc": "An unknown error occurred",
       "locationSuccess": "Geolocation received!",

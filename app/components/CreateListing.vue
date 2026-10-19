@@ -555,6 +555,7 @@ import * as yup from "yup";
 import type { DropdownMenuItem, FormSubmitEvent, StepperItem } from "@nuxt/ui";
 import type { PointTuple } from "leaflet";
 import { COST_PER_LISTING } from "~/constants/balance";
+import { LISTING_DURATION_DAYS } from "~/constants/listing";
 
 import { CATEGORY_DATA } from "~/constants/category/category";
 import ListingForm from "./ui/ListingForm.vue";
@@ -830,6 +831,10 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
       throw new Error(t('createListing.step3.publishWarningNoStocks'));
     }
 
+    const isModerationNeeded = Boolean(shouldShowProductRelevantBanner.value);
+    const listingState = isModerationNeeded ? 'moderation' : 'active';
+    const expiresAt = new Date(Date.now() + LISTING_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
     // Зберігаємо в базу даних
     const { error: dbError } = await supabase
       .from('listings')
@@ -851,15 +856,25 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
         delivery_details: formData.deliveryDetails,
         description: formData.description,
         images: uploadedImageUrls,
+        listing_state: listingState,
+        expires_at: expiresAt,
       });
 
     if (dbError) throw dbError;
 
-    toast.add({
-      title: t('createListing.toasts.createSuccessTitle'),
-      description: t('createListing.toasts.createSuccessDesc'),
-      color: "success",
-    });
+    if (isModerationNeeded) {
+      toast.add({
+        title: t('createListing.toasts.moderationTitle', 'Надіслано на модерацію'),
+        description: t('createListing.toasts.moderationDesc', 'Ваше оголошення перевірить адміністратор перед публікацією'),
+        color: "warning",
+      });
+    } else {
+      toast.add({
+        title: t('createListing.toasts.createSuccessTitle'),
+        description: t('createListing.toasts.createSuccessDesc'),
+        color: "success",
+      });
+    }
     
     // Очищаємо кеш сторінки "Мої оголошення", щоб при переході завантажились нові дані
     clearNuxtData(`user-listings-${user.value?.sub}`);

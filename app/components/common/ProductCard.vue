@@ -2,6 +2,7 @@
 import type { Product } from "~/types/index";
 import { useStorage } from "@vueuse/core";
 import { getDistance } from "geolib";
+import { LISTING_DURATION_DAYS, LISTING_RETENTION_DAYS } from "~/constants/listing";
 
 const props = withDefaults(defineProps<{
   product: Product;
@@ -18,6 +19,7 @@ const emit = defineEmits<{
   (e: 'delete', id: string | number): void;
   (e: 'mapClick', product: Product): void;
   (e: 'updateState', id: string | number, newState: 'active' | 'sold' | 'deactivated'): void;
+  (e: 'renew', id: string | number): void;
   (e: 'edit', id: string | number): void;
 }>();
 
@@ -73,6 +75,47 @@ const shortAddress = computed(() => {
 
 const isSold = computed(() => props.product.listing_state === 'sold');
 const isDeactivated = computed(() => props.product.listing_state === 'deactivated');
+const isModeration = computed(() => props.product.listing_state === 'moderation');
+const isRejected = computed(() => props.product.listing_state === 'rejected');
+const isExpired = computed(() => {
+  if (isSold.value || isDeactivated.value || isModeration.value || isRejected.value) return false;
+  if (!props.product.expires_at) return false;
+  return new Date(props.product.expires_at).getTime() <= Date.now();
+});
+const isActive = computed(() => {
+  return (!props.product.listing_state || props.product.listing_state === 'active') && !isExpired.value;
+});
+
+const isInactive = computed(() => isExpired.value || isDeactivated.value || isRejected.value);
+
+const daysRemaining = computed(() => {
+  if (!props.product.expires_at) return null;
+  const diffMs = new Date(props.product.expires_at).getTime() - Date.now();
+  if (diffMs <= 0) return 0;
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+});
+
+const daysUntilPermanentDelete = computed(() => {
+  if (!isInactive.value && !isSold.value) return null;
+  const now = Date.now();
+  let baseTime: number;
+
+  if (isExpired.value && props.product.expires_at) {
+    // Якщо термін вийшов природно — відлік 45 днів від дати завершення терміну
+    baseTime = new Date(props.product.expires_at).getTime();
+  } else if (props.product.updated_at) {
+    // Якщо приховано/відхилено — відлік 45 днів від дати деактивації
+    baseTime = new Date(props.product.updated_at).getTime();
+  } else {
+    // Якщо щойно деактивовано або немає updated_at — відлік 45 днів від сьогодні
+    baseTime = now;
+  }
+
+  const deleteTime = baseTime + (LISTING_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+  const diffMs = deleteTime - now;
+  if (diffMs <= 0) return 0;
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+});
 
 const copyLink = async () => {
   try {
@@ -85,18 +128,54 @@ const copyLink = async () => {
 
 const statusLabel = computed(() => {
   if (isSold.value) return 'Продано';
+  if (isModeration.value) return 'На модерації';
+  if (isRejected.value) return 'Відхилено';
+  if (isExpired.value) return 'Термін вийшов';
   if (isDeactivated.value) return 'Приховано';
   return 'Активне';
 });
 
 const statusIndicatorColor = computed(() => {
   if (isSold.value) return 'bg-purple-500';
+  if (isModeration.value) return 'bg-amber-500';
+  if (isRejected.value) return 'bg-rose-500';
+  if (isExpired.value) return 'bg-rose-400';
   if (isDeactivated.value) return 'bg-gray-400';
   return 'bg-green-500';
 });
 
 const actionItems = computed(() => {
-  if (!props.product.listing_state || props.product.listing_state === 'active') {
+  if (isModeration.value || isRejected.value) {
+    return [
+      [
+        {
+          label: 'Редагувати',
+          icon: 'i-heroicons-pencil',
+          onSelect: () => emit('edit', props.product.id)
+        }
+      ]
+    ];
+  } else if (isExpired.value) {
+    return [
+      [
+        {
+          label: `Продовжити на ${LISTING_DURATION_DAYS} днів`,
+          icon: 'i-heroicons-arrow-path',
+          onSelect: () => emit('renew', props.product.id)
+        },
+        {
+          label: 'Позначити проданим',
+          icon: 'i-heroicons-check-circle',
+          onSelect: () => emit('updateState', props.product.id, 'sold')
+        },
+        {
+          label: 'Редагувати',
+          icon: 'i-heroicons-pencil',
+          onSelect: () => emit('edit', props.product.id)
+        }
+      ]
+    ];
+  } else if (isActive.value) {
     return [
       [
         {
@@ -122,7 +201,7 @@ const actionItems = computed(() => {
           onSelect: () => copyLink()
         }
       ]
-    ]
+    ];
   } else if (isSold.value) {
     return [
       [
@@ -136,23 +215,8 @@ const actionItems = computed(() => {
           icon: 'i-heroicons-pause',
           onSelect: () => emit('updateState', props.product.id, 'deactivated')
         }
-      ],
-      [
-        {
-          label: 'Редагувати',
-          icon: 'i-heroicons-pencil',
-          onSelect: () => emit('edit', props.product.id)
-        }
-      ],
-      [
-        {
-          label: 'Видалити',
-          icon: 'i-heroicons-trash',
-          color: 'error',
-          onSelect: () => emit('delete', props.product.id)
-        }
       ]
-    ]
+    ];
   } else {
     // deactivated
     return [
@@ -161,24 +225,14 @@ const actionItems = computed(() => {
           label: 'Активувати',
           icon: 'i-heroicons-play',
           onSelect: () => emit('updateState', props.product.id, 'active')
-        }
-      ],
-      [
+        },
         {
           label: 'Редагувати',
           icon: 'i-heroicons-pencil',
           onSelect: () => emit('edit', props.product.id)
         }
-      ],
-      [
-        {
-          label: 'Видалити',
-          icon: 'i-heroicons-trash',
-          color: 'error',
-          onSelect: () => emit('delete', props.product.id)
-        }
       ]
-    ]
+    ];
   }
 });
 </script>
@@ -189,7 +243,7 @@ const actionItems = computed(() => {
       :to="`/catalog/${product.id}`"
       :id="`product-${product.id}`"
       class="flex flex-col flex-1"
-      :class="{ 'opacity-60 grayscale-[30%]': isSold || isDeactivated }"
+      :class="{ 'opacity-60 grayscale-[30%]': isSold || isDeactivated || isExpired || isRejected }"
     >
       <div
         class="aspect-4/3 overflow-hidden bg-transparent relative"
@@ -202,11 +256,55 @@ const actionItems = computed(() => {
         />
         <UIcon v-else name="i-heroicons-photo" class="w-16 h-16 text-neutral-300 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
         
-        <div v-if="isSold" class="absolute inset-0 bg-black/40 flex items-center justify-center z-10 backdrop-blur-[2px]">
-          <span class="text-white font-bold text-xl sm:text-2xl uppercase tracking-wider bg-black/60 px-4 py-2 rounded-lg rotate-[-12deg] border-2 border-white/50">Продано</span>
-        </div>
-        <div v-else-if="isDeactivated" class="absolute inset-0 bg-black/40 flex items-center justify-center z-10 backdrop-blur-[2px]">
-          <span class="text-white font-bold text-lg sm:text-xl uppercase tracking-wider bg-black/60 px-4 py-2 rounded-lg border-2 border-white/50">Приховано</span>
+        <!-- Unified Overlay Badges -->
+        <div
+          v-if="isSold || isDeactivated || isExpired || isModeration || isRejected"
+          class="absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center z-10 p-3 pointer-events-none"
+        >
+          <!-- 1. Продано -->
+          <span
+            v-if="isSold"
+            class="px-3.5 py-1.5 rounded-xl font-bold uppercase tracking-wider text-xs sm:text-sm shadow-lg flex items-center gap-1.5 border border-white/20 bg-neutral-900/90 text-white"
+          >
+            <UIcon name="i-heroicons-check-circle" class="w-4 h-4 text-emerald-400" />
+            Продано
+          </span>
+
+          <!-- 2. Приховано -->
+          <span
+            v-else-if="isDeactivated"
+            class="px-3.5 py-1.5 rounded-xl font-bold uppercase tracking-wider text-xs sm:text-sm shadow-lg flex items-center gap-1.5 border border-white/20 bg-neutral-800/90 text-neutral-200"
+          >
+            <UIcon name="i-heroicons-eye-slash" class="w-4 h-4 text-neutral-400" />
+            Приховано
+          </span>
+
+          <!-- 3. Термін вийшов -->
+          <span
+            v-else-if="isExpired"
+            class="px-3.5 py-1.5 rounded-xl font-bold uppercase tracking-wider text-xs sm:text-sm shadow-lg flex items-center gap-1.5 border border-white/25 bg-rose-600/90 text-white"
+          >
+            <UIcon name="i-heroicons-clock" class="w-4 h-4 text-white" />
+            Термін вийшов
+          </span>
+
+          <!-- 4. На модерації -->
+          <span
+            v-else-if="isModeration"
+            class="px-3.5 py-1.5 rounded-xl font-bold uppercase tracking-wider text-xs sm:text-sm shadow-lg flex items-center gap-1.5 border border-white/25 bg-amber-600/90 text-white"
+          >
+            <UIcon name="i-heroicons-shield-check" class="w-4 h-4 text-white" />
+            На модерації
+          </span>
+
+          <!-- 5. Відхилено -->
+          <span
+            v-else-if="isRejected"
+            class="px-3.5 py-1.5 rounded-xl font-bold uppercase tracking-wider text-xs sm:text-sm shadow-lg flex items-center gap-1.5 border border-white/25 bg-red-600/90 text-white"
+          >
+            <UIcon name="i-heroicons-x-circle" class="w-4 h-4 text-white" />
+            Відхилено
+          </span>
         </div>
 
         <div v-if="props.showMapButton" class="absolute top-2 right-2 z-10">
@@ -219,6 +317,19 @@ const actionItems = computed(() => {
           >
             <UIcon name="i-heroicons-map" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
             <span class="text-[8px] sm:text-[9px] font-bold leading-none mt-0.5 tracking-tight">На мапі</span>
+          </button>
+        </div>
+
+        <!-- Quick Edit Button (Profile View, not shown for Sold) -->
+        <div v-else-if="props.showStatusActions && !isSold" class="absolute top-2 right-2 z-20">
+          <button
+            type="button"
+            class="w-8 h-8 rounded-full bg-white/95 dark:bg-neutral-800/95 hover:bg-white dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 shadow-md backdrop-blur-sm border border-neutral-200/80 dark:border-neutral-700/80 flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
+            title="Редагувати оголошення"
+            aria-label="Редагувати оголошення"
+            @click.prevent.stop="emit('edit', product.id)"
+          >
+            <UIcon name="i-heroicons-pencil-square" class="w-4 h-4 text-brand-600 dark:text-brand-400" />
           </button>
         </div>
         <div class="absolute top-2 left-2 z-10 max-w-[calc(100%-48px)]">
@@ -284,7 +395,48 @@ const actionItems = computed(() => {
 
     <!-- Bottom Action Bar (Profile Only) -->
     <div v-if="showStatusActions" class="p-3 pt-0 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/30 flex flex-col gap-2">
-      <p class="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-0 mt-3">Статус оголошення</p>
+      <div class="mb-0 mt-3">
+        <p class="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">Статус оголошення</p>
+      </div>
+
+      <!-- Quick Actions for Inactive Listings -->
+      <UButton
+        v-if="isExpired"
+        color="primary"
+        icon="i-heroicons-arrow-path"
+        block
+        size="sm"
+        class="font-semibold shadow-sm"
+        @click="emit('renew', product.id)"
+      >
+        Продовжити на {{ LISTING_DURATION_DAYS }} днів
+      </UButton>
+
+      <UButton
+        v-else-if="isDeactivated"
+        color="primary"
+        variant="solid"
+        icon="i-heroicons-play"
+        block
+        size="sm"
+        class="font-semibold shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white"
+        @click="emit('updateState', product.id, 'active')"
+      >
+        Активувати оголошення
+      </UButton>
+
+      <UButton
+        v-else-if="isRejected"
+        color="warning"
+        variant="soft"
+        icon="i-heroicons-pencil-square"
+        block
+        size="sm"
+        class="font-semibold shadow-sm"
+        @click="emit('edit', product.id)"
+      >
+        Виправити та переподати
+      </UButton>
       
       <UDropdownMenu :items="actionItems" class="w-full">
         <UButton
@@ -304,6 +456,17 @@ const actionItems = computed(() => {
           </template>
         </UButton>
       </UDropdownMenu>
+
+      <!-- Status Countdown / Notice underneath dropdown -->
+      <p v-if="isActive && daysRemaining !== null" class="text-[10px] text-center text-brand-600 dark:text-brand-400 font-medium">
+        Активне ще {{ daysRemaining }} дн.
+      </p>
+      <p v-else-if="isSold && daysUntilPermanentDelete !== null" class="text-[10px] text-center text-neutral-400 dark:text-neutral-500 font-medium">
+        В історії ще {{ daysUntilPermanentDelete }} дн.
+      </p>
+      <p v-else-if="isInactive && daysUntilPermanentDelete !== null" class="text-[10px] text-center text-rose-500 font-medium">
+        Буде видалено через {{ daysUntilPermanentDelete }} дн.
+      </p>
     </div>
   </div>
 </template>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useDocumentVisibility } from '@vueuse/core';
+import { LISTING_DURATION_DAYS, LISTING_RETENTION_DAYS } from '~/constants/listing';
 const nuxtApp = useNuxtApp();
 const user = useSupabaseUser();
-const { getUserListings, deleteListing, updateListingState } = useListings();
+const { getUserListings, deleteListing, updateListingState, renewListing } = useListings();
 const { t } = useI18n();
 useSeoMeta({ title: t('profile.listings.title', 'Мої оголошення') });
 
@@ -32,23 +33,89 @@ const { data: userListings, pending, error, refresh } = useAsyncData(
 
 const activeListings = computed(() => {
   if (!userListings.value) return [];
-  return userListings.value.filter(l => !l.listing_state || l.listing_state === 'active');
+  const now = Date.now();
+  return userListings.value.filter(l => {
+    const isStateActive = !l.listing_state || l.listing_state === 'active';
+    const isNotExpired = !l.expires_at || new Date(l.expires_at).getTime() > now;
+    return isStateActive && isNotExpired;
+  });
+});
+
+const moderationListings = computed(() => {
+  if (!userListings.value) return [];
+  return userListings.value.filter(l => l.listing_state === 'moderation');
+});
+
+const inactiveListings = computed(() => {
+  if (!userListings.value) return [];
+  const now = Date.now();
+  const maxRetentionMs = LISTING_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+
+  return userListings.value.filter(l => {
+    const isStateDeactivated = l.listing_state === 'deactivated';
+    const isStateRejected = l.listing_state === 'rejected';
+    const isStateActive = !l.listing_state || l.listing_state === 'active';
+    const isExpired = Boolean(l.expires_at && new Date(l.expires_at).getTime() <= now);
+
+    if (!isStateDeactivated && !isStateRejected && !(isStateActive && isExpired)) {
+      return false;
+    }
+
+    // Розрахунок терміну 45 днів для видалення
+    let baseTime: number;
+    if (isExpired && l.expires_at) {
+      baseTime = new Date(l.expires_at).getTime();
+    } else if (l.updated_at) {
+      baseTime = new Date(l.updated_at).getTime();
+    } else {
+      baseTime = now;
+    }
+
+    const diffMs = now - baseTime;
+    if (diffMs > maxRetentionMs) return false;
+
+    return true;
+  });
 });
 
 const soldListings = computed(() => {
   if (!userListings.value) return [];
-  return userListings.value.filter(l => l.listing_state === 'sold');
-});
+  const now = Date.now();
+  const maxRetentionMs = LISTING_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
-const deactivatedListings = computed(() => {
-  if (!userListings.value) return [];
-  return userListings.value.filter(l => l.listing_state === 'deactivated');
+  return userListings.value.filter(l => {
+    if (l.listing_state !== 'sold') return false;
+
+    // Автоматично приховуємо з кабінету, якщо продано понад 45 днів тому
+    const baseTime = l.updated_at ? new Date(l.updated_at).getTime() : (l.created_at ? new Date(l.created_at).getTime() : now);
+    const diffMs = now - baseTime;
+    if (diffMs > maxRetentionMs) return false;
+
+    return true;
+  });
 });
 
 const tabItems = computed(() => [
-  { label: t('profile.listings.tabs.active'), slot: 'active', icon: 'i-heroicons-check-circle' },
-  { label: t('profile.listings.tabs.sold'), slot: 'sold', icon: 'i-heroicons-banknotes' },
-  { label: t('profile.listings.tabs.deactivated'), slot: 'deactivated', icon: 'i-heroicons-eye-slash' }
+  { 
+    label: `${t('profile.listings.tabs.active', 'Активні')} (${activeListings.value.length})`, 
+    slot: 'active', 
+    icon: 'i-heroicons-check-circle' 
+  },
+  { 
+    label: `${t('profile.listings.tabs.moderation', 'На модерації')} (${moderationListings.value.length})`, 
+    slot: 'moderation', 
+    icon: 'i-heroicons-clock' 
+  },
+  { 
+    label: `${t('profile.listings.tabs.deactivated', 'Неактивні')} (${inactiveListings.value.length})`, 
+    slot: 'deactivated', 
+    icon: 'i-heroicons-pause-circle' 
+  },
+  { 
+    label: `${t('profile.listings.tabs.sold', 'Продані')} (${soldListings.value.length})`, 
+    slot: 'sold', 
+    icon: 'i-heroicons-banknotes' 
+  }
 ]);
 
 const toast = useToast();
@@ -62,10 +129,39 @@ const handleDelete = (id: string | number) => {
   isDeleteModalOpen.value = true;
 };
 
+const handleRenew = async (id: string | number) => {
+  try {
+    await renewListing(String(id));
+    toast.add({
+      title: `Оголошення подовжено на ${LISTING_DURATION_DAYS} днів!`,
+      color: 'success'
+    });
+    clearNuxtData(`user-listings-${user.value?.sub}`);
+    clearNuxtData('all-listings');
+    refresh();
+  } catch (err) {
+    toast.add({ title: t('profile.listings.renewError', 'Помилка подовження оголошення'), color: 'error' });
+  }
+};
+
 const handleUpdateState = async (id: string | number, newState: 'active' | 'sold' | 'deactivated') => {
   try {
-    await updateListingState(String(id), newState);
-    toast.add({ title: t('profile.listings.statusUpdated'), color: 'success' });
+    const listing = userListings.value?.find(l => l.id === id);
+    const hadValidExpiresAt = Boolean(listing?.expires_at && new Date(listing.expires_at).getTime() > Date.now());
+    await updateListingState(String(id), newState, listing?.expires_at);
+
+    let activeMsg = `Оголошення активовано та додано в каталог на ${LISTING_DURATION_DAYS} днів!`;
+    if (newState === 'active' && hadValidExpiresAt && listing?.expires_at) {
+      const remainingDays = Math.ceil((new Date(listing.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      activeMsg = `Оголошення відновлено! Залишилося ${remainingDays} дн. активності.`;
+    }
+
+    const messages: Record<string, string> = {
+      active: activeMsg,
+      deactivated: 'Оголошення приховано (зберігається 45 днів)',
+      sold: 'Оголошення позначено як продане'
+    };
+    toast.add({ title: messages[newState] || t('profile.listings.statusUpdated'), color: 'success' });
     
     // Скидаємо кеш Nuxt
     clearNuxtData(`user-listings-${user.value?.sub}`);
@@ -163,8 +259,63 @@ watch(visibility, async (current, previous) => {
                     :show-status-actions="true"
                     @delete="handleDelete"
                     @updateState="handleUpdateState"
+                    @renew="handleRenew"
                     @edit="handleEdit"
                   />
+                </div>
+              </div>
+            </template>
+
+            <template #moderation>
+              <div class="mt-6">
+                <div v-if="moderationListings.length === 0" class="text-center py-10 text-gray-500 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
+                  {{ $t('profile.listings.noModeration', 'Немає оголошень на модерації') }}
+                </div>
+                <div v-else>
+                  <div class="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-lg flex items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
+                    <UIcon name="i-heroicons-clock" class="w-4 h-4 shrink-0 text-amber-500" />
+                    <span>Оголошення перевіряються модератором через незрозуміле фото або сумнів ШІ. Після схвалення вони одразу стануть активними у каталозі.</span>
+                  </div>
+                  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <CommonProductCard
+                      v-for="listing in moderationListings" 
+                      :key="listing.id"
+                      :product="listing"
+                      :show-delete-button="true"
+                      :show-status-actions="true"
+                      @delete="handleDelete"
+                      @updateState="handleUpdateState"
+                      @renew="handleRenew"
+                      @edit="handleEdit"
+                    />
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <template #deactivated>
+              <div class="mt-6">
+                <div v-if="inactiveListings.length === 0" class="text-center py-10 text-gray-500 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
+                  {{ $t('profile.listings.noDeactivated', 'Немає неактивних оголошень') }}
+                </div>
+                <div v-else>
+                  <div class="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-lg flex items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
+                    <UIcon name="i-heroicons-information-circle" class="w-4 h-4 shrink-0 text-amber-500" />
+                    <span>Неактивні оголошення зберігаються {{ LISTING_RETENTION_DAYS }} днів (після завершення терміну, приховання або відхилення), після чого автоматично видаляються назавжди.</span>
+                  </div>
+                  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <CommonProductCard
+                      v-for="listing in inactiveListings" 
+                      :key="listing.id"
+                      :product="listing"
+                      :show-delete-button="true"
+                      :show-status-actions="true"
+                      @delete="handleDelete"
+                      @updateState="handleUpdateState"
+                      @renew="handleRenew"
+                      @edit="handleEdit"
+                    />
+                  </div>
                 </div>
               </div>
             </template>
@@ -174,7 +325,12 @@ watch(visibility, async (current, previous) => {
                 <div v-if="soldListings.length === 0" class="text-center py-10 text-gray-500 border border-dashed border-gray-300 rounded-lg">
                   {{ $t('profile.listings.noSold') }}
                 </div>
-                <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div v-else>
+                  <div class="mb-4 p-3 bg-neutral-100 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700/60 rounded-lg flex items-center gap-2 text-xs text-neutral-700 dark:text-neutral-300">
+                    <UIcon name="i-heroicons-banknotes" class="w-4 h-4 shrink-0 text-neutral-500" />
+                    <span>Продані оголошення зберігаються в історії {{ LISTING_RETENTION_DAYS }} днів, після чого автоматично очищаються.</span>
+                  </div>
+                  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
                   <CommonProductCard
                     v-for="listing in soldListings" 
                     :key="listing.id"
@@ -183,31 +339,13 @@ watch(visibility, async (current, previous) => {
                     :show-status-actions="true"
                     @delete="handleDelete"
                     @updateState="handleUpdateState"
+                    @renew="handleRenew"
                     @edit="handleEdit"
                   />
                 </div>
               </div>
-            </template>
-
-            <template #deactivated>
-              <div class="mt-6">
-                <div v-if="deactivatedListings.length === 0" class="text-center py-10 text-gray-500 border border-dashed border-gray-300 rounded-lg">
-                  {{ $t('profile.listings.noDeactivated') }}
-                </div>
-                <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                  <CommonProductCard
-                    v-for="listing in deactivatedListings" 
-                    :key="listing.id"
-                    :product="listing"
-                    :show-delete-button="true"
-                    :show-status-actions="true"
-                    @delete="handleDelete"
-                    @updateState="handleUpdateState"
-                    @edit="handleEdit"
-                  />
-                </div>
-              </div>
-            </template>
+            </div>
+          </template>
           </UTabs>
         </div>
       </div>

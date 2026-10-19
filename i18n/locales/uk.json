@@ -140,7 +140,8 @@
     "logout": "Вийти",
     "defaultUser": "Користувач",
     "myChats": "Мої чати",
-    "myBalance": "Мій баланс"
+    "myBalance": "Мій баланс",
+    "moderation": "Модерація"
   },
   "profile": {
     "myData": "Мої дані",
@@ -187,14 +188,18 @@
       "cancel": "Скасувати",
       "tabs": {
         "active": "Активні",
-        "sold": "Продані",
-        "deactivated": "Приховані"
+        "moderation": "На модерації",
+        "deactivated": "Неактивні",
+        "sold": "Продані"
       },
       "statusUpdated": "Статус успішно оновлено",
       "statusUpdateError": "Помилка оновлення статусу",
+      "renewSuccess": "Оголошення подовжено на 25 днів!",
+      "renewError": "Помилка подовження оголошення",
       "noActive": "Немає активних оголошень",
+      "noModeration": "Немає оголошень на модерації",
       "noSold": "Ще немає проданих товарів",
-      "noDeactivated": "Немає прихованих оголошень"
+      "noDeactivated": "Немає неактивних оголошень"
     },
     "purchases": {
       "pageTitle": "Мої покупки",
@@ -329,6 +334,8 @@
       "authError": "Ви повинні бути авторизовані для створення оголошення",
       "createSuccessTitle": "Успішно!",
       "createSuccessDesc": "Ваше оголошення створено.",
+      "moderationTitle": "Надіслано на модерацію",
+      "moderationDesc": "Ваше оголошення перевірить адміністратор перед публікацією",
       "createErrorTitle": "Помилка при створенні",
       "createErrorDesc": "Сталася невідома помилка",
       "locationSuccess": "Геопозиція отримана!",

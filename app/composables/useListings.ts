@@ -1,13 +1,16 @@
 import { getSearchQueryVariants } from "~/utils/smartSearch";
+import { LISTING_DURATION_DAYS } from "~/constants/listing";
 
 export const useListings = () => {
   const client = useSupabaseClient<any>()
 
   const getLatestListings = async (limitCount = 15) => {
+    const now = new Date().toISOString()
     const { data, error } = await client
       .from('listings')
       .select('*')
       .or('listing_state.eq.active,listing_state.is.null') // Активні або старі (де ще немає статусу)
+      .or(`expires_at.gt.${now},expires_at.is.null`) // Не протерміновані або старі
       .order('created_at', { ascending: false })
       .limit(limitCount)
       
@@ -36,10 +39,12 @@ export const useListings = () => {
   }
 
   const getAllListings = async () => {
+    const now = new Date().toISOString()
     const { data, error } = await client
       .from('listings')
       .select('*')
       .or('listing_state.eq.active,listing_state.is.null') // Активні або старі
+      .or(`expires_at.gt.${now},expires_at.is.null`) // Не протерміновані або старі
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -50,17 +55,117 @@ export const useListings = () => {
     return data || []
   }
 
-  const updateListingState = async (listingId: string, newState: 'active' | 'sold' | 'deactivated' | 'deleted') => {
-    const { error } = await client
+  const updateListingState = async (
+    listingId: string, 
+    newState: 'active' | 'moderation' | 'rejected' | 'sold' | 'deactivated' | 'deleted',
+    currentExpiresAt?: string | null
+  ) => {
+    const updates: Record<string, any> = { listing_state: newState }
+    const now = Date.now()
+
+    if (newState === 'active') {
+      const isStillValid = currentExpiresAt && new Date(currentExpiresAt).getTime() > now
+      if (!isStillValid) {
+        // Лише якщо термін уже закінчився або його не було — даємо новий термін на 25 днів
+        updates.expires_at = new Date(now + LISTING_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString()
+      }
+      // Якщо термін ще діє (наприклад, залишалося 23 дні) — НЕ змінюємо expires_at, залишок зберігається!
+    } else if (newState === 'deactivated' || newState === 'rejected') {
+      // Фіксуємо момент неактивності, якщо попередній термін уже минув або був відсутній
+      if (!currentExpiresAt || new Date(currentExpiresAt).getTime() <= now) {
+        updates.expires_at = new Date().toISOString()
+      }
+    }
+
+    const updatesWithUpdatedAt = { ...updates, updated_at: new Date().toISOString() }
+    let { error } = await client
       .from('listings')
-      .update({ listing_state: newState })
+      .update(updatesWithUpdatedAt)
       .eq('id', listingId)
+
+    if (error && error.message?.includes('updated_at')) {
+      // Fallback якщо в базі ще не створено колонку updated_at
+      const fallbackRes = await client
+        .from('listings')
+        .update(updates)
+        .eq('id', listingId)
+      error = fallbackRes.error
+    }
 
     if (error) {
       console.error(`Помилка оновлення статусу (${newState}) оголошення:`, error)
       throw error
     }
     
+    return true
+  }
+
+  const renewListing = async (listingId: string) => {
+    const newExpiresAt = new Date(Date.now() + LISTING_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString()
+    const { error } = await client
+      .from('listings')
+      .update({
+        listing_state: 'active',
+        expires_at: newExpiresAt,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', listingId)
+
+    if (error) {
+      console.error('Помилка продовження оголошення:', error)
+      throw error
+    }
+    return true
+  }
+
+  const getModerationListings = async () => {
+    const { data, error } = await client
+      .from('listings')
+      .select('*')
+      .eq('listing_state', 'moderation')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Помилка завантаження оголошень на модерації:', error)
+      throw error
+    }
+    return data || []
+  }
+
+  const moderateListing = async (listingId: string, action: 'approve' | 'reject') => {
+    // 1. Спочатку пробуємо через безпечну RPC функцію (SECURITY DEFINER), яка дозволяє адміністратору модерацію
+    const { data: rpcSuccess, error: rpcError } = await client.rpc('moderate_listing', {
+      p_listing_id: listingId,
+      p_action: action,
+      p_duration_days: LISTING_DURATION_DAYS
+    })
+
+    if (!rpcError) {
+      return true
+    }
+
+    // 2. Якщо RPC ще не створено, пробуємо прямий update
+    console.warn('RPC moderate_listing error, falling back to direct update:', rpcError)
+    const updates: Record<string, any> = {
+      listing_state: action === 'approve' ? 'active' : 'rejected',
+      expires_at: action === 'approve'
+        ? new Date(Date.now() + LISTING_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString()
+        : new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+    const { data, error } = await client
+      .from('listings')
+      .update(updates)
+      .eq('id', listingId)
+      .select()
+
+    if (error) {
+      console.error(`Помилка модерації (${action}) оголошення:`, error)
+      throw error
+    }
+    if (!data || data.length === 0) {
+      throw new Error('Помилка доступу до зміни оголошення в Supabase (потрібно створити SQL функцію moderate_listing).')
+    }
     return true
   }
 
@@ -312,6 +417,9 @@ export const useListings = () => {
     searchListings,
     countListings,
     updateListingState,
+    renewListing,
+    getModerationListings,
+    moderateListing,
     deleteListing,
     updateListing,
     incrementViews

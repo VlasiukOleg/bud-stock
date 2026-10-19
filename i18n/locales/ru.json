@@ -130,7 +130,10 @@
     "myListings": "Мои объявления",
     "myPurchases": "Мои покупки",
     "logout": "Выйти",
-    "defaultUser": "Пользователь"
+    "defaultUser": "Пользователь",
+    "myChats": "Мои чаты",
+    "myBalance": "Мой баланс",
+    "moderation": "Модерация"
   },
   "profile": {
     "myData": "Мои данные",
@@ -177,14 +180,18 @@
       "cancel": "Отменить",
       "tabs": {
         "active": "Активные",
-        "sold": "Проданные",
-        "deactivated": "Скрытые"
+        "moderation": "На модерации",
+        "deactivated": "Неактивные",
+        "sold": "Проданные"
       },
       "statusUpdated": "Статус успешно обновлен",
       "statusUpdateError": "Ошибка обновления статуса",
+      "renewSuccess": "Объявление продлено на 25 дней!",
+      "renewError": "Ошибка продления объявления",
       "noActive": "Нет активных объявлений",
+      "noModeration": "Нет объявлений на модерации",
       "noSold": "Еще нет проданных товаров",
-      "noDeactivated": "Нет скрытых объявлений"
+      "noDeactivated": "Нет неактивных объявлений"
     },
     "purchases": {
       "pageTitle": "Мои покупки",
@@ -315,6 +322,8 @@
       "authError": "Вы должны быть авторизованы для создания объявления",
       "createSuccessTitle": "Успешно!",
       "createSuccessDesc": "Ваше объявление создано.",
+      "moderationTitle": "Отправлено на модерацию",
+      "moderationDesc": "Ваше объявление проверит администратор перед публикацией",
       "createErrorTitle": "Ошибка при создании",
       "createErrorDesc": "Произошла неизвестная ошибка",
       "locationSuccess": "Геопозиция получена!",

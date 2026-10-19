@@ -14,4 +14,7 @@ export const APP_ROUTES = {
     REGISTER: '/register',
   },
   CREATE_LISTING: '/sell',
+  ADMIN: {
+    MODERATION: '/admin/moderation',
+  },
 } as const;

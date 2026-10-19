@@ -30,29 +30,42 @@ watch(() => route.path, () => {
 })
 
 const { t } = useI18n()
+const { isAdmin } = useAdmin()
 
-const menuItems = computed(() => [
-  {
-    label: t('userSlideover.myData'),
-    icon: 'i-heroicons-user',
-    to: APP_ROUTES.PROFILE.INFORMATION
-  },
-  {
-    label: t('userSlideover.myListings'),
-    icon: 'i-heroicons-shopping-bag',
-    to: APP_ROUTES.PROFILE.LISTINGS
-  },
-  {
-    label: t('userSlideover.myBalance'),
-    icon: 'i-heroicons-banknotes',
-    to: APP_ROUTES.PROFILE.BALANCE
-  },
-  {
-    label: t('userSlideover.myChats'),
-    icon: 'i-heroicons-chat-bubble-left-right',
-    to: APP_ROUTES.PROFILE.CHATS
+const menuItems = computed(() => {
+  const items = [
+    {
+      label: t('userSlideover.myData'),
+      icon: 'i-heroicons-user',
+      to: APP_ROUTES.PROFILE.INFORMATION
+    },
+    {
+      label: t('userSlideover.myListings'),
+      icon: 'i-heroicons-shopping-bag',
+      to: APP_ROUTES.PROFILE.LISTINGS
+    },
+    {
+      label: t('userSlideover.myBalance'),
+      icon: 'i-heroicons-banknotes',
+      to: APP_ROUTES.PROFILE.BALANCE
+    },
+    {
+      label: t('userSlideover.myChats'),
+      icon: 'i-heroicons-chat-bubble-left-right',
+      to: APP_ROUTES.PROFILE.CHATS
+    }
+  ]
+
+  if (isAdmin.value) {
+    items.push({
+      label: t('userSlideover.moderation', 'Модерація'),
+      icon: 'i-heroicons-shield-check',
+      to: APP_ROUTES.ADMIN.MODERATION
+    })
   }
-])
+
+  return items
+})
 
 const avatarUrl = computed(() => user.value?.user_metadata?.avatar_url)
 const userName = computed(() => user.value?.user_metadata?.full_name || t('userSlideover.defaultUser'))

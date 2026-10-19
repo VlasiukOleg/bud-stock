@@ -1,0 +1,2 @@
+export const LISTING_DURATION_DAYS = 25;
+export const LISTING_RETENTION_DAYS = 45;

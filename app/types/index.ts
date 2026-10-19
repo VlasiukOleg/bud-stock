@@ -21,7 +21,9 @@ export interface Product {
   quantity: number;
   unit: string;
   status: string; // Новий чи залишок
-  listing_state?: 'active' | 'sold' | 'deactivated' | 'deleted'; // Життєвий цикл оголошення
+  status_details?: string | null;
+  listing_state?: 'active' | 'moderation' | 'rejected' | 'sold' | 'deactivated' | 'deleted'; // Життєвий цикл оголошення
+  expires_at?: string;
   description?: string;
   location?: {
     address: string;
@@ -41,6 +43,7 @@ export interface Product {
   category_id?: string;
   sellerPhone?: string;
   created_at?: string;
+  updated_at?: string;
 }
 
 export interface MobileMenuItem {
