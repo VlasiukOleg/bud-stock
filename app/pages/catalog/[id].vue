@@ -107,18 +107,46 @@
                   </div>
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex items-start gap-3">
                   <UIcon
-                    name="i-heroicons-truck-20-solid"
-                    class="w-5 h-5 text-neutral-400"
+                    name="i-heroicons-hand-raised-20-solid"
+                    class="w-5 h-5 text-neutral-400 mt-0.5 shrink-0"
                   />
                   <div>
                     <div
-                      class="text-[11px] uppercase tracking-wider text-neutral-500 font-bold"
+                      class="text-[11px] uppercase tracking-wider text-neutral-500 font-bold mb-1"
                     >
-                      Доставка
+                      Отримання
                     </div>
-                    <div class="font-medium">{{ product.delivery }}</div>
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <!-- Самовивіз -->
+                      <UBadge
+                        v-if="hasPickup"
+                        color="neutral"
+                        variant="subtle"
+                        size="sm"
+                        class="gap-1 font-medium"
+                      >
+                        <UIcon name="i-heroicons-home-20-solid" class="w-3.5 h-3.5 text-neutral-600 dark:text-neutral-400" />
+                        <span>Самовивіз</span>
+                      </UBadge>
+
+                      <!-- Доставка -->
+                      <UBadge
+                        v-if="hasDelivery"
+                        color="primary"
+                        variant="subtle"
+                        size="sm"
+                        class="gap-1 font-medium"
+                      >
+                        <UIcon name="i-heroicons-truck-20-solid" class="w-3.5 h-3.5" />
+                        <span>Доставка</span>
+                      </UBadge>
+
+                      <span v-if="!hasPickup && !hasDelivery" class="text-sm font-medium text-neutral-500">
+                        {{ product.delivery || 'За домовленістю' }}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -138,154 +166,63 @@
                 </div>
               </div>
 
-              <UAlert
-                v-if="product.deliveryDetails"
-                icon="i-heroicons-information-circle-20-solid"
-                color="primary"
-                variant="soft"
-                :title="'Умови доставки'"
-                :description="product.deliveryDetails"
-              />
-            </div>
-          </UCard>
-
-          <UCard>
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-semibold flex items-center gap-2">
+              <!-- Компактні умови доставки -->
+              <div
+                v-if="deliveryDetailsText"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-50/70 dark:bg-brand-950/30 border border-brand-200/50 dark:border-brand-900/40 text-xs"
+              >
                 <UIcon
-                  name="i-heroicons-map-pin-20-solid"
-                  class="text-brand-500"
+                  name="i-heroicons-truck-20-solid"
+                  class="w-4 h-4 text-brand-500 shrink-0"
                 />
-                {{ $t('catalog.location') }}
-              </h3>
-              <UButton
-                variant="link"
-                color="primary"
-                icon="i-heroicons-arrow-top-right-on-square-20-solid"
-                @click="() => { isOpenMapDrawer = true }"
-              >
-                Переглянути на карті
-              </UButton>
-            </div>
-            <USlideover
-              v-model:open="isOpenMapDrawer"
-              title="Розташування товару"
-            >
-              <template #body>
-                <div class="h-full flex flex-col">
-                  <div
-                    class="flex-1 rounded-xl overflow-hidden border border-neutral-200"
-                  >
-                    <LMap
-                      :zoom="15"
-                      :center="[product.location.lat, product.location.lng]"
-                    >
-                      <LTileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      />
-                      <LMarker
-                        v-if="product.is_exact_location !== false"
-                        :lat-lng="[product.location.lat, product.location.lng]"
-                      />
-                      <LCircle
-                        v-else
-                        :lat-lng="[product.location.lat, product.location.lng]"
-                        :radius="1000"
-                        color="#f97316"
-                        fill-color="#f97316"
-                        :fill-opacity="0.2"
-                        :weight="2"
-                      />
-                    </LMap>
-                  </div>
-
-                  <div class="p-4 space-y-4">
-                    <div>
-                      <p class="text-sm text-neutral-500">Адреса самовивозу:</p>
-                      <p class="font-bold text-lg">
-                        {{ product.location.address }}
-                      </p>
-                    </div>
-                    <UButton
-                      color="primary"
-                      :to="googleMapsUrl"
-                      target="_blank"
-                      icon="i-heroicons-map"
-                      label="Прокласти маршрут"
-                    />
-                  </div>
-                </div>
-              </template>
-            </USlideover>
-
-            <p class="text-sm text-neutral-500 mb-4">
-              {{ product.location.address }}
-            </p>
-
-            <div
-              class="relative group h-64 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800"
-            >
-              <LMap
-                :zoom="14"
-                :center="[product.location.lat, product.location.lng]"
-                :use-global-leaflet="true"
-                style="height: 100%; width: 100%; z-index: 1"
-                :options="{
-                  zoomControl: false,
-                  dragging: false,
-                  scrollWheelZoom: false,
-                  doubleClickZoom: false,
-                  touchZoom: false,
-                }"
-              >
-                <LTileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-
-                <LMarker
-                  v-if="product.is_exact_location !== false"
-                  :lat-lng="[product.location.lat, product.location.lng]"
-                >
-                  <LIcon
-                    :icon-size="[60, 40]"
-                    :icon-anchor="[20, 40]"
-                    class-name="bg-transparent"
-                  >
-                    <div
-                      class="bg-brand-500 text-white p-1 rounded-lg text-xs text-center whitespace-nowrap border-2 border-white shadow-md"
-                    >
-                      {{ product.price }} ₴
-                    </div>
-                  </LIcon>
-                </LMarker>
-                
-                <LCircle
-                  v-else
-                  :lat-lng="[product.location.lat, product.location.lng]"
-                  :radius="1000"
-                  color="#f97316"
-                  fill-color="#f97316"
-                  :fill-opacity="0.2"
-                  :weight="2"
-                />
-              </LMap>
+                <p class="text-neutral-700 dark:text-neutral-300">
+                  <span class="font-semibold text-neutral-900 dark:text-white">Умови доставки:</span>
+                  <span class="ml-1">{{ deliveryDetailsText }}</span>
+                </p>
+              </div>
             </div>
           </UCard>
+
+          <!-- Розташування та карта на десктопі (зліва під описом) -->
+          <CatalogProductLocationMap
+            v-if="isDesktop"
+            :product="product"
+            :google-maps-url="googleMapsUrl"
+          />
         </div>
 
         <div class="space-y-4">
-          <div class="sticky top-6 space-y-4">
+          <div class="lg:sticky lg:top-20 space-y-4">
             <UCard shadow="md">
-              <div class="mb-4">
-                <div
-                  class="text-3xl font-black text-brand-600 dark:text-brand-400"
-                >
-                  {{ product.price }} ₴
+              <div v-if="product.is_free || product.price === 0" class="mb-4">
+                <UBadge color="success" variant="solid" size="lg" class="text-base font-bold px-3 py-1.5">
+                  Віддам даром
+                </UBadge>
+              </div>
+              <div v-else class="mb-4">
+                <div class="flex items-baseline gap-2">
+                  <span class="text-3xl font-black text-brand-600 dark:text-brand-400">
+                    {{ Number(product.price).toLocaleString('uk-UA') }} ₴
+                  </span>
+                  <span class="text-sm text-neutral-500 font-medium">
+                    за {{ product.unit || 'шт' }}
+                  </span>
                 </div>
-                <div class="text-sm text-neutral-500">
-                  за {{ product.unit }}
+
+                <!-- Розрахунок загальної ціни якщо кількість > 1 -->
+                <div
+                  v-if="totalPrice > 0 && Number(product.quantity) > 1"
+                  class="mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between"
+                >
+                  <span class="text-xs text-neutral-500 font-medium">
+                    За весь залишок ({{ product.quantity }} {{ product.unit || 'шт' }}):
+                  </span>
+                  <span class="text-base font-bold text-neutral-900 dark:text-white">
+                    {{ totalPrice.toLocaleString('uk-UA') }} ₴
+                  </span>
                 </div>
               </div>
+
               <UBadge color="neutral" variant="subtle" size="md">
                 {{ product.category }}
               </UBadge>
@@ -365,6 +302,12 @@
               </div>
             </UCard>
 
+            <!-- Розташування та карта на мобілці (внизу перед поскаржитись) -->
+            <CatalogProductLocationMap
+              v-if="!isDesktop"
+              :product="product"
+              :google-maps-url="googleMapsUrl"
+            />
 
             <UButton
               v-if="!isUserOwnerProduct"
@@ -404,7 +347,7 @@
 </template>
 
 <script setup lang="ts">
-import { useSessionStorage } from '@vueuse/core';
+import { useSessionStorage, useMediaQuery } from '@vueuse/core';
 
 import { CATEGORY_DATA } from '~/constants/category/category';
 
@@ -413,9 +356,9 @@ const route = useRoute();
 const router = useRouter();
 const supabase = useSupabaseClient<any>();
 
+const isDesktop = useMediaQuery('(min-width: 1024px)');
 const currentImageIndex = ref(0);
 const showPhone = ref(false);
-const isOpenMapDrawer = ref(false);
 const isReportModalOpen = ref(false);
 
 const currentUser = useSupabaseUser();
@@ -463,6 +406,45 @@ const { data: product, pending } = useAsyncData(
     };
   }
 );
+
+const totalPrice = computed(() => {
+  if (!product.value) return 0;
+  if (product.value.is_free) return 0;
+  const price = Number(product.value.price) || 0;
+  const qty = Number(product.value.quantity) || 1;
+  return price * qty;
+});
+
+const deliveryList = computed<string[]>(() => {
+  if (!product.value?.delivery) return [];
+  let d = product.value.delivery;
+  if (typeof d === 'string') {
+    try {
+      const parsed = JSON.parse(d);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      return [d];
+    }
+  }
+  if (Array.isArray(d)) return d;
+  return [String(d)];
+});
+
+const hasPickup = computed(() => {
+  return deliveryList.value.some(item =>
+    String(item).toLowerCase().includes('самовивіз') || String(item).toLowerCase().includes('pickup')
+  );
+});
+
+const hasDelivery = computed(() => {
+  return deliveryList.value.some(item =>
+    String(item).toLowerCase().includes('доставка') || String(item).toLowerCase().includes('delivery')
+  );
+});
+
+const deliveryDetailsText = computed(() => {
+  return product.value?.delivery_details || product.value?.deliveryDetails || '';
+});
 
 const isUserOwnerProduct = computed(() => {
   if (!product.value) return false;
