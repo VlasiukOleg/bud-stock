@@ -12,7 +12,7 @@
         variant="link"
         color="primary"
         icon="i-heroicons-arrow-top-right-on-square-20-solid"
-        @click="isOpenMapDrawer = true"
+        @click="() => {isOpenMapDrawer = true}"
       >
         Переглянути на карті
       </UButton>
