@@ -60,7 +60,8 @@ const formattedDate = computed(() => {
   const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
   
   if (isToday) {
-    return `Сьогодні о ${date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}`;
+    const time = date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+    return `Сьогодні, ${time}`;
   }
   
   return date.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' });
@@ -209,18 +210,25 @@ const actionItems = computed(() => {
         </div>
 
         <div v-if="props.showMapButton" class="absolute top-2 right-2 z-10">
-          <UButton
-            icon="i-heroicons-map"
-            variant="solid"
-            size="xs"
-            class="shadow-md bg-brand-400 hover:bg-brand-500"
+          <button
+            type="button"
+            class="flex flex-col items-center justify-center bg-brand-400 hover:bg-brand-500 text-white rounded-lg px-1.5 py-1 shadow-md transition-all active:scale-95 cursor-pointer"
+            title="На мапі"
+            aria-label="На мапі"
             @click.prevent="emit('mapClick', product)"
-            >На мапі</UButton
           >
+            <UIcon name="i-heroicons-map" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span class="text-[8px] sm:text-[9px] font-bold leading-none mt-0.5 tracking-tight">На мапі</span>
+          </button>
         </div>
-        <div class="absolute top-2 left-2 z-10">
-          <UBadge size="sm" :color="product.status?.toLowerCase() === 'новий' ? 'warning' : 'primary'">
-            {{ product.status }}
+        <div class="absolute top-2 left-2 z-10 max-w-[calc(100%-48px)]">
+          <UBadge
+            size="xs"
+            :color="product.status?.toLowerCase() === 'новий' ? 'success' : 'warning'"
+            variant="solid"
+            class="font-semibold shadow-sm text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 truncate"
+          >
+            {{ product.status?.toLowerCase() === 'новий' ? 'Новий' : 'Відкритий / б/в' }}
           </UBadge>
         </div>
       </div>
@@ -258,13 +266,18 @@ const actionItems = computed(() => {
           </div>
         </div>
 
-        <div class="mt-auto pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-          <div v-if="realDistance !== null" class="flex items-center gap-1 font-medium text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 px-1.5 py-0.5 rounded-md">
-            <UIcon name="i-heroicons-arrows-right-left" class="w-3.5 h-3.5 shrink-0" />
+        <div class="mt-auto pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+          <div
+            v-if="realDistance !== null"
+            class="shrink-0 whitespace-nowrap flex items-center gap-1 font-medium text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 px-1.5 py-0.5 rounded-md text-[10px] sm:text-xs"
+          >
+            <UIcon name="i-heroicons-arrows-right-left" class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
             <span>{{ realDistance }} км</span>
           </div>
           <div v-else></div>
-          <span class="shrink-0 ml-auto">{{ formattedDate }}</span>
+          <span class="shrink-0 ml-auto whitespace-nowrap text-right text-[10px] sm:text-xs font-medium text-neutral-500 dark:text-neutral-400">
+            {{ formattedDate }}
+          </span>
         </div>
       </div>
     </NuxtLink>

@@ -92,7 +92,8 @@
                 <div class="flex items-center gap-3">
                   <div class="w-5 h-5 flex items-center justify-center">
                     <div
-                      class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+                      class="w-2.5 h-2.5 rounded-full"
+                      :class="product.status?.toLowerCase() === 'новий' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]'"
                     ></div>
                   </div>
                   <div>
@@ -101,8 +102,8 @@
                     >
                       {{ $t('catalog.status') }}
                     </div>
-                    <div class="font-medium capitalize">
-                      {{ product.status }}
+                    <div class="font-medium text-xs sm:text-sm">
+                      {{ product.status?.toLowerCase() === 'новий' ? 'Новий / не використовувався' : 'Відкритий, частковий або б/в' }}
                     </div>
                   </div>
                 </div>
@@ -164,6 +165,21 @@
                     <div class="font-medium">{{ product.views || 0 }}</div>
                   </div>
                 </div>
+              </div>
+
+              <!-- Компактні деталі стану / залишку (якщо вказано) -->
+              <div
+                v-if="product.status_details"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 text-xs"
+              >
+                <UIcon
+                  name="i-heroicons-archive-box-20-solid"
+                  class="w-4 h-4 text-amber-500 shrink-0"
+                />
+                <p class="text-neutral-700 dark:text-neutral-300">
+                  <span class="font-semibold text-neutral-900 dark:text-white">Уточнення залишку:</span>
+                  <span class="ml-1">{{ product.status_details }}</span>
+                </p>
               </div>
 
               <!-- Компактні умови доставки -->

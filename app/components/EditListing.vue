@@ -63,10 +63,89 @@
                 </UButton>
               </UDropdownMenu>
             </UFormField>
+            <!-- СТАН -->
             <UFormField name="status" :label="$t('createListing.step3.statusLabel')">
-              <div class="flex gap-4">
-                <UButton v-for="st in productStatuses" :key="st.value" :color="formData.status === st.value ? 'primary' : 'neutral'" :variant="formData.status === st.value ? 'solid' : 'outline'" class="flex-1 justify-center" size="lg" type="button" @click="() => { formData.status = st.value }">{{ st.label }}</UButton>
+              <div class="text-xs text-neutral-500 mb-2">
+                {{ $t('createListing.step3.statusHelp') }}
               </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Картка 1: Новий -->
+                <button
+                  type="button"
+                  class="relative flex flex-col p-4 rounded-xl border text-left transition-all cursor-pointer group"
+                  :class="[
+                    formData.status === 'новий'
+                      ? 'border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20 ring-2 ring-emerald-500/20 shadow-sm'
+                      : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-300 dark:hover:border-neutral-700'
+                  ]"
+                  @click="formData.status = 'новий'"
+                >
+                  <div class="flex items-center gap-2 mb-2">
+                    <UIcon
+                      name="i-heroicons-check-circle-20-solid"
+                      class="w-5 h-5 shrink-0"
+                      :class="formData.status === 'новий' ? 'text-emerald-600 dark:text-emerald-400' : 'text-neutral-400'"
+                    />
+                    <span class="font-bold text-sm sm:text-base text-neutral-900 dark:text-white">
+                      {{ $t('createListing.step3.statusNewTitle') }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed mb-2">
+                    {{ $t('createListing.step3.statusNewDesc') }}
+                  </p>
+                  <p class="text-[11px] text-neutral-400 dark:text-neutral-500 italic mt-auto leading-normal">
+                    {{ $t('createListing.step3.statusNewExample') }}
+                  </p>
+                </button>
+
+                <!-- Картка 2: Відкритий / б/в -->
+                <button
+                  type="button"
+                  class="relative flex flex-col p-4 rounded-xl border text-left transition-all cursor-pointer group"
+                  :class="[
+                    formData.status === 'залишок'
+                      ? 'border-amber-500 bg-amber-50/40 dark:bg-amber-950/20 ring-2 ring-amber-500/20 shadow-sm'
+                      : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-300 dark:hover:border-neutral-700'
+                  ]"
+                  @click="formData.status = 'залишок'"
+                >
+                  <div class="flex items-center gap-2 mb-2">
+                    <UIcon
+                      name="i-heroicons-archive-box-20-solid"
+                      class="w-5 h-5 shrink-0"
+                      :class="formData.status === 'залишок' ? 'text-amber-500 dark:text-amber-400' : 'text-neutral-400'"
+                    />
+                    <span class="font-bold text-sm sm:text-base text-neutral-900 dark:text-white">
+                      {{ $t('createListing.step3.statusUsedTitle') }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed mb-2">
+                    {{ $t('createListing.step3.statusUsedDesc') }}
+                  </p>
+                  <p class="text-[11px] text-neutral-400 dark:text-neutral-500 italic mt-auto leading-normal">
+                    {{ $t('createListing.step3.statusUsedExample') }}
+                  </p>
+                </button>
+              </div>
+            </UFormField>
+
+            <!-- Уточнення залишку (якщо обрано "Відкритий / частковий / б-в") -->
+            <UFormField
+              v-if="formData.status === 'залишок'"
+              name="statusDetails"
+              :label="$t('createListing.step3.statusDetailsLabel')"
+            >
+              <UInput
+                v-model="formData.statusDetails"
+                size="lg"
+                class="w-full"
+                :placeholder="$t('createListing.step3.statusDetailsPlaceholder')"
+              />
+              <template #help>
+                <span class="text-xs text-neutral-500">
+                  {{ $t('createListing.step3.statusDetailsHelp') }}
+                </span>
+              </template>
             </UFormField>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <UFormField name="quantity" :label="$t('createListing.step3.quantityLabel')">
@@ -218,6 +297,7 @@ const formData = reactive({
   title: props.listing.title || '',
   categoryId: (props.listing as any).category_id || '',
   status: props.listing.status || 'новий',
+  statusDetails: (props.listing as any).status_details || '',
   quantity: props.listing.quantity as number | undefined,
   unit: props.listing.unit || '',
   price: props.listing.price as number | undefined,
@@ -316,6 +396,7 @@ const onSubmit = async () => {
       title: formData.title,
       category_id: formData.categoryId,
       status: formData.status,
+      status_details: formData.status === 'залишок' ? (formData.statusDetails?.trim() || null) : null,
       quantity: formData.quantity,
       unit: formData.unit,
       price: formData.isFree ? null : formData.price,

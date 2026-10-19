@@ -561,7 +561,7 @@ const handleApply = () => {
               v-for="st in [
                 { label: 'Будь-який', value: 'all' },
                 { label: 'Новий', value: 'новий' },
-                { label: 'Залишок', value: 'залишок' }
+                { label: 'Відкритий / б/в', value: 'залишок' }
               ]"
               :key="st.value"
               :color="localStatus === st.value ? 'primary' : 'neutral'"
