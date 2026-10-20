@@ -864,8 +864,34 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
       throw new Error(t('createListing.step3.publishWarningNoStocks'));
     }
 
-    const isModerationNeeded = Boolean(shouldShowProductRelevantBanner.value);
-    const listingState = isModerationNeeded ? 'moderation' : 'active';
+    // Автоматична модерація контенту (усі фото, заголовок, опис) через ШІ
+    let isApproved = true;
+    let moderationReason: string | null = null;
+
+    try {
+      const modRes = await $fetch<{ isApproved: boolean; reason?: string | null }>('/api/moderate', {
+        method: 'POST',
+        body: {
+          title: formData.title,
+          description: formData.description,
+          categoryId: formData.categoryId,
+          imageUrls: uploadedImageUrls,
+        }
+      });
+      isApproved = Boolean(modRes?.isApproved);
+      moderationReason = modRes?.reason || null;
+    } catch (modErr) {
+      console.warn("AI moderation error or quota exceeded, routing to manual review (fail-safe):", modErr);
+      isApproved = false;
+      moderationReason = "Потрібна ручна перевірка модератором";
+    }
+
+    // Якщо раніше на кроці 1 ШІ вже позначав нерелевантність
+    if (shouldShowProductRelevantBanner.value) {
+      isApproved = false;
+    }
+
+    const listingState = isApproved ? 'active' : 'moderation';
     const expiresAt = new Date(Date.now() + LISTING_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
     // Зберігаємо в базу даних
@@ -895,22 +921,25 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
 
     if (dbError) throw dbError;
 
-    if (isModerationNeeded) {
+    if (!isApproved) {
       toast.add({
         title: t('createListing.toasts.moderationTitle', 'Надіслано на модерацію'),
-        description: t('createListing.toasts.moderationDesc', 'Ваше оголошення перевірить адміністратор перед публікацією'),
+        description: moderationReason
+          ? `${t('createListing.toasts.moderationDesc', 'Ваше оголошення перевірить адміністратор перед публікацією')}. ${moderationReason}`
+          : t('createListing.toasts.moderationDesc', 'Ваше оголошення перевірить адміністратор перед публікацією'),
         color: "warning",
       });
     } else {
       toast.add({
-        title: t('createListing.toasts.createSuccessTitle'),
-        description: t('createListing.toasts.createSuccessDesc'),
+        title: t('createListing.toasts.createSuccessTitle', 'Оголошення опубліковано!'),
+        description: t('createListing.toasts.createSuccessDesc', 'Ваш товар успішно додано в каталог та на мапу'),
         color: "success",
       });
     }
     
     // Очищаємо кеш сторінки "Мої оголошення", щоб при переході завантажились нові дані
-    clearNuxtData(`user-listings-${user.value?.sub}`);
+    clearNuxtData(`user-listings-${(user.value as any)?.sub}`);
+    clearNuxtData('all-listings');
     
     // Оновлюємо локальний кеш балансу
     deductBalanceLocally(COST_PER_LISTING);

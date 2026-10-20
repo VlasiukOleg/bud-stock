@@ -183,8 +183,22 @@ const handleModerate = async (id: string | number, action: 'approve' | 'reject')
               </div>
             </div>
             
+            <!-- Thumbnails if multiple images -->
+            <div v-if="listing.images && listing.images.length > 1" class="grid grid-cols-4 gap-1.5 mt-2">
+              <a
+                v-for="(img, idx) in listing.images"
+                :key="idx"
+                :href="img"
+                target="_blank"
+                title="Відкрити оригінал фото"
+                class="aspect-square rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:opacity-80 transition-opacity"
+              >
+                <img :src="img" class="w-full h-full object-cover" />
+              </a>
+            </div>
+            
             <a
-              v-if="listing.images && listing.images.length > 0"
+              v-if="listing.images && listing.images.length === 1"
               :href="listing.images[0]"
               target="_blank"
               class="text-xs text-brand-600 dark:text-brand-400 hover:underline flex items-center justify-center gap-1 mt-2"
@@ -200,7 +214,7 @@ const handleModerate = async (id: string | number, action: 'approve' | 'reject')
               <!-- Warning Banner -->
               <div class="mb-3 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 flex items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
                 <UIcon name="i-heroicons-exclamation-triangle" class="w-4 h-4 text-amber-500 shrink-0" />
-                <span><strong>Позначка ШІ:</strong> фото визнано підозрілим або не схожим на будівельний матеріал.</span>
+                <span><strong>Позначка модерації:</strong> перевірте всі фото та опис на відповідність будівельним матеріалам та правилам платформи.</span>
               </div>
 
               <div class="flex flex-wrap items-center gap-2 mb-2">

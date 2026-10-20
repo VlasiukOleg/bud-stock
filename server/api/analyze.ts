@@ -19,9 +19,8 @@ export default defineEventHandler(async (event) => {
 
   try {
     const response = await ai.models.generateContent({
-      // Використовуємо рекомендовану модель з твого файлу
-      model: "gemini-2.5-flash",
-      // model: "gemini-3.1-flash-lite",
+      // Модель з розширеним лімітом (500 RPD на Free Tier)
+      model: "gemini-3.5-flash-lite",
       contents: [
         {
           inlineData: {
