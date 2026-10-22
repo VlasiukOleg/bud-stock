@@ -31,6 +31,8 @@ const emit = defineEmits<{
   (e: "select", value: string): void;
 }>();
 
+const { emitFormChange, emitFormBlur, color, id: formFieldId } = useFormField(props);
+
 const isOpen = ref(false);
 const expandedId = ref<string | null>(null);
 
@@ -70,12 +72,16 @@ const choose = (id: string) => {
   emit("update:modelValue", id);
   emit("select", id);
   isOpen.value = false;
+  emitFormChange();
+  emitFormBlur();
 };
 
 // При відкритті розгортаємо гілку з вибраною категорією
 watch(isOpen, (open) => {
   if (open) {
     expandedId.value = props.modelValue ? findParentId(props.modelValue) : null;
+  } else {
+    emitFormBlur();
   }
 });
 </script>
@@ -84,11 +90,16 @@ watch(isOpen, (open) => {
   <div class="w-full">
     <!-- Кнопка-тригер -->
     <UButton
+      :id="formFieldId"
       block
-      color="neutral"
+      :color="color === 'error' ? 'error' : 'neutral'"
       :variant="variant"
       :size="size"
-      :class="['justify-between text-left font-normal w-full', triggerClass]"
+      :class="[
+        'justify-between text-left font-normal w-full',
+        triggerClass,
+        color === 'error' ? 'ring-2 ring-error-500 dark:ring-error-400' : ''
+      ]"
       @click="isOpen = true"
     >
       <span class="flex items-center gap-2 min-w-0">
@@ -132,19 +143,6 @@ watch(isOpen, (open) => {
               Всі категорії
             </span>
             <UIcon v-if="!modelValue" name="i-lucide-check" class="w-4 h-4 text-brand-600" />
-          </button>
-
-          <!-- Скинути категорію (якщо allowAll вимкнено і є вибір) -->
-          <button
-            v-if="!allowAll && modelValue"
-            type="button"
-            class="w-full flex items-center justify-between p-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors border-b border-neutral-100 dark:border-neutral-800/60 text-brand-600 dark:text-brand-400 text-sm font-medium"
-            @click="choose('')"
-          >
-            <span class="flex items-center gap-2">
-              <UIcon name="i-lucide-x" class="w-4 h-4 shrink-0" />
-              Скинути категорію
-            </span>
           </button>
 
           <div class="max-h-[55vh] overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/60">

@@ -12,7 +12,9 @@
           :schema="mainFormSchema"
           :state="formData"
           :validate-on="['input', 'blur', 'change']"
+          novalidate
           @submit="onSubmit"
+          @error="onFormError"
           class="space-y-8"
         >
           <div class="space-y-3">
@@ -241,7 +243,7 @@
             <UButton type="button" color="neutral" variant="soft" size="lg" class="w-full sm:w-1/3 justify-center" @click="emit('cancel')">
               {{ $t('createListing.step3.cancelBtn') }}
             </UButton>
-            <UButton type="submit" color="primary" size="lg" class="w-full sm:w-2/3 justify-center font-bold" :loading="isLoading" :disabled="!isFormValid">
+            <UButton type="submit" color="primary" size="lg" class="w-full sm:w-2/3 justify-center font-bold" :loading="isLoading" :disabled="isLoading">
               {{ $t('editListing.saveBtn') }}
             </UButton>
           </div>
@@ -280,7 +282,7 @@
 
 <script setup lang="ts">
 import * as yup from 'yup';
-import type { DropdownMenuItem } from '@nuxt/ui';
+import type { DropdownMenuItem, FormErrorEvent } from '@nuxt/ui';
 import type { PointTuple } from 'leaflet';
 import type { Product } from '~/types/index';
 import { CATEGORY_DATA } from '~/constants/category/category';
@@ -379,6 +381,25 @@ const resetCategory = () => {
     lastCategoryId.value = formData.categoryId;
   }
   formData.categoryId = '';
+  nextTick(() => {
+    formRef.value?.validate({ name: 'categoryId' });
+  });
+};
+
+const onFormError = (event: FormErrorEvent) => {
+  toast.add({
+    title: t('createListing.validation.fixErrorsTitle'),
+    description: t('createListing.validation.fixErrorsDesc'),
+    color: 'error',
+  });
+
+  if (event?.errors?.[0]?.id) {
+    const el = document.getElementById(event.errors[0].id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus?.();
+    }
+  }
 };
 
 const restoreCategory = () => {

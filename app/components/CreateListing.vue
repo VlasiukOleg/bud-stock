@@ -117,7 +117,9 @@
               :schema="mainFormSchema"
               :state="formData"
               :validate-on="['input', 'blur', 'change']"
+              novalidate
               @submit="onFinalSubmit"
+              @error="onFormError"
               class="space-y-8"
             >
               <!-- Галерея фото -->
@@ -578,7 +580,8 @@
                     color="primary"
                     size="lg"
                     class="w-full sm:w-2/3 justify-center font-bold"
-                    :disabled="!isFormValid || (balance ?? 0) < COST_PER_LISTING"
+                    :loading="isLoading"
+                    :disabled="isLoading || (balance ?? 0) < COST_PER_LISTING"
                   >
                     {{ $t('createListing.step3.publishBtn') }}
                   </UButton>
@@ -642,7 +645,7 @@
 
 <script setup lang="ts">
 import * as yup from "yup";
-import type { DropdownMenuItem, FormSubmitEvent, StepperItem } from "@nuxt/ui";
+import type { DropdownMenuItem, FormSubmitEvent, FormErrorEvent, StepperItem } from "@nuxt/ui";
 import type { PointTuple } from "leaflet";
 import { COST_PER_LISTING } from "~/constants/balance";
 import { LISTING_DURATION_DAYS } from "~/constants/listing";
@@ -1027,6 +1030,25 @@ const fillFromPhoto = async () => {
 
 const resetCategory = () => {
   formData.categoryId = "";
+  nextTick(() => {
+    formRef.value?.validate({ name: 'categoryId' });
+  });
+};
+
+const onFormError = (event: FormErrorEvent) => {
+  toast.add({
+    title: t('createListing.validation.fixErrorsTitle'),
+    description: t('createListing.validation.fixErrorsDesc'),
+    color: 'error',
+  });
+
+  if (event?.errors?.[0]?.id) {
+    const el = document.getElementById(event.errors[0].id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus?.();
+    }
+  }
 };
 
 const restoreCategory = () => {

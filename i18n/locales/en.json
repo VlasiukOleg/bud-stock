@@ -333,7 +333,9 @@
       "minDesc": "Description must be at least 30 characters",
       "maxDesc": "Maximum description length is 3000 characters",
       "notRealPhoto": "Please upload a real photo of the product or its packaging, not a screenshot or document.",
-      "cachedRejectedPhoto": "This file was already rejected as a screenshot or document. Please select a real product photo."
+      "cachedRejectedPhoto": "This file was already rejected as a screenshot or document. Please select a real product photo.",
+      "fixErrorsTitle": "Check required fields",
+      "fixErrorsDesc": "Please fill in all fields highlighted in red"
     },
     "toasts": {
       "analyzeErrorTitle": "Error! Analysis failed",
