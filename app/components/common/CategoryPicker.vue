@@ -13,6 +13,7 @@ const props = withDefaults(
     size?: "xs" | "sm" | "md" | "lg" | "xl";
     variant?: "outline" | "soft" | "subtle" | "ghost";
     triggerClass?: string;
+    disabled?: boolean;
   }>(),
   {
     modelValue: "",
@@ -23,6 +24,7 @@ const props = withDefaults(
     size: "lg",
     variant: "outline",
     triggerClass: "",
+    disabled: false,
   }
 );
 
@@ -92,30 +94,33 @@ watch(isOpen, (open) => {
     <UButton
       :id="formFieldId"
       block
-      :color="color === 'error' ? 'error' : 'neutral'"
+      :disabled="disabled"
+      :color="color === 'error' && !disabled ? 'error' : 'neutral'"
       :variant="variant"
       :size="size"
       :class="[
         'justify-between text-left font-normal w-full',
         triggerClass,
-        color === 'error' ? 'ring-2 ring-error-500 dark:ring-error-400' : ''
+        disabled ? 'opacity-70 cursor-not-allowed bg-neutral-100 dark:bg-neutral-800 pointer-events-none' : '',
+        color === 'error' && !disabled ? 'ring-2 ring-error-500 dark:ring-error-400' : ''
       ]"
-      @click="isOpen = true"
+      @click="!disabled && (isOpen = true)"
     >
       <span class="flex items-center gap-2 min-w-0">
         <UIcon
           :name="selectedInfo?.icon || 'i-lucide-layout-grid'"
           class="w-4 h-4 shrink-0"
-          :class="selectedInfo ? 'text-brand-600 dark:text-brand-400' : 'text-neutral-500'"
+          :class="selectedInfo ? (disabled ? 'text-neutral-500' : 'text-brand-600 dark:text-brand-400') : 'text-neutral-500'"
         />
         <span
           class="truncate"
-          :class="selectedInfo ? 'font-medium text-neutral-900 dark:text-white' : 'text-neutral-600 dark:text-neutral-300'"
+          :class="selectedInfo ? (disabled ? 'font-medium text-neutral-600 dark:text-neutral-300' : 'font-medium text-neutral-900 dark:text-white') : 'text-neutral-600 dark:text-neutral-300'"
         >
           {{ selectedInfo?.name || placeholder }}
         </span>
       </span>
-      <UIcon name="i-lucide-chevron-down" class="w-4 h-4 text-neutral-400 shrink-0" />
+      <UIcon v-if="disabled" name="i-lucide-lock" class="w-4 h-4 text-neutral-400 shrink-0" />
+      <UIcon v-else name="i-lucide-chevron-down" class="w-4 h-4 text-neutral-400 shrink-0" />
     </UButton>
 
     <!-- Вміст вибору (спільний для модалки та шторки) -->

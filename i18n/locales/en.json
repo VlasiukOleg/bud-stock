@@ -403,7 +403,9 @@
     "subtitle": "Make changes and save your listing",
     "saveBtn": "Save changes",
     "saveSuccess": "Listing updated!",
-    "saveError": "Save error"
+    "saveError": "Save error",
+    "categoryLocked": "Category locked",
+    "categoryLockedDesc": "The category of a published listing cannot be changed. If the product is different, please create a new listing."
   },
   "auth": {
     "email": "Email",

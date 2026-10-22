@@ -66,8 +66,12 @@
                 :placeholder="$t('createListing.step3.titlePlaceholder')"
               />
             </UFormField>
-            <UFormField name="categoryId" :label="$t('createListing.step3.categoryLabel')">
-              <template #hint>
+            <UFormField
+              name="categoryId"
+              :label="$t('createListing.step3.categoryLabel')"
+              :description="!isCategoryEditable ? $t('editListing.categoryLockedDesc') : undefined"
+            >
+              <template v-if="isCategoryEditable" #hint>
                 <div class="flex items-center gap-3">
                   <UButton
                     v-if="formData.categoryId"
@@ -95,6 +99,7 @@
               <CommonCategoryPicker
                 v-model="formData.categoryId"
                 :allow-all="false"
+                :disabled="!isCategoryEditable"
                 :placeholder="$t('createListing.step3.categoryPlaceholder')"
               />
             </UFormField>
@@ -374,9 +379,16 @@ watch(() => formData.title, (newVal) => {
   }
 });
 
+// Зміна категорії дозволена лише якщо оголошення на модерації або відхилене
+const isCategoryEditable = computed(() => {
+  const state = props.listing.listing_state;
+  return state === 'moderation' || state === 'rejected';
+});
+
 const lastCategoryId = ref((props.listing as any).category_id || '');
 
 const resetCategory = () => {
+  if (!isCategoryEditable.value) return;
   if (formData.categoryId) {
     lastCategoryId.value = formData.categoryId;
   }
@@ -403,6 +415,7 @@ const onFormError = (event: FormErrorEvent) => {
 };
 
 const restoreCategory = () => {
+  if (!isCategoryEditable.value) return;
   if (lastCategoryId.value) {
     formData.categoryId = lastCategoryId.value;
     formRef.value?.clear('categoryId');
@@ -501,6 +514,26 @@ const handleNewImage = async (file: File | null | undefined) => {
   catch (e: any) { tempError.value = e.message; tempFile.value = undefined; }
 };
 
+const hasContentChanged = computed(() => {
+  const initialTitle = (props.listing.title || '').trim();
+  const currentTitle = (formData.title || '').trim();
+  const titleChanged = initialTitle !== currentTitle;
+
+  const initialDesc = (props.listing.description || '').trim();
+  const currentDesc = (formData.description || '').trim();
+  const descChanged = initialDesc !== currentDesc;
+
+  const initialCat = (props.listing as any).category_id || '';
+  const currentCat = formData.categoryId || '';
+  const catChanged = initialCat !== currentCat;
+
+  const newImagesAdded = formData.newImages.length > 0;
+  const initialImages = props.listing.images || [];
+  const imagesRemoved = initialImages.length !== formData.existingImageUrls.length;
+
+  return titleChanged || descChanged || catChanged || newImagesAdded || imagesRemoved;
+});
+
 const onSubmit = async () => {
   if (!user.value) return;
   if (totalImageCount.value === 0) { toast.add({ title: t('createListing.validation.minPhotos'), color: 'error' }); return; }
@@ -510,7 +543,7 @@ const onSubmit = async () => {
     for (const file of formData.newImages) {
       const fileExt = file.name.split('.').pop();
       const fileName = Math.random().toString(36).substring(2, 15) + '.' + fileExt;
-      const userId = (user.value as any)?.id || (user.value as any)?.sub || 'unknown';
+      const userId = (user.value as any)?.sub || 'unknown';
       const filePath = userId + '/' + fileName;
       const { error } = await supabase.storage.from('listing_images').upload(filePath, file);
       if (error) throw error;
@@ -518,6 +551,51 @@ const onSubmit = async () => {
       uploadedNewUrls.push(publicUrl);
     }
     const finalImages = [...formData.existingImageUrls, ...uploadedNewUrls];
+
+    let newListingState = props.listing.listing_state || 'active';
+    let moderationReason: string | null = null;
+    let requiresModerationToast = false;
+
+    // Автоматична модерація ШІ викликається ТІЛЬКИ якщо змінилися назва, опис, категорія або фотографії
+    if (hasContentChanged.value) {
+      let isApproved = true;
+
+      try {
+        const modRes = await $fetch<{ isApproved: boolean; reason?: string | null }>('/api/moderate', {
+          method: 'POST',
+          body: {
+            title: formData.title,
+            description: formData.description,
+            categoryId: formData.categoryId,
+            imageUrls: finalImages,
+          }
+        });
+        isApproved = Boolean(modRes?.isApproved);
+        moderationReason = modRes?.reason || null;
+      } catch (modErr) {
+        console.warn("AI moderation error or quota exceeded, routing to manual review:", modErr);
+        isApproved = false;
+        moderationReason = "Потрібна ручна перевірка модератором";
+      }
+
+      // Якщо обрано категорію "Не знайшов будівельну категорію"
+      if (formData.categoryId === 'other' || formData.categoryId === 'other-unknown') {
+        isApproved = false;
+        moderationReason = "Категорію не визначено (надіслано на ручну модерацію)";
+      }
+
+      if (isApproved) {
+        // Якщо оголошення було на модерації чи відхиленим, після успішного виправлення стає active
+        if (newListingState === 'moderation' || newListingState === 'rejected') {
+          newListingState = 'active';
+        }
+      } else {
+        // Не пройшло перевірку ШІ — відправляємо на модерацію адміну
+        newListingState = 'moderation';
+        requiresModerationToast = true;
+      }
+    }
+
     await updateListing(String(props.listing.id), {
       title: formData.title,
       category_id: formData.categoryId,
@@ -535,8 +613,26 @@ const onSubmit = async () => {
       delivery_details: formData.deliveryDetails,
       description: formData.description,
       images: finalImages,
+      listing_state: newListingState,
     });
-    toast.add({ title: t('editListing.saveSuccess'), color: 'success' });
+
+    if (requiresModerationToast) {
+      toast.add({
+        title: t('createListing.toasts.moderationTitle', 'Надіслано на модерацію'),
+        description: moderationReason
+          ? `${t('createListing.toasts.moderationDesc', 'Ваше оголошення перевірить адміністратор перед публікацією')}. ${moderationReason}`
+          : t('createListing.toasts.moderationDesc', 'Ваше оголошення перевірить адміністратор перед публікацією'),
+        color: 'warning',
+      });
+    } else {
+      toast.add({ title: t('editListing.saveSuccess'), color: 'success' });
+    }
+
+    // Очищаємо кеш Nuxt Data
+    clearNuxtData(`user-listings-${(user.value as any)?.sub}`);
+    clearNuxtData('all-listings');
+    clearNuxtData(`product-${props.listing.id}`);
+
     emit('saved');
   } catch (error: any) {
     console.error('Error updating listing:', error);
