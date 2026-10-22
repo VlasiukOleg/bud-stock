@@ -10,8 +10,10 @@ useSeoMeta({ title: t('profile.listings.title', 'Мої оголошення') }
 const editingListing = ref<any | null>(null);
 
 const handleEdit = (id: string | number) => {
-  const found = userListings.value?.find(l => l.id === id);
-  if (found) editingListing.value = found;
+  const selectedListing = userListings.value?.find(l => l.id === id);
+  if (selectedListing && selectedListing.listing_state !== 'sold' && selectedListing.listing_state !== 'moderation') {
+    editingListing.value = selectedListing;
+  }
 };
 
 const handleSaved = () => {

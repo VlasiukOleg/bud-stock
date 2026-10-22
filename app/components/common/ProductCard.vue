@@ -209,11 +209,6 @@ const actionItems = computed(() => {
           label: 'Активувати',
           icon: 'i-heroicons-play',
           onSelect: () => emit('updateState', props.product.id, 'active')
-        },
-        {
-          label: 'Деактивувати',
-          icon: 'i-heroicons-pause',
-          onSelect: () => emit('updateState', props.product.id, 'deactivated')
         }
       ]
     ];
