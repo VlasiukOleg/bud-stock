@@ -145,7 +145,7 @@ const statusIndicatorColor = computed(() => {
 });
 
 const actionItems = computed(() => {
-  if (isModeration.value || isRejected.value) {
+  if (isRejected.value) {
     return [
       [
         {
@@ -320,8 +320,8 @@ const actionItems = computed(() => {
           </button>
         </div>
 
-        <!-- Quick Edit Button (Profile View, not shown for Sold) -->
-        <div v-else-if="props.showStatusActions && !isSold" class="absolute top-2 right-2 z-20">
+        <!-- Quick Edit Button (Profile View, not shown for Sold or Moderation) -->
+        <div v-else-if="props.showStatusActions && !isSold && !isModeration" class="absolute top-2 right-2 z-20">
           <button
             type="button"
             class="w-8 h-8 rounded-full bg-white/95 dark:bg-neutral-800/95 hover:bg-white dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 shadow-md backdrop-blur-sm border border-neutral-200/80 dark:border-neutral-700/80 flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
@@ -438,7 +438,19 @@ const actionItems = computed(() => {
         Виправити та переподати
       </UButton>
       
-      <UDropdownMenu :items="actionItems" class="w-full">
+      <!-- Якщо на модерації — показуємо інформаційний статус без випадайки дій -->
+      <div
+        v-if="isModeration"
+        class="flex items-center justify-between bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 h-9 px-3 rounded-lg text-sm shadow-xs"
+      >
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+          <span class="font-medium text-neutral-700 dark:text-neutral-200">{{ statusLabel }}</span>
+        </div>
+        <UIcon name="i-heroicons-clock" class="w-4 h-4 text-amber-500 shrink-0" />
+      </div>
+
+      <UDropdownMenu v-else :items="actionItems" class="w-full">
         <UButton
           color="neutral"
           variant="soft"

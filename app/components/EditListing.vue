@@ -379,10 +379,10 @@ watch(() => formData.title, (newVal) => {
   }
 });
 
-// Зміна категорії дозволена лише якщо оголошення на модерації або відхилене
+// Зміна категорії дозволена лише якщо оголошення було відхилене модератором
 const isCategoryEditable = computed(() => {
   const state = props.listing.listing_state;
-  return state === 'moderation' || state === 'rejected';
+  return state === 'rejected';
 });
 
 const lastCategoryId = ref((props.listing as any).category_id || '');
