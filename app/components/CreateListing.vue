@@ -1267,20 +1267,17 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
 // --- ВАЛІДАЦІЯ YUP ---
 const validateDimensions = (file: File) => {
   return new Promise<boolean>((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        resolve(
-          img.width >= 200 &&
-            img.height >= 200 &&
-            img.width <= 4096 &&
-            img.height <= 4096,
-        );
-      };
-      img.src = e.target?.result as string;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img.width >= 200 && img.height >= 200);
     };
-    reader.readAsDataURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(false);
+    };
+    img.src = url;
   });
 };
 

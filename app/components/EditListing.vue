@@ -449,9 +449,29 @@ const createObjectUrl = (file: File) => URL.createObjectURL(file);
 const removeExistingImage = (index: number) => { formData.existingImageUrls.splice(index, 1); };
 const removeNewImage = (index: number) => { formData.newImages.splice(index, 1); };
 
+const validateDimensions = (file: File) => {
+  return new Promise<boolean>((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img.width >= 200 && img.height >= 200);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(false);
+    };
+    img.src = url;
+  });
+};
+
 const fileSchema = yup.mixed<File>().required()
   .test('fileSize', t('createListing.validation.fileTooLarge'), (val) => !val || val.size <= MAX_FILE_SIZE)
-  .test('fileType', t('createListing.validation.wrongType'), (val) => !val || ACCEPTED_IMAGE_TYPES.includes(val.type));
+  .test('fileType', t('createListing.validation.wrongType'), (val) => !val || ACCEPTED_IMAGE_TYPES.includes(val.type))
+  .test('dimensions', t('createListing.validation.wrongDimensions'), async (val) => {
+    if (!val || !ACCEPTED_IMAGE_TYPES.includes(val.type)) return true;
+    return await validateDimensions(val);
+  });
 
 const handleNewImage = async (file: File | null | undefined) => {
   if (!file) return;

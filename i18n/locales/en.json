@@ -311,7 +311,7 @@
       "addPhoto": "Please select a photo",
       "fileTooLarge": "File too large (max 20MB)",
       "wrongType": "Only JPEG, PNG or WEBP",
-      "wrongDimensions": "Incorrect image dimensions",
+      "wrongDimensions": "Photo resolution must be at least 200×200 pixels",
       "minPhotos": "Add at least one photo",
       "minTitle": "Minimum 15 characters",
       "maxTitle": "Maximum title length is 80 characters",
