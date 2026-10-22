@@ -48,6 +48,22 @@ const moderationListings = computed(() => {
   return userListings.value.filter(l => l.listing_state === 'moderation');
 });
 
+const rejectedListings = computed(() => {
+  if (!userListings.value) return [];
+  const now = Date.now();
+  const maxRetentionMs = LISTING_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+
+  return userListings.value.filter(l => {
+    if (l.listing_state !== 'rejected') return false;
+
+    const baseTime = l.updated_at ? new Date(l.updated_at).getTime() : (l.created_at ? new Date(l.created_at).getTime() : now);
+    const diffMs = now - baseTime;
+    if (diffMs > maxRetentionMs) return false;
+
+    return true;
+  });
+});
+
 const inactiveListings = computed(() => {
   if (!userListings.value) return [];
   const now = Date.now();
@@ -55,11 +71,10 @@ const inactiveListings = computed(() => {
 
   return userListings.value.filter(l => {
     const isStateDeactivated = l.listing_state === 'deactivated';
-    const isStateRejected = l.listing_state === 'rejected';
     const isStateActive = !l.listing_state || l.listing_state === 'active';
     const isExpired = Boolean(l.expires_at && new Date(l.expires_at).getTime() <= now);
 
-    if (!isStateDeactivated && !isStateRejected && !(isStateActive && isExpired)) {
+    if (!isStateDeactivated && !(isStateActive && isExpired)) {
       return false;
     }
 
@@ -107,6 +122,11 @@ const tabItems = computed(() => [
     label: `${t('profile.listings.tabs.moderation', 'На модерації')} (${moderationListings.value.length})`, 
     slot: 'moderation', 
     icon: 'i-heroicons-clock' 
+  },
+  { 
+    label: `${t('profile.listings.tabs.rejected', 'Відхилені')} (${rejectedListings.value.length})`, 
+    slot: 'rejected', 
+    icon: 'i-heroicons-x-circle' 
   },
   { 
     label: `${t('profile.listings.tabs.deactivated', 'Неактивні')} (${inactiveListings.value.length})`, 
@@ -295,6 +315,33 @@ watch(visibility, async (current, previous) => {
               </div>
             </template>
 
+            <template #rejected>
+              <div class="mt-6">
+                <div v-if="rejectedListings.length === 0" class="text-center py-10 text-gray-500 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
+                  {{ $t('profile.listings.noRejected', 'Немає відхилених оголошень') }}
+                </div>
+                <div v-else>
+                  <div class="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 rounded-lg flex items-center gap-2 text-xs text-red-800 dark:text-red-200">
+                    <UIcon name="i-heroicons-x-circle" class="w-4 h-4 shrink-0 text-red-500" />
+                    <span>Ці оголошення не пройшли модерацію. Ви можете відредагувати опис, фото чи категорію та подати їх знову. Вони зберігаються {{ LISTING_RETENTION_DAYS }} днів.</span>
+                  </div>
+                  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <CommonProductCard
+                      v-for="listing in rejectedListings" 
+                      :key="listing.id"
+                      :product="listing"
+                      :show-delete-button="true"
+                      :show-status-actions="true"
+                      @delete="handleDelete"
+                      @updateState="handleUpdateState"
+                      @renew="handleRenew"
+                      @edit="handleEdit"
+                    />
+                  </div>
+                </div>
+              </div>
+            </template>
+
             <template #deactivated>
               <div class="mt-6">
                 <div v-if="inactiveListings.length === 0" class="text-center py-10 text-gray-500 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
@@ -303,7 +350,7 @@ watch(visibility, async (current, previous) => {
                 <div v-else>
                   <div class="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-lg flex items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
                     <UIcon name="i-heroicons-information-circle" class="w-4 h-4 shrink-0 text-amber-500" />
-                    <span>Неактивні оголошення зберігаються {{ LISTING_RETENTION_DAYS }} днів (після завершення терміну, приховання або відхилення), після чого автоматично видаляються назавжди.</span>
+                    <span>Неактивні оголошення зберігаються {{ LISTING_RETENTION_DAYS }} днів (після завершення терміну або деактивації), після чого автоматично видаляються назавжди.</span>
                   </div>
                   <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
                     <CommonProductCard

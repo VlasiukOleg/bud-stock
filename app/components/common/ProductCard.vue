@@ -445,6 +445,18 @@ const actionItems = computed(() => {
         <UIcon name="i-heroicons-clock" class="w-4 h-4 text-amber-500 shrink-0" />
       </div>
 
+      <!-- Якщо відхилено — показуємо інформаційний статус без зайвої випадайки -->
+      <div
+        v-else-if="isRejected"
+        class="flex items-center justify-between bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 h-9 px-3 rounded-lg text-sm shadow-xs"
+      >
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+          <span class="font-medium text-neutral-700 dark:text-neutral-200">{{ statusLabel }}</span>
+        </div>
+        <UIcon name="i-heroicons-x-circle" class="w-4 h-4 text-rose-500 shrink-0" />
+      </div>
+
       <UDropdownMenu v-else :items="actionItems" class="w-full">
         <UButton
           color="neutral"

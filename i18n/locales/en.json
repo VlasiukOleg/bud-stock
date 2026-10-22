@@ -181,6 +181,7 @@
       "tabs": {
         "active": "Active",
         "moderation": "On Moderation",
+        "rejected": "Rejected",
         "deactivated": "Inactive",
         "sold": "Sold"
       },
@@ -190,6 +191,7 @@
       "renewError": "Error renewing listing",
       "noActive": "No active listings",
       "noModeration": "No listings on moderation",
+      "noRejected": "No rejected listings",
       "noSold": "No sold items yet",
       "noDeactivated": "No inactive listings"
     },
