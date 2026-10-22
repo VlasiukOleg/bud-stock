@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, watch, resolveComponent } from "vue";
 import { useMediaQuery } from "@vueuse/core";
-import { CATEGORY_DATA } from "~/constants/category/category";
+import { CATEGORY_DATA, OTHER_CATEGORY_ID } from "~/constants/category/category";
 
 const props = withDefaults(
   defineProps<{
     modelValue?: string;
     placeholder?: string;
     allowAll?: boolean;
+    clearable?: boolean;
+    showUnclassified?: boolean;
     size?: "xs" | "sm" | "md" | "lg" | "xl";
     variant?: "outline" | "soft" | "subtle" | "ghost";
     triggerClass?: string;
@@ -16,6 +18,8 @@ const props = withDefaults(
     modelValue: "",
     placeholder: "Обрати категорію",
     allowAll: true,
+    clearable: false,
+    showUnclassified: false,
     size: "lg",
     variant: "outline",
     triggerClass: "",
@@ -35,6 +39,13 @@ const isDesktop = useMediaQuery("(min-width: 640px)");
 const UModalComp = resolveComponent("UModal");
 const UDrawerComp = resolveComponent("UDrawer");
 const overlayComponent = computed(() => (isDesktop.value ? UModalComp : UDrawerComp));
+
+const displayedCategories = computed(() => {
+  if (props.showUnclassified || !props.allowAll) {
+    return CATEGORY_DATA;
+  }
+  return CATEGORY_DATA.filter((c) => c.id !== OTHER_CATEGORY_ID);
+});
 
 const findParentId = (id: string) =>
   CATEGORY_DATA.find((c) => c.id === id || c.subcategories?.some((s) => s.id === id))?.id ?? null;
@@ -123,8 +134,21 @@ watch(isOpen, (open) => {
             <UIcon v-if="!modelValue" name="i-lucide-check" class="w-4 h-4 text-brand-600" />
           </button>
 
+          <!-- Скинути категорію (якщо allowAll вимкнено і є вибір) -->
+          <button
+            v-if="!allowAll && modelValue"
+            type="button"
+            class="w-full flex items-center justify-between p-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors border-b border-neutral-100 dark:border-neutral-800/60 text-brand-600 dark:text-brand-400 text-sm font-medium"
+            @click="choose('')"
+          >
+            <span class="flex items-center gap-2">
+              <UIcon name="i-lucide-x" class="w-4 h-4 shrink-0" />
+              Скинути категорію
+            </span>
+          </button>
+
           <div class="max-h-[55vh] overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/60">
-            <div v-for="cat in CATEGORY_DATA" :key="cat.id">
+            <div v-for="cat in displayedCategories" :key="cat.id">
               <!-- Головна категорія -->
               <button
                 type="button"
@@ -133,16 +157,22 @@ watch(isOpen, (open) => {
                   'bg-brand-50/50 dark:bg-brand-950/20 font-semibold':
                     modelValue === cat.id || cat.subcategories?.some((s) => s.id === modelValue),
                 }"
-                @click="toggle(cat.id)"
+                @click="cat.id === OTHER_CATEGORY_ID ? choose(cat.id) : toggle(cat.id)"
               >
                 <span class="flex items-center gap-2 min-w-0">
                   <UIcon :name="cat.icon" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
                   <span class="text-sm text-neutral-800 dark:text-neutral-200 truncate">{{ cat.name }}</span>
                 </span>
                 <UIcon
+                  v-if="cat.id !== OTHER_CATEGORY_ID"
                   name="i-lucide-chevron-right"
                   class="w-4 h-4 text-neutral-400 shrink-0 transition-transform duration-200"
                   :class="{ 'rotate-90': isExpanded(cat.id) }"
+                />
+                <UIcon
+                  v-else-if="modelValue === cat.id"
+                  name="i-lucide-check"
+                  class="w-4 h-4 text-brand-600 shrink-0"
                 />
               </button>
 

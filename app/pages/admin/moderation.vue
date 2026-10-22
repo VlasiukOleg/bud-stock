@@ -219,6 +219,14 @@ const handleModerate = async (id: string | number, action: 'approve' | 'reject')
 
               <div class="flex flex-wrap items-center gap-2 mb-2">
                 <UBadge
+                  v-if="listing.category_id === 'other' || listing.category_id === 'other-unknown'"
+                  size="xs"
+                  color="error"
+                  variant="subtle"
+                >
+                  Категорія не визначена
+                </UBadge>
+                <UBadge
                   size="xs"
                   :color="listing.status?.toLowerCase() === 'новий' ? 'success' : 'warning'"
                   variant="solid"

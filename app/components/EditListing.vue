@@ -8,10 +8,10 @@
         </div>
 
         <UForm
+          ref="formRef"
           :schema="mainFormSchema"
           :state="formData"
           :validate-on="['input', 'blur', 'change']"
-          :validate-on-model-update="true"
           @submit="onSubmit"
           class="space-y-8"
         >
@@ -49,19 +49,52 @@
             </div>
             <p v-if="tempError" class="text-xs text-red-500">{{ tempError }}</p>
           </div>
-
           <div class="space-y-6">
             <UFormField name="title" :label="$t('createListing.step3.titleLabel')">
-              <UInput v-model="formData.title" size="lg" class="w-full" :placeholder="$t('createListing.step3.titlePlaceholder')" />
+              <template #hint>
+                <span class="text-xs text-neutral-400 font-normal">
+                  {{ formData.title?.length || 0 }}/80
+                </span>
+              </template>
+              <UInput
+                v-model="formData.title"
+                size="lg"
+                class="w-full"
+                maxlength="80"
+                :placeholder="$t('createListing.step3.titlePlaceholder')"
+              />
             </UFormField>
             <UFormField name="categoryId" :label="$t('createListing.step3.categoryLabel')">
-              <UDropdownMenu :items="categoryDropdownItems" :ui="{ content: 'w-72 max-h-96 overflow-y-auto' }" class="w-full">
-                <UButton block color="neutral" variant="outline" size="lg" class="justify-between text-left font-normal bg-white w-full">
-                  <span v-if="selectedCategoryLabel" class="truncate text-gray-900 font-medium">{{ selectedCategoryLabel }}</span>
-                  <span v-else class="text-gray-400">{{ $t('createListing.step3.categoryPlaceholder') }}</span>
-                  <UIcon name="i-lucide-chevron-down" class="w-5 h-5 text-gray-400" />
-                </UButton>
-              </UDropdownMenu>
+              <template #hint>
+                <div class="flex items-center gap-3">
+                  <UButton
+                    v-if="formData.categoryId"
+                    size="xs"
+                    color="neutral"
+                    variant="link"
+                    class="text-xs text-brand-600 dark:text-brand-500 hover:text-brand-700 hover:underline p-0 h-auto font-normal cursor-pointer"
+                    @click="resetCategory"
+                  >
+                    {{ $t('createListing.step3.resetCategoryBtn') }}
+                  </UButton>
+
+                  <UButton
+                    v-else-if="lastCategoryId"
+                    size="xs"
+                    color="neutral"
+                    variant="link"
+                    class="text-xs text-brand-600 dark:text-brand-500 hover:text-brand-700 hover:underline p-0 h-auto font-normal cursor-pointer"
+                    @click="restoreCategory"
+                  >
+                    {{ $t('createListing.step3.restoreCategoryBtn') }}
+                  </UButton>
+                </div>
+              </template>
+              <CommonCategoryPicker
+                v-model="formData.categoryId"
+                :allow-all="false"
+                :placeholder="$t('createListing.step3.categoryPlaceholder')"
+              />
             </UFormField>
             <!-- СТАН -->
             <UFormField name="status" :label="$t('createListing.step3.statusLabel')">
@@ -147,9 +180,28 @@
                 </span>
               </template>
             </UFormField>
+
+            <!-- Опис -->
+            <UFormField name="description" :label="$t('createListing.step3.descriptionLabel')">
+              <template #hint>
+                <span class="text-xs text-neutral-400 font-normal">
+                  {{ formData.description?.length || 0 }}/3000
+                </span>
+              </template>
+              <UTextarea
+                v-model="formData.description"
+                autoresize
+                :rows="4"
+                size="lg"
+                maxlength="3000"
+                class="w-full"
+                :placeholder="$t('createListing.step3.descriptionPlaceholder')"
+              />
+            </UFormField>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <UFormField name="quantity" :label="$t('createListing.step3.quantityLabel')">
-                <UInput v-model="formData.quantity" size="lg" placeholder="10" class="w-full" />
+                <UInput v-model="formData.quantity" size="lg" :placeholder="$t('createListing.step3.quantityPlaceholder')" class="w-full" />
               </UFormField>
               <UFormField name="unit" :label="$t('createListing.step3.unitLabel')">
                 <USelect v-model="formData.unit" :items="productUnits" size="lg" :placeholder="$t('createListing.step3.unitPlaceholder')" class="w-full" />
@@ -160,7 +212,7 @@
             </div>
             <div v-if="!formData.isFree" class="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
               <UFormField name="price" :label="$t('createListing.step3.priceLabel')">
-                <UInput v-model="formData.price" type="number" size="lg" placeholder="180" class="w-full">
+                <UInput v-model="formData.price" type="number" size="lg" :placeholder="$t('createListing.step3.pricePlaceholder')" class="w-full">
                   <template #trailing>{{ $t('createListing.step3.currency') }}</template>
                 </UInput>
               </UFormField>
@@ -173,7 +225,7 @@
               <UInput v-model="formData.address" size="lg" class="w-full" :placeholder="$t('createListing.step3.locationPlaceholder')" readonly />
               <template #description>{{ $t('createListing.step3.locationDesc') }}</template>
             </UFormField>
-            <div class="flex flex-col sm:flex-row gap-3 -mt-2">
+            <div class="flex flex-col sm:flex-row gap-3 mt-3">
               <UButton color="neutral" variant="outline" icon="i-heroicons-map-pin" type="button" @click="useMyLocation" :loading="isGettingLocation">{{ $t('createListing.step3.myLocationBtn') }}</UButton>
               <UButton color="primary" variant="soft" icon="i-heroicons-map" type="button" @click="openMapModal">{{ $t('createListing.step3.mapLocationBtn') }}</UButton>
             </div>
@@ -182,9 +234,6 @@
             </UFormField>
             <UFormField v-if="formData.delivery.includes('Доставка')" name="deliveryDetails" :label="$t('createListing.step3.deliveryDetailsLabel')">
               <UInput v-model="formData.deliveryDetails" size="lg" class="w-full" :placeholder="$t('createListing.step3.deliveryDetailsPlaceholder')" />
-            </UFormField>
-            <UFormField name="description" :label="$t('createListing.step3.descriptionLabel')">
-              <UTextarea v-model="formData.description" autoresize :rows="4" size="lg" class="w-full" :placeholder="$t('createListing.step3.descriptionPlaceholder')" />
             </UFormField>
           </div>
 
@@ -274,18 +323,7 @@ const deliveryOptions = computed(() => [
   { label: t('createListing.constants.delivery'), value: 'Доставка' },
 ]);
 
-const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
-  return [
-    CATEGORY_DATA.map((category) => ({
-      label: category.name,
-      icon: category.icon,
-      children: [
-        [{ label: t('createListing.constants.allIn', { category: category.name }), icon: 'i-lucide-check-circle', onSelect: () => { formData.categoryId = category.id; } }],
-        [...category.subcategories.map((sub) => ({ label: sub.name, onSelect: () => { formData.categoryId = sub.id; } }))],
-      ],
-    })),
-  ];
-});
+
 
 const formData = reactive({
   existingImageUrls: [...(props.listing.images || [])] as string[],
@@ -306,6 +344,49 @@ const formData = reactive({
   deliveryDetails: (props.listing as any).delivery_details || '',
   description: props.listing.description || '',
 });
+
+const formRef = ref<any>(null);
+
+// Автоматичне очищення помилок валідації при програмному/автоматичному заповненні полів
+watch(() => formData.description, (newVal) => {
+  if (newVal && newVal.trim().length >= 30) {
+    formRef.value?.clear('description');
+  }
+});
+
+watch(() => formData.address, (newVal) => {
+  if (newVal && newVal.trim().length > 0) {
+    formRef.value?.clear('address');
+  }
+});
+
+watch(() => formData.categoryId, (newVal) => {
+  if (newVal) {
+    formRef.value?.clear('categoryId');
+  }
+});
+
+watch(() => formData.title, (newVal) => {
+  if (newVal && newVal.trim().length >= 15) {
+    formRef.value?.clear('title');
+  }
+});
+
+const lastCategoryId = ref((props.listing as any).category_id || '');
+
+const resetCategory = () => {
+  if (formData.categoryId) {
+    lastCategoryId.value = formData.categoryId;
+  }
+  formData.categoryId = '';
+};
+
+const restoreCategory = () => {
+  if (lastCategoryId.value) {
+    formData.categoryId = lastCategoryId.value;
+    formRef.value?.clear('categoryId');
+  }
+};
 
 const totalImageCount = computed(() => formData.existingImageUrls.length + formData.newImages.length);
 
@@ -328,7 +409,11 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const mainFormSchema = yup.object({
-  title: yup.string().min(10, t('createListing.validation.minTitle')).required(t('createListing.validation.reqTitle')),
+  title: yup
+    .string()
+    .min(15, t('createListing.validation.minTitle'))
+    .max(80, t('createListing.validation.maxTitle'))
+    .required(t('createListing.validation.reqTitle')),
   categoryId: yup.string().required(t('createListing.validation.reqCategory')),
   status: yup.string().required(t('createListing.validation.reqStatus')),
   quantity: yup.number().typeError(t('createListing.validation.reqQuantityNum')).positive(t('createListing.validation.reqQuantityPos')).required(t('createListing.validation.reqQuantity')),
@@ -348,7 +433,11 @@ const mainFormSchema = yup.object({
     then: (schema) => schema.required(t('createListing.validation.reqDeliveryDetails')),
     otherwise: (schema) => schema.optional(),
   }),
-  description: yup.string().required(t('createListing.validation.reqDesc')),
+  description: yup
+    .string()
+    .min(30, t('createListing.validation.minDesc'))
+    .max(3000, t('createListing.validation.maxDesc'))
+    .required(t('createListing.validation.reqDesc')),
 });
 
 const isFormValid = computed(() => {
@@ -424,7 +513,10 @@ const isGettingLocation = ref(false);
 const fetchAddressFromCoordinates = async (lat: number, lng: number) => {
   try {
     const data = await $fetch<{ address: string | null }>('/api/geocode', { query: { lat, lng, exact: formData.isExactLocation } });
-    if (data?.address) formData.address = data.address;
+    if (data?.address) {
+      formData.address = data.address;
+      formRef.value?.clear('address');
+    }
   } catch (error) { console.error('Address error:', error); }
 };
 

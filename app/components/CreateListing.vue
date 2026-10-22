@@ -37,8 +37,19 @@
                   class="min-h-48"
                   color="warning"
                   highlight
+                  @update:model-value="step1Error = ''"
                 />
               </UFormField>
+
+              <UAlert
+                v-if="step1Error"
+                color="error"
+                variant="subtle"
+                icon="i-heroicons-exclamation-triangle"
+                :title="$t('createListing.toasts.notRealPhotoTitle')"
+                :description="step1Error"
+                class="mt-4"
+              />
 
               <UButton
                 type="submit"
@@ -90,26 +101,45 @@
             <UAlert
               v-if="shouldShowProductRelevantBanner"
               color="warning"
+              variant="subtle"
+              icon="i-heroicons-exclamation-triangle"
               :title="$t('createListing.step3.bannerTitle')"
               :description="$t('createListing.step3.bannerDesc')"
               :ui="{ description: 'text-xs' }"
+              :close="{ onClick: () => { shouldShowProductRelevantBanner = false; }, class: 'cursor-pointer' }"
+              @update:open="shouldShowProductRelevantBanner = $event"
               class="mb-6"
             />
             <!-- <ListingForm /> -->
 
             <UForm
+              ref="formRef"
               :schema="mainFormSchema"
               :state="formData"
               :validate-on="['input', 'blur', 'change']"
-              :validate-on-model-update="true"
               @submit="onFinalSubmit"
               class="space-y-8"
             >
               <!-- Галерея фото -->
               <div class="space-y-3">
-                <label class="block text-sm font-medium text-gray-700">
-                  {{ $t('createListing.step3.photosLabel', { current: formData.images.length, max: 5 }) }}
-                </label>
+                <div class="flex items-center justify-between gap-2">
+                  <label class="block text-sm font-medium text-gray-700">
+                    {{ $t('createListing.step3.photosLabel', { current: formData.images.length, max: 5 }) }}
+                  </label>
+
+                  <UButton
+                    v-if="formData.images.length > 0 && !hasFilledFromPhoto"
+                    size="xs"
+                    color="primary"
+                    variant="soft"
+                    icon="i-heroicons-sparkles"
+                    :loading="isAnalyzingFromPhoto"
+                    :disabled="isAnalyzingFromPhoto"
+                    @click="fillFromPhoto"
+                  >
+                    {{ $t('createListing.step3.fillFromPhotoBtn') }}
+                  </UButton>
+                </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                   <div
@@ -169,43 +199,65 @@
               <div class="space-y-6">
                 <!-- Назва -->
                 <UFormField name="title" :label="$t('createListing.step3.titleLabel')">
+                  <template #hint>
+                    <span class="text-xs text-neutral-400 font-normal">
+                      {{ formData.title?.length || 0 }}/80
+                    </span>
+                  </template>
                   <UInput
                     v-model="formData.title"
                     size="lg"
                     class="w-full"
+                    maxlength="80"
                     :placeholder="$t('createListing.step3.titlePlaceholder')"
                   />
                 </UFormField>
 
                 <!-- Категорія -->
                 <UFormField name="categoryId" :label="$t('createListing.step3.categoryLabel')">
-                  <UDropdownMenu
-                    :items="categoryDropdownItems"
-                    :ui="{ content: 'w-72 max-h-96 overflow-y-auto' }"
-                    class="w-full"
-                  >
-                    <UButton
-                      block
-                      color="neutral"
-                      variant="outline"
-                      size="lg"
-                      class="justify-between text-left font-normal bg-white w-full"
-                    >
-                      <span
-                        v-if="selectedCategoryLabel"
-                        class="truncate text-gray-900 font-medium"
+                  <template #hint>
+                    <div class="flex items-center gap-3">
+                      <UButton
+                        v-if="formData.categoryId"
+                        size="xs"
+                        color="neutral"
+                        variant="link"
+                        class="text-xs text-brand-600 dark:text-brand-500 hover:text-brand-700 hover:underline p-0 h-auto font-normal cursor-pointer"
+                        @click="resetCategory"
                       >
-                        {{ selectedCategoryLabel }}
-                      </span>
-                      <span v-else class="text-gray-400"
-                        >{{ $t('createListing.step3.categoryPlaceholder') }}</span
+                        {{ $t('createListing.step3.resetCategoryBtn') }}
+                      </UButton>
+
+                      <UButton
+                        v-else-if="lastSuggestedCategoryId && (hasFilledFromPhoto || hasSuggestedCategory)"
+                        size="xs"
+                        color="neutral"
+                        variant="link"
+                        class="text-xs text-brand-600 dark:text-brand-500 hover:text-brand-700 hover:underline p-0 h-auto font-normal cursor-pointer"
+                        @click="restoreCategory"
                       >
-                      <UIcon
-                        name="i-lucide-chevron-down"
-                        class="w-5 h-5 text-gray-400"
-                      />
-                    </UButton>
-                  </UDropdownMenu>
+                        {{ $t('createListing.step3.restoreCategoryBtn') }}
+                      </UButton>
+
+                      <UButton
+                        v-else-if="formData.title.trim().length >= 15 && !formData.categoryId && !hasFilledFromPhoto && !hasSuggestedCategory"
+                        size="xs"
+                        color="neutral"
+                        variant="link"
+                        class="text-xs text-brand-600 dark:text-brand-500 hover:text-brand-700 hover:underline p-0 h-auto font-normal cursor-pointer"
+                        :loading="isSuggestingCategory"
+                        @click="suggestCategory"
+                      >
+                        {{ $t('createListing.step3.suggestCategoryBtn') }}
+                      </UButton>
+                    </div>
+                  </template>
+
+                  <CommonCategoryPicker
+                    v-model="formData.categoryId"
+                    :allow-all="false"
+                    :placeholder="$t('createListing.step3.categoryPlaceholder')"
+                  />
                 </UFormField>
 
                 <!-- СТАН (Нове) -->
@@ -293,13 +345,45 @@
                   </template>
                 </UFormField>
 
+                <!-- Опис -->
+                <UFormField name="description" :label="$t('createListing.step3.descriptionLabel')">
+                  <template #hint>
+                    <div class="flex items-center gap-3">
+                      <UButton
+                        v-if="formData.title.trim().length >= 15 && !formData.description?.trim() && !hasFilledFromPhoto && !hasGeneratedDescription"
+                        size="xs"
+                        color="neutral"
+                        variant="link"
+                        class="text-xs text-brand-600 dark:text-brand-500 hover:text-brand-700 hover:underline p-0 h-auto font-normal cursor-pointer"
+                        :loading="isGeneratingDescription"
+                        @click="generateDescription"
+                      >
+                        {{ $t('createListing.step3.generateDescriptionBtn') }}
+                      </UButton>
+                      <span class="text-xs text-neutral-400 font-normal">
+                        {{ formData.description?.length || 0 }}/3000
+                      </span>
+                    </div>
+                  </template>
+
+                  <UTextarea
+                    v-model="formData.description"
+                    autoresize
+                    :rows="4"
+                    size="lg"
+                    maxlength="3000"
+                    class="w-full"
+                    :placeholder="$t('createListing.step3.descriptionPlaceholder')"
+                  />
+                </UFormField>
+
                 <!-- Кількість та Одиниця (Нове) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <UFormField name="quantity" :label="$t('createListing.step3.quantityLabel')">
                     <UInput
                       v-model="formData.quantity"
                       size="lg"
-                      placeholder="10"
+                      :placeholder="$t('createListing.step3.quantityPlaceholder')"
                       class="w-full"
                     />
                   </UFormField>
@@ -332,7 +416,7 @@
                       v-model="formData.price"
                       type="number"
                       size="lg"
-                      placeholder="180"
+                      :placeholder="$t('createListing.step3.pricePlaceholder')"
                       class="w-full"
                     >
                       <template #trailing>{{ $t('createListing.step3.currency') }}</template>
@@ -362,7 +446,7 @@
                   </template>
                 </UFormField>
 
-                <div class="flex flex-col sm:flex-row gap-3 -mt-2">
+                <div class="flex flex-col sm:flex-row gap-3 mt-3">
                   <UButton
                     color="neutral"
                     variant="outline"
@@ -402,18 +486,6 @@
                     size="lg"
                     class="w-full"
                     :placeholder="$t('createListing.step3.deliveryDetailsPlaceholder')"
-                  />
-                </UFormField>
-
-                <!-- Опис -->
-                <UFormField name="description" :label="$t('createListing.step3.descriptionLabel')">
-                  <UTextarea
-                    v-model="formData.description"
-                    autoresize
-                    :rows="4"
-                    size="lg"
-                    class="w-full"
-                    :placeholder="$t('createListing.step3.descriptionPlaceholder')"
                   />
                 </UFormField>
               </div>
@@ -583,6 +655,7 @@ const supabase = useSupabaseClient<any>();
 const user = useSupabaseUser();
 const { t, locale } = useI18n();
 const shouldShowProductRelevantBanner = ref(false);
+const isCurrentPhotoIrrelevant = ref(false);
 const isLoading = ref(false);
 
 const { balance, fetchBalance, deductBalanceLocally } = useBalance();
@@ -622,34 +695,7 @@ const deliveryOptions = computed(() => [
   { label: t('createListing.constants.delivery'), value: "Доставка" }
 ]);
 
-// --- СТРУКТУРА ДЛЯ UDropdownMenu ---
-const categoryDropdownItems = computed<DropdownMenuItem[][]>(() => {
-  return [
-    CATEGORY_DATA.map((category) => ({
-      label: category.name,
-      icon: category.icon,
-      children: [
-        [
-          {
-            label: t('createListing.constants.allIn', { category: category.name }),
-            icon: "i-lucide-check-circle",
-            onSelect: () => {
-              formData.categoryId = category.id;
-            },
-          },
-        ],
-        [
-          ...category.subcategories.map((sub) => ({
-            label: sub.name,
-            onSelect: () => {
-              formData.categoryId = sub.id;
-            },
-          })),
-        ],
-      ],
-    })),
-  ];
-});
+
 
 // --- STEPPER CONFIG ---
 const stepperItems = computed<StepperItem[]>(() => [
@@ -674,8 +720,15 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 // --- STATE ---
 const activeStep = ref(0);
 const step1State = reactive({ initialFile: undefined as File | undefined });
+const step1Error = ref("");
 const tempFile = ref<File | undefined>(undefined);
 const tempError = ref("");
+const formRef = ref<any>(null);
+const hasFilledFromPhoto = ref(false);
+const hasSuggestedCategory = ref(false);
+const hasGeneratedDescription = ref(false);
+const lastSuggestedCategoryId = ref("");
+const wasAnalyzedSuccessfullyOnStep1 = ref(false);
 
 // Оновлений State з новими полями
 const formData = reactive({
@@ -695,6 +748,31 @@ const formData = reactive({
   delivery: [] as string[],
   deliveryDetails: "",
   description: "",
+});
+
+// Автоматичне очищення помилок валідації при програмному/автоматичному заповненні полів
+watch(() => formData.description, (newVal) => {
+  if (newVal && newVal.trim().length >= 30) {
+    formRef.value?.clear('description');
+  }
+});
+
+watch(() => formData.address, (newVal) => {
+  if (newVal && newVal.trim().length > 0) {
+    formRef.value?.clear('address');
+  }
+});
+
+watch(() => formData.categoryId, (newVal) => {
+  if (newVal) {
+    formRef.value?.clear('categoryId');
+  }
+});
+
+watch(() => formData.title, (newVal) => {
+  if (newVal && newVal.trim().length >= 15) {
+    formRef.value?.clear('title');
+  }
 });
 
 const setProductStatus = (status: string) => {
@@ -749,7 +827,14 @@ const resetForm = () => {
   formData.longitude = undefined;
   formData.delivery = [];
   formData.deliveryDetails = "";
+  hasFilledFromPhoto.value = false;
+  hasSuggestedCategory.value = false;
+  hasGeneratedDescription.value = false;
+  lastSuggestedCategoryId.value = "";
   shouldShowProductRelevantBanner.value = false;
+  isCurrentPhotoIrrelevant.value = false;
+  wasAnalyzedSuccessfullyOnStep1.value = false;
+  step1Error.value = "";
   activeStep.value = 0;
 };
 
@@ -763,6 +848,7 @@ const handleInitialUpload = async (event: FormSubmitEvent<any>) => {
   if (!file) return;
 
   isLoading.value = true;
+  step1Error.value = "";
   formData.images = [file];
   activeStep.value = 1;
 
@@ -775,15 +861,42 @@ const handleInitialUpload = async (event: FormSubmitEvent<any>) => {
       body,
     });
 
-    if (!response?.isRelevant) {
+    if (response?.isRealProductPhoto === false || response?.isDocumentOrScreenshot === true) {
+      activeStep.value = 0;
+      formData.images = [];
+      step1State.initialFile = undefined;
+      const errorMsg = response?.rejectionReason || t('createListing.validation.notRealPhoto');
+      step1Error.value = errorMsg;
+      toast.add({
+        title: t('createListing.toasts.notRealPhotoTitle'),
+        description: errorMsg,
+        color: "error",
+      });
+      return;
+    }
+
+    if (!response?.isRelevant || response?.categoryId === 'other' || response?.categoryId === 'other-unknown') {
       shouldShowProductRelevantBanner.value = true;
+      isCurrentPhotoIrrelevant.value = true;
+      hasFilledFromPhoto.value = true;
+      wasAnalyzedSuccessfullyOnStep1.value = false;
+    } else {
+      shouldShowProductRelevantBanner.value = false;
+      isCurrentPhotoIrrelevant.value = false;
+      hasFilledFromPhoto.value = true;
+      wasAnalyzedSuccessfullyOnStep1.value = true;
     }
 
     formData.title = response?.title || "";
     formData.price = response?.price;
     formData.isFree = false;
     formData.description = response?.description || "";
-    if (response?.categoryId) formData.categoryId = response.categoryId;
+    if (response?.categoryId) {
+      formData.categoryId = response.categoryId;
+      lastSuggestedCategoryId.value = response.categoryId;
+    }
+
+    hasFilledFromPhoto.value = true;
 
     // Скидаємо нові поля при новому аналізі
     formData.status = "новий";
@@ -808,6 +921,7 @@ const handleInitialUpload = async (event: FormSubmitEvent<any>) => {
 const handleNewImage = async (file: File | null | undefined) => {
   if (!file) return;
   tempError.value = "";
+
   try {
     await fileSchema.validate(file);
     formData.images.push(file);
@@ -820,6 +934,191 @@ const handleNewImage = async (file: File | null | undefined) => {
 
 const removeImage = (index: number) => {
   formData.images.splice(index, 1);
+  if (formData.images.length === 0 || index === 0) {
+    if (!wasAnalyzedSuccessfullyOnStep1.value) {
+      hasFilledFromPhoto.value = false;
+    }
+    if (isCurrentPhotoIrrelevant.value || shouldShowProductRelevantBanner.value) {
+      shouldShowProductRelevantBanner.value = false;
+      isCurrentPhotoIrrelevant.value = false;
+      hasFilledFromPhoto.value = false;
+      hasSuggestedCategory.value = false;
+      hasGeneratedDescription.value = false;
+      lastSuggestedCategoryId.value = "";
+      formData.title = "";
+      formData.description = "";
+      formData.price = undefined;
+      formData.categoryId = "";
+      formRef.value?.clear();
+    }
+  }
+};
+
+const isAnalyzingFromPhoto = ref(false);
+
+const fillFromPhoto = async () => {
+  if (isAnalyzingFromPhoto.value) return;
+  if (!formData.images || formData.images.length === 0) return;
+  const file = formData.images[0];
+  if (!file) return;
+
+  isAnalyzingFromPhoto.value = true;
+  const body = new FormData();
+  body.append("image", file);
+
+  try {
+    const response = await $fetch<any>("/api/analyze", {
+      method: "POST",
+      body,
+    });
+
+    if (response?.isRealProductPhoto === false || response?.isDocumentOrScreenshot === true) {
+      // Приховуємо кнопку автозаповнення, щоб уникнути спам-кліків, але фото в галереї не чіпаємо
+      hasFilledFromPhoto.value = true;
+
+      const errorMsg = response?.rejectionReason || t('createListing.validation.notRealPhoto');
+      toast.add({
+        title: t('createListing.toasts.notRealPhotoTitle'),
+        description: errorMsg,
+        color: "error",
+      });
+      return;
+    }
+
+    if (!response?.isRelevant || response?.categoryId === 'other' || response?.categoryId === 'other-unknown') {
+      shouldShowProductRelevantBanner.value = true;
+      isCurrentPhotoIrrelevant.value = true;
+      hasFilledFromPhoto.value = true;
+    } else {
+      shouldShowProductRelevantBanner.value = false;
+      isCurrentPhotoIrrelevant.value = false;
+      hasFilledFromPhoto.value = true;
+    }
+
+    if (response?.title) formData.title = response.title;
+    if (response?.price !== undefined && response?.price !== null) {
+      formData.price = response.price;
+      formData.isFree = false;
+    }
+    if (response?.description) formData.description = response.description;
+    if (response?.categoryId) {
+      formData.categoryId = response.categoryId;
+      lastSuggestedCategoryId.value = response.categoryId;
+    }
+
+    hasFilledFromPhoto.value = true;
+    formRef.value?.clear();
+
+    toast.add({
+      title: t('createListing.toasts.fillSuccessTitle', 'Оголошення заповнено!'),
+      description: t('createListing.toasts.fillSuccessDesc', 'Дані успішно підставлено за фото'),
+      color: "success",
+    });
+  } catch (err: any) {
+    toast.add({
+      title: t('createListing.toasts.analyzeErrorTitle', 'Помилка! Аналіз не вдався'),
+      description: t('createListing.toasts.analyzeErrorDesc', 'Спробуйте пізніше чи заповніть поля вручну'),
+      color: "error",
+    });
+  } finally {
+    isAnalyzingFromPhoto.value = false;
+  }
+};
+
+const resetCategory = () => {
+  formData.categoryId = "";
+};
+
+const restoreCategory = () => {
+  if (lastSuggestedCategoryId.value) {
+    formData.categoryId = lastSuggestedCategoryId.value;
+    formRef.value?.clear('categoryId');
+  }
+};
+
+const isSuggestingCategory = ref(false);
+const suggestCategory = async () => {
+  const title = formData.title?.trim();
+  if (!title || title.length < 15) return;
+
+  isSuggestingCategory.value = true;
+  try {
+    const res = await $fetch<{ categoryId: string | null }>('/api/suggest-category', {
+      method: 'POST',
+      body: { title }
+    });
+
+    hasSuggestedCategory.value = true;
+
+    if (res?.categoryId) {
+      formData.categoryId = res.categoryId;
+      lastSuggestedCategoryId.value = res.categoryId;
+      formRef.value?.clear('categoryId');
+      if (res.categoryId === 'other' || res.categoryId === 'other-unknown') {
+        toast.add({
+          title: t('createListing.toasts.suggestCategoryOtherTitle', 'Категорію не визначено'),
+          description: t('createListing.toasts.suggestCategoryOtherDesc', 'Встановлено «Не знайшов будівельну категорію». Оголошення пройде ручну модерацію.'),
+          color: 'warning',
+        });
+      } else {
+        toast.add({
+          title: t('createListing.toasts.suggestCategorySuccessTitle', 'Категорію підібрано!'),
+          description: selectedCategoryLabel.value,
+          color: 'success',
+        });
+      }
+    } else {
+      toast.add({
+        title: t('createListing.toasts.suggestCategoryNotFoundTitle', 'Категорію не визначено'),
+        description: t('createListing.toasts.suggestCategoryNotFoundDesc', 'Спробуйте уточнити назву або оберіть категорію зі списку'),
+        color: 'warning',
+      });
+    }
+  } catch (err: any) {
+    hasSuggestedCategory.value = true;
+    toast.add({
+      title: t('createListing.toasts.suggestCategoryErrorTitle', 'Помилка підбору категорії'),
+      description: t('createListing.toasts.suggestCategoryErrorDesc', 'Спробуйте пізніше або оберіть категорію вручну'),
+      color: 'error',
+    });
+  } finally {
+    isSuggestingCategory.value = false;
+  }
+};
+
+const isGeneratingDescription = ref(false);
+const generateDescription = async () => {
+  const title = formData.title?.trim();
+  if (!title || title.length < 15) return;
+
+  isGeneratingDescription.value = true;
+  try {
+    const res = await $fetch<{ description: string }>('/api/generate-description', {
+      method: 'POST',
+      body: {
+        title,
+      }
+    });
+
+    if (res?.description) {
+      formData.description = res.description;
+      hasGeneratedDescription.value = true;
+      formRef.value?.clear('description');
+      toast.add({
+        title: t('createListing.toasts.generateDescSuccessTitle', 'Опис згенеровано!'),
+        description: t('createListing.toasts.generateDescSuccessDesc', 'Текст опису додано в поле'),
+        color: 'success',
+      });
+    }
+  } catch (err: any) {
+    toast.add({
+      title: t('createListing.toasts.generateDescErrorTitle', 'Помилка генерації опису'),
+      description: t('createListing.toasts.generateDescErrorDesc', 'Спробуйте пізніше або заповніть опис вручну'),
+      color: 'error',
+    });
+  } finally {
+    isGeneratingDescription.value = false;
+  }
 };
 
 const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
@@ -886,8 +1185,14 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
       moderationReason = "Потрібна ручна перевірка модератором";
     }
 
-    // Якщо раніше на кроці 1 ШІ вже позначав нерелевантність
-    if (shouldShowProductRelevantBanner.value) {
+    // Якщо обрано категорію "Не знайшов будівельну категорію"
+    if (formData.categoryId === 'other' || formData.categoryId === 'other-unknown') {
+      isApproved = false;
+      moderationReason = "Категорію не визначено (надіслано на ручну модерацію)";
+    }
+
+    // Якщо раніше на кроці 1 або в процесі ШІ позначав нерелевантність
+    if (shouldShowProductRelevantBanner.value || isCurrentPhotoIrrelevant.value) {
       isApproved = false;
     }
 
@@ -1004,7 +1309,8 @@ const mainFormSchema = yup.object({
   images: yup.array().min(1, t('createListing.validation.minPhotos')).max(5),
   title: yup
     .string()
-    .min(10, t('createListing.validation.minTitle'))
+    .min(15, t('createListing.validation.minTitle'))
+    .max(80, t('createListing.validation.maxTitle'))
     .required(t('createListing.validation.reqTitle')),
   categoryId: yup.string().required(t('createListing.validation.reqCategory')),
   status: yup.string().required(t('createListing.validation.reqStatus')),
@@ -1036,7 +1342,11 @@ const mainFormSchema = yup.object({
     then: (schema) => schema.required(t('createListing.validation.reqDeliveryDetails')),
     otherwise: (schema) => schema.optional(),
   }),
-  description: yup.string().required(t('createListing.validation.reqDesc')),
+  description: yup
+    .string()
+    .min(30, t('createListing.validation.minDesc'))
+    .max(3000, t('createListing.validation.maxDesc'))
+    .required(t('createListing.validation.reqDesc')),
 });
 
 // Додаємо змінні для карти
@@ -1054,6 +1364,7 @@ const fetchAddressFromCoordinates = async (lat: number, lng: number) => {
     
     if (data && data.address) {
       formData.address = data.address;
+      formRef.value?.clear('address');
     }
   } catch (error) {
     console.error("Помилка отримання адреси:", error);

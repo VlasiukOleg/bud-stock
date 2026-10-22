@@ -305,4 +305,16 @@ export const CATEGORY_DATA: CategoryItem[] = [
       { id: "c15-10", name: "Ущільнювачі та фурнітура для вікон і дверей" },
     ],
   },
+
+  // 16. Службова категорія: Не знайшов будівельну категорію (обов'язкова ручна модерація)
+  {
+    id: "other",
+    name: "Не знайшов будівельну категорію (ручна модерація)",
+    icon: "i-lucide-help-circle",
+    subcategories: [
+      { id: "other-unknown", name: "На розгляд модератора" },
+    ],
+  },
 ];
+
+export const OTHER_CATEGORY_ID = "other";

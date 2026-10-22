@@ -1,10 +1,16 @@
 export default defineAppConfig({
   ui: {
+    formField: {
+      slots: {
+        container: "relative",
+        error: "text-xs text-error mt-1 absolute top-full left-0 right-0",
+      },
+    },
     button: {
       slots: { base: "rounded-lg" },
     },
     input: {
-      slots: { base: "" },
+      slots: { base: "placeholder:text-sm text-sm" },
       variants: {
         color: {
           brand: "",
@@ -25,6 +31,15 @@ export default defineAppConfig({
       ],
       defaultVariants: {
         color: "primary",
+      },
+    },
+    textarea: {
+      slots: { base: "placeholder:text-sm text-sm" },
+    },
+    select: {
+      slots: {
+        base: "text-sm",
+        placeholder: "text-sm",
       },
     },
     colors: {
