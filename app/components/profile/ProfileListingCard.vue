@@ -193,35 +193,6 @@ const deactivatedStatusDropdown = computed(() => [
           class="w-full h-full object-contain p-1 transition-transform duration-300 group-hover:scale-105"
         />
         <UIcon v-else name="i-heroicons-photo" class="w-8 h-8 text-neutral-300 dark:text-neutral-600" />
-
-        <!-- Бейдж "Новий" / "б/в" -->
-        <span
-          class="absolute top-1 left-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider"
-          :class="product.status?.toLowerCase() === 'новий' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'"
-        >
-          {{ product.status?.toLowerCase() === 'новий' ? 'Новий' : 'б/в' }}
-        </span>
-
-        <!-- Оверлей якщо товар відхилено чи продано -->
-        <div
-          v-if="isSold || isRejected"
-          class="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center p-1 text-center"
-        >
-          <span
-            v-if="isRejected"
-            class="text-[9px] font-bold uppercase tracking-wider text-rose-300 flex items-center gap-0.5 leading-none"
-          >
-            <UIcon name="i-heroicons-x-circle" class="w-3 h-3 text-rose-400 shrink-0" />
-            Відхилено
-          </span>
-          <span
-            v-else-if="isSold"
-            class="text-[9px] font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-0.5 leading-none"
-          >
-            <UIcon name="i-heroicons-check-circle" class="w-3 h-3 text-emerald-400 shrink-0" />
-            Продано
-          </span>
-        </div>
       </NuxtLink>
 
       <!-- Текстова інформація справа від фото -->
