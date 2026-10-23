@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { Product } from '~/types/index';
-import { useStorage } from '@vueuse/core';
-import { getDistance } from 'geolib';
 import { LISTING_DURATION_DAYS, LISTING_RETENTION_DAYS } from '~/constants/listing';
 
 const props = withDefaults(defineProps<{
@@ -17,30 +15,6 @@ const emit = defineEmits<{
 
 const toast = useToast();
 const router = useRouter();
-
-// Відстань до користувача
-const userLocation = useStorage<[number, number] | null>(
-  'budstock-user-location',
-  null,
-  typeof sessionStorage !== 'undefined' ? sessionStorage : undefined,
-  {
-    serializer: {
-      read: (v: string) => (v ? JSON.parse(v) : null),
-      write: (v: any) => JSON.stringify(v),
-    },
-  }
-);
-
-const realDistance = computed(() => {
-  if (!userLocation.value || !props.product.latitude || !props.product.longitude) return null;
-  const distMeters = getDistance(
-    { latitude: userLocation.value[0], longitude: userLocation.value[1] },
-    { latitude: props.product.latitude, longitude: props.product.longitude }
-  );
-  const distKm = distMeters / 1000;
-  if (distKm < 10) return distKm.toFixed(1).replace('.0', '');
-  return Math.round(distKm);
-});
 
 // Форматування ціни
 const formattedPrice = computed(() => {
@@ -284,11 +258,10 @@ const deactivatedStatusDropdown = computed(() => [
           </span>
         </div>
 
-        <!-- Адреса, відстань та дата -->
+        <!-- Адреса та дата -->
         <div class="flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 gap-2">
           <span class="truncate">
             {{ shortAddress || 'Київ' }}
-            <template v-if="realDistance"> • {{ realDistance }} км</template>
           </span>
           <span class="shrink-0 text-[10px] text-neutral-400 whitespace-nowrap">
             {{ formattedDate }}
@@ -403,52 +376,48 @@ const deactivatedStatusDropdown = computed(() => [
     </div>
 
     <!-- 4. Нижня смуга: Статус ліворуч та Термін розміщення праворуч -->
-    <div class="flex items-center justify-between pt-2.5 border-t border-neutral-100 dark:border-neutral-800">
+    <div class="flex items-center justify-between pt-2.5 border-t border-neutral-100 dark:border-neutral-800 min-h-[42px]">
       <!-- Ліворуч: Статус товару -->
-      <div>
+      <div class="flex items-center">
         <!-- Активне (з дропдауном дій) -->
         <template v-if="isActive">
           <UDropdownMenu :items="activeStatusDropdown" :content="{ align: 'start' }">
             <button
               type="button"
-              class="flex items-center gap-1.5 text-xs font-bold text-neutral-800 dark:text-neutral-100 hover:text-neutral-950 dark:hover:text-white cursor-pointer group"
+              class="flex items-center gap-2 text-sm sm:text-base font-bold text-neutral-900 dark:text-neutral-100 hover:text-brand-600 dark:hover:text-brand-400 cursor-pointer group py-1"
             >
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
               <span>Активне</span>
-              <UIcon name="i-heroicons-chevron-down" class="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600 transition-colors" />
+              <UIcon name="i-heroicons-chevron-down" class="w-4 h-4 text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-neutral-200 transition-colors" />
             </button>
           </UDropdownMenu>
-          <p class="text-[10px] text-neutral-400 mt-0.5">Термін розміщення</p>
         </template>
 
         <!-- На модерації -->
         <template v-else-if="isModeration">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
-            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+          <div class="flex items-center gap-2 text-sm sm:text-base font-bold text-amber-600 dark:text-amber-400 py-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
             <span>На перевірці</span>
-            <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-amber-500" />
+            <UIcon name="i-heroicons-clock" class="w-4 h-4 text-amber-500" />
           </div>
-          <p class="text-[10px] text-neutral-400 mt-0.5">Очікує схвалення</p>
         </template>
 
         <!-- Відхилено -->
         <template v-else-if="isRejected">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400">
-            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+          <div class="flex items-center gap-2 text-sm sm:text-base font-bold text-rose-600 dark:text-rose-400 py-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
             <span>Відхилено</span>
-            <UIcon name="i-heroicons-x-circle" class="w-3.5 h-3.5 text-rose-500" />
+            <UIcon name="i-heroicons-x-circle" class="w-4 h-4 text-rose-500" />
           </div>
-          <p class="text-[10px] text-rose-400 mt-0.5">Потрібні виправлення</p>
         </template>
 
         <!-- Продано -->
         <template v-else-if="isSold">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-purple-600 dark:text-purple-400">
-            <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+          <div class="flex items-center gap-2 text-sm sm:text-base font-bold text-purple-600 dark:text-purple-400 py-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0"></span>
             <span>Продано</span>
-            <UIcon name="i-heroicons-check-circle" class="w-3.5 h-3.5 text-purple-500" />
+            <UIcon name="i-heroicons-check-circle" class="w-4 h-4 text-purple-500" />
           </div>
-          <p class="text-[10px] text-neutral-400 mt-0.5">Збережено в історії</p>
         </template>
 
         <!-- Приховано (деактивовано) -->
@@ -456,23 +425,21 @@ const deactivatedStatusDropdown = computed(() => [
           <UDropdownMenu :items="deactivatedStatusDropdown" :content="{ align: 'start' }">
             <button
               type="button"
-              class="flex items-center gap-1.5 text-xs font-bold text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 cursor-pointer group"
+              class="flex items-center gap-2 text-sm sm:text-base font-bold text-neutral-600 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white cursor-pointer group py-1"
             >
-              <span class="w-2 h-2 rounded-full bg-neutral-400"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-neutral-400 shrink-0"></span>
               <span>Приховано</span>
-              <UIcon name="i-heroicons-chevron-down" class="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600 transition-colors" />
+              <UIcon name="i-heroicons-chevron-down" class="w-4 h-4 text-neutral-400 group-hover:text-neutral-600 transition-colors" />
             </button>
           </UDropdownMenu>
-          <p class="text-[10px] text-neutral-400 mt-0.5">Не відображається</p>
         </template>
 
         <!-- Термін вийшов -->
         <template v-else-if="isExpired">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400">
-            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+          <div class="flex items-center gap-2 text-sm sm:text-base font-bold text-rose-600 dark:text-rose-400 py-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
             <span>Термін вийшов</span>
           </div>
-          <p class="text-[10px] text-neutral-400 mt-0.5">Потребує подовження</p>
         </template>
       </div>
 
@@ -484,14 +451,14 @@ const deactivatedStatusDropdown = computed(() => [
             <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-neutral-400" />
             <span>До {{ expiresFormatted }}</span>
           </p>
-          <p v-if="daysRemaining !== null" class="text-[11px] font-bold text-amber-600 dark:text-brand-500 mt-0.5">
+          <p v-if="daysRemaining !== null" class="text-xs font-bold text-amber-600 dark:text-brand-500 mt-0.5">
             Ще {{ daysRemaining }} {{ daysText(daysRemaining) }}
           </p>
         </template>
 
         <!-- Якщо неактивне/продане/відхилене: Відлік до видалення з бази (45 днів) -->
         <template v-else-if="daysUntilPermanentDelete !== null">
-          <p class="text-[11px] font-bold text-rose-500">
+          <p class="text-xs font-bold text-rose-500">
             Видалення через {{ daysUntilPermanentDelete }} дн.
           </p>
           <p class="text-[10px] text-neutral-400 mt-0.5">Зберігається 45 днів</p>
