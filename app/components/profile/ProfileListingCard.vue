@@ -96,7 +96,7 @@ const daysText = (n: number) => {
 const { activeChats } = useChat();
 const chatsCount = computed(() => {
   if (!activeChats.value) return 0;
-  return activeChats.value.filter(c => String(c.listing_id || c.product?.id) === String(props.product.id)).length;
+  return activeChats.value.filter(c => String(c.product_id || c.product?.id) === String(props.product.id)).length;
 });
 
 // Копіювання посилання
@@ -245,40 +245,40 @@ const deactivatedStatusDropdown = computed(() => [
       </div>
     </div>
 
-    <!-- 2. Контрастна панель показників (Метрики: Перегляди, Чати, Телефон, Обране) -->
-    <div class="bg-neutral-800 dark:bg-neutral-800/80 border border-neutral-700/50 text-white rounded-xl py-2.5 px-3 sm:px-4 flex items-center justify-between shadow-xs my-3">
+    <!-- 2. Панель показників (Метрики: Перегляди, Чати, Телефон, Обране) -->
+    <div class="bg-brand-50/80 dark:bg-brand-950/20 border border-brand-100 dark:border-brand-900/30 text-neutral-800 dark:text-neutral-200 rounded-xl py-2.5 px-3 sm:px-4 flex items-center justify-between shadow-xs my-3">
       <!-- 1. Перегляди -->
       <div class="flex items-center gap-1.5" title="Кількість переглядів оголошення">
-        <UIcon name="i-heroicons-eye" class="w-4 h-4 text-neutral-300 dark:text-neutral-400" />
-        <span class="text-xs sm:text-sm font-bold tracking-tight">{{ product.views || 0 }}</span>
+        <UIcon name="i-heroicons-eye" class="w-4 h-4 text-brand-500 shrink-0" />
+        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-900 dark:text-white">{{ product.views || 0 }}</span>
       </div>
 
-      <span class="h-3.5 w-px bg-neutral-600/60"></span>
+      <span class="h-3.5 w-px bg-brand-200/70 dark:bg-brand-800/40"></span>
 
       <!-- 2. Чати -->
       <NuxtLink
         to="/profile/chats"
-        class="flex items-center gap-1.5 hover:text-brand-400 transition-colors cursor-pointer"
+        class="flex items-center gap-1.5 hover:text-brand-600 dark:hover:text-brand-400 transition-colors cursor-pointer group"
         title="Повідомлення по цьому товару"
       >
-        <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="w-4 h-4 text-neutral-300 dark:text-neutral-400" />
-        <span class="text-xs sm:text-sm font-bold tracking-tight">{{ chatsCount }}</span>
+        <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="w-4 h-4 text-brand-500 group-hover:scale-110 transition-transform shrink-0" />
+        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-900 dark:text-white">{{ chatsCount }}</span>
       </NuxtLink>
 
-      <span class="h-3.5 w-px bg-neutral-600/60"></span>
+      <span class="h-3.5 w-px bg-brand-200/70 dark:bg-brand-800/40"></span>
 
       <!-- 3. Дзвінки / Контакти -->
       <div class="flex items-center gap-1.5" title="Кількість переглядів номера телефону">
-        <UIcon name="i-heroicons-phone" class="w-3.5 h-3.5 text-neutral-300 dark:text-neutral-400" />
-        <span class="text-xs sm:text-sm font-bold tracking-tight">{{ (product as any).phone_views || 0 }}</span>
+        <UIcon name="i-heroicons-phone" class="w-3.5 h-3.5 text-brand-500 shrink-0" />
+        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-900 dark:text-white">{{ (product as any).phone_views || 0 }}</span>
       </div>
 
-      <span class="h-3.5 w-px bg-neutral-600/60"></span>
+      <span class="h-3.5 w-px bg-brand-200/70 dark:bg-brand-800/40"></span>
 
       <!-- 4. В обраному -->
       <div class="flex items-center gap-1.5" title="Додано в обране">
-        <UIcon name="i-heroicons-heart" class="w-4 h-4 text-neutral-300 dark:text-neutral-400" />
-        <span class="text-xs sm:text-sm font-bold tracking-tight">{{ (product as any).favorites_count || 0 }}</span>
+        <UIcon name="i-heroicons-heart" class="w-4 h-4 text-brand-500 shrink-0" />
+        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-900 dark:text-white">{{ (product as any).favorites_count || 0 }}</span>
       </div>
     </div>
 

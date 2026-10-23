@@ -114,29 +114,34 @@ const soldListings = computed(() => {
 
 const tabItems = computed(() => [
   { 
-    label: `${t('profile.listings.tabs.active', 'Активні')} (${activeListings.value.length})`, 
+    label: t('profile.listings.tabs.active', 'Активні'), 
+    count: activeListings.value.length,
     slot: 'active', 
     icon: 'i-heroicons-check-circle' 
   },
   { 
-    label: `${t('profile.listings.tabs.moderation', 'На модерації')} (${moderationListings.value.length})`, 
+    label: t('profile.listings.tabs.moderation', 'На модерації'), 
+    count: moderationListings.value.length,
     slot: 'moderation', 
     icon: 'i-heroicons-clock' 
   },
   { 
-    label: `${t('profile.listings.tabs.rejected', 'Відхилені')} (${rejectedListings.value.length})`, 
+    label: t('profile.listings.tabs.rejected', 'Відхилені'), 
+    count: rejectedListings.value.length,
     slot: 'rejected', 
-    icon: 'i-heroicons-x-circle' 
+    icon: 'i-heroicons-shield-exclamation' 
   },
   { 
-    label: `${t('profile.listings.tabs.deactivated', 'Неактивні')} (${inactiveListings.value.length})`, 
+    label: t('profile.listings.tabs.deactivated', 'Неактивні'), 
+    count: inactiveListings.value.length,
     slot: 'deactivated', 
-    icon: 'i-heroicons-pause-circle' 
+    icon: 'i-heroicons-pause' 
   },
   { 
-    label: `${t('profile.listings.tabs.sold', 'Продані')} (${soldListings.value.length})`, 
+    label: t('profile.listings.tabs.sold', 'Продані'), 
+    count: soldListings.value.length,
     slot: 'sold', 
-    icon: 'i-heroicons-banknotes' 
+    icon: 'i-heroicons-shopping-bag' 
   }
 ]);
 
@@ -262,11 +267,40 @@ watch(visibility, async (current, previous) => {
             :items="tabItems" 
             class="w-full"
             :ui="{
-              list: 'justify-around w-full',
-              trigger: 'grow flex-col gap-1 py-1',
-              label: 'text-[10px]/3'
+              list: 'relative flex p-1.5 group bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl shadow-xs w-full justify-around',
+              indicator: '!bg-brand-50 dark:!bg-brand-950/40 border border-brand-200/60 dark:border-brand-900/40 rounded-xl shadow-xs',
+              trigger: 'grow flex-col md:flex-row items-center justify-center gap-1 md:gap-2 py-2 px-1 md:py-2.5 md:px-4 rounded-xl text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 data-[state=active]:text-brand-600 dark:data-[state=active]:text-brand-400 font-medium transition-all cursor-pointer relative overflow-hidden after:content-[\'\'] data-[state=active]:after:absolute data-[state=active]:after:bottom-0.5 data-[state=active]:after:left-1/2 data-[state=active]:after:-translate-x-1/2 data-[state=active]:after:w-8 md:data-[state=active]:after:w-12 data-[state=active]:after:h-1 data-[state=active]:after:bg-brand-500 data-[state=active]:after:rounded-full',
+              label: 'text-[10px]/3 sm:text-xs md:text-sm font-semibold'
             }"
           >
+            <!-- Верхній рядок: іконка + бейдж з цифрою (на мобільному) або іконка зліва (на десктопі) -->
+            <template #leading="{ item }">
+              <!-- Мобільний вигляд (як у Figma) -->
+              <div class="flex items-center gap-1 md:hidden">
+                <UIcon :name="item.icon" class="w-4 h-4 shrink-0 transition-colors group-data-[state=active]:text-brand-500" />
+                <span 
+                  class="min-w-[18px] h-4.5 px-1.5 text-[11px] font-bold rounded-full flex items-center justify-center leading-none transition-colors"
+                  :class="[
+                    item.count > 0 
+                      ? 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 group-data-[state=active]:bg-brand-100/90 group-data-[state=active]:text-brand-700 dark:group-data-[state=active]:bg-brand-900/60 dark:group-data-[state=active]:text-brand-300' 
+                      : 'bg-neutral-100/60 text-neutral-400 dark:bg-neutral-800/60 dark:text-neutral-500 group-data-[state=active]:bg-brand-100/60 group-data-[state=active]:text-brand-600'
+                  ]"
+                >
+                  {{ item.count }}
+                </span>
+              </div>
+
+              <!-- Планшет / Десктоп: іконка поруч з назвою -->
+              <UIcon :name="item.icon" class="hidden md:inline-block w-4 h-4 shrink-0 transition-colors group-data-[state=active]:text-brand-500" />
+            </template>
+
+            <!-- Назва статусу (на десктопі додаємо кількість у дужках) -->
+            <template #default="{ item }">
+              <span class="text-[10px] sm:text-xs md:text-sm font-semibold truncate">{{ item.label }}</span>
+              <span class="hidden md:inline-block text-xs md:text-sm font-bold opacity-80 ml-1">
+                ({{ item.count }})
+              </span>
+            </template>
             <template #active>
               <div class="mt-6">
                 <div v-if="activeListings.length === 0" class="text-center py-10 text-gray-500 border border-dashed border-gray-300 rounded-lg">
@@ -294,7 +328,7 @@ watch(visibility, async (current, previous) => {
                 <div v-else>
                   <div class="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-lg flex items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
                     <UIcon name="i-heroicons-clock" class="w-4 h-4 shrink-0 text-amber-500" />
-                    <span>Оголошення перевіряються модератором через незрозуміле фото або сумнів ШІ. Після схвалення вони одразу стануть активними у каталозі.</span>
+                    <span>Оголошення проходять перевірку модератором на відповідність правилам платформи. Після схвалення вони одразу стануть активними у каталозі.</span>
                   </div>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <ProfileListingCard
