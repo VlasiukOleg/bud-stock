@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Product } from '~/types/index';
 import { LISTING_DURATION_DAYS, LISTING_RETENTION_DAYS } from '~/constants/listing';
+import { useClipboard } from '@vueuse/core';
 
 const props = withDefaults(defineProps<{
   product: Product;
@@ -15,6 +16,7 @@ const emit = defineEmits<{
 
 const toast = useToast();
 const router = useRouter();
+const { copy } = useClipboard();
 
 // Форматування ціни
 const formattedPrice = computed(() => {
@@ -100,7 +102,8 @@ const chatsCount = computed(() => {
 // Копіювання посилання
 const copyLink = async () => {
   try {
-    await navigator.clipboard.writeText(`${window.location.origin}/catalog/${props.product.id}`);
+    const url = `${window.location.origin}/catalog/${props.product.id}`;
+    await copy(url);
     toast.add({ title: 'Посилання скопійовано', color: 'success' });
   } catch (e) {
     toast.add({ title: 'Помилка копіювання', color: 'error' });
@@ -222,11 +225,12 @@ const deactivatedStatusDropdown = computed(() => [
         <!-- Ціна та кількість -->
         <div class="flex items-baseline justify-between gap-2 mt-1">
           <span class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
-            {{ formattedPrice }} <span class="text-xs font-normal text-neutral-500">грн</span>
+            {{ formattedPrice }} <span class="text-xs font-normal text-neutral-500 dark:text-neutral-400">грн / {{ product.unit || 'шт' }}</span>
           </span>
-          <span v-if="product.quantity" class="text-xs text-neutral-500 dark:text-neutral-400 font-medium whitespace-nowrap">
-            📦 {{ product.quantity }} {{ product.unit || 'шт' }}
-          </span>
+          <div v-if="product.quantity" class="flex items-center gap-1 text-xs text-neutral-600 dark:text-neutral-400 font-medium whitespace-nowrap">
+            <UIcon name="i-heroicons-cube" class="w-3.5 h-3.5 shrink-0 text-neutral-400 dark:text-neutral-500" />
+            <span>{{ product.quantity }} {{ product.unit || 'шт' }}</span>
+          </div>
         </div>
 
         <!-- Адреса та дата -->
@@ -242,14 +246,14 @@ const deactivatedStatusDropdown = computed(() => [
     </div>
 
     <!-- 2. Контрастна панель показників (Метрики: Перегляди, Чати, Телефон, Обране) -->
-    <div class="bg-neutral-900 dark:bg-neutral-950 text-white rounded-xl py-2.5 px-3 sm:px-4 flex items-center justify-between shadow-xs my-3">
+    <div class="bg-neutral-800 dark:bg-neutral-800/80 border border-neutral-700/50 text-white rounded-xl py-2.5 px-3 sm:px-4 flex items-center justify-between shadow-xs my-3">
       <!-- 1. Перегляди -->
       <div class="flex items-center gap-1.5" title="Кількість переглядів оголошення">
-        <UIcon name="i-heroicons-eye" class="w-4 h-4 text-neutral-400" />
+        <UIcon name="i-heroicons-eye" class="w-4 h-4 text-neutral-300 dark:text-neutral-400" />
         <span class="text-xs sm:text-sm font-bold tracking-tight">{{ product.views || 0 }}</span>
       </div>
 
-      <span class="h-3.5 w-px bg-neutral-700/60"></span>
+      <span class="h-3.5 w-px bg-neutral-600/60"></span>
 
       <!-- 2. Чати -->
       <NuxtLink
@@ -257,23 +261,23 @@ const deactivatedStatusDropdown = computed(() => [
         class="flex items-center gap-1.5 hover:text-brand-400 transition-colors cursor-pointer"
         title="Повідомлення по цьому товару"
       >
-        <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="w-4 h-4 text-neutral-400" />
+        <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="w-4 h-4 text-neutral-300 dark:text-neutral-400" />
         <span class="text-xs sm:text-sm font-bold tracking-tight">{{ chatsCount }}</span>
       </NuxtLink>
 
-      <span class="h-3.5 w-px bg-neutral-700/60"></span>
+      <span class="h-3.5 w-px bg-neutral-600/60"></span>
 
       <!-- 3. Дзвінки / Контакти -->
       <div class="flex items-center gap-1.5" title="Кількість переглядів номера телефону">
-        <UIcon name="i-heroicons-phone" class="w-3.5 h-3.5 text-neutral-400" />
+        <UIcon name="i-heroicons-phone" class="w-3.5 h-3.5 text-neutral-300 dark:text-neutral-400" />
         <span class="text-xs sm:text-sm font-bold tracking-tight">{{ (product as any).phone_views || 0 }}</span>
       </div>
 
-      <span class="h-3.5 w-px bg-neutral-700/60"></span>
+      <span class="h-3.5 w-px bg-neutral-600/60"></span>
 
       <!-- 4. В обраному -->
       <div class="flex items-center gap-1.5" title="Додано в обране">
-        <UIcon name="i-heroicons-heart" class="w-4 h-4 text-neutral-400" />
+        <UIcon name="i-heroicons-heart" class="w-4 h-4 text-neutral-300 dark:text-neutral-400" />
         <span class="text-xs sm:text-sm font-bold tracking-tight">{{ (product as any).favorites_count || 0 }}</span>
       </div>
     </div>

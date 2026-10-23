@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Product } from "~/types/index";
-import { useStorage } from "@vueuse/core";
+import { useStorage, useClipboard } from "@vueuse/core";
 import { getDistance } from "geolib";
 import { LISTING_DURATION_DAYS, LISTING_RETENTION_DAYS } from "~/constants/listing";
 
@@ -117,9 +117,12 @@ const daysUntilPermanentDelete = computed(() => {
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 });
 
+const { copy } = useClipboard();
+
 const copyLink = async () => {
   try {
-    await navigator.clipboard.writeText(`${window.location.origin}/catalog/${props.product.id}`);
+    const url = `${window.location.origin}/catalog/${props.product.id}`;
+    await copy(url);
     toast.add({ title: 'Посилання скопійовано', color: 'success' });
   } catch (e) {
     toast.add({ title: 'Помилка копіювання', color: 'error' });
