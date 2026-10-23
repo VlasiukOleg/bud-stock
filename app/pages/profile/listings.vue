@@ -272,13 +272,11 @@ watch(visibility, async (current, previous) => {
                 <div v-if="activeListings.length === 0" class="text-center py-10 text-gray-500 border border-dashed border-gray-300 rounded-lg">
                   {{ $t('profile.listings.noActive') }}
                 </div>
-                <div v-else class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                  <CommonProductCard
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <ProfileListingCard
                     v-for="listing in activeListings" 
                     :key="listing.id"
                     :product="listing"
-                    :show-delete-button="true"
-                    :show-status-actions="true"
                     @delete="handleDelete"
                     @updateState="handleUpdateState"
                     @renew="handleRenew"
@@ -298,13 +296,11 @@ watch(visibility, async (current, previous) => {
                     <UIcon name="i-heroicons-clock" class="w-4 h-4 shrink-0 text-amber-500" />
                     <span>Оголошення перевіряються модератором через незрозуміле фото або сумнів ШІ. Після схвалення вони одразу стануть активними у каталозі.</span>
                   </div>
-                  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <CommonProductCard
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <ProfileListingCard
                       v-for="listing in moderationListings" 
                       :key="listing.id"
                       :product="listing"
-                      :show-delete-button="true"
-                      :show-status-actions="true"
                       @delete="handleDelete"
                       @updateState="handleUpdateState"
                       @renew="handleRenew"
@@ -325,13 +321,11 @@ watch(visibility, async (current, previous) => {
                     <UIcon name="i-heroicons-x-circle" class="w-4 h-4 shrink-0 text-red-500" />
                     <span>Ці оголошення не пройшли модерацію. Ви можете відредагувати опис, фото чи категорію та подати їх знову. Вони зберігаються {{ LISTING_RETENTION_DAYS }} днів.</span>
                   </div>
-                  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <CommonProductCard
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <ProfileListingCard
                       v-for="listing in rejectedListings" 
                       :key="listing.id"
                       :product="listing"
-                      :show-delete-button="true"
-                      :show-status-actions="true"
                       @delete="handleDelete"
                       @updateState="handleUpdateState"
                       @renew="handleRenew"
@@ -352,13 +346,11 @@ watch(visibility, async (current, previous) => {
                     <UIcon name="i-heroicons-information-circle" class="w-4 h-4 shrink-0 text-amber-500" />
                     <span>Неактивні оголошення зберігаються {{ LISTING_RETENTION_DAYS }} днів (після завершення терміну або деактивації), після чого автоматично видаляються назавжди.</span>
                   </div>
-                  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <CommonProductCard
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <ProfileListingCard
                       v-for="listing in inactiveListings" 
                       :key="listing.id"
                       :product="listing"
-                      :show-delete-button="true"
-                      :show-status-actions="true"
                       @delete="handleDelete"
                       @updateState="handleUpdateState"
                       @renew="handleRenew"
@@ -379,13 +371,11 @@ watch(visibility, async (current, previous) => {
                     <UIcon name="i-heroicons-banknotes" class="w-4 h-4 shrink-0 text-neutral-500" />
                     <span>Продані оголошення зберігаються в історії {{ LISTING_RETENTION_DAYS }} днів, після чого автоматично очищаються.</span>
                   </div>
-                  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                  <CommonProductCard
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <ProfileListingCard
                     v-for="listing in soldListings" 
                     :key="listing.id"
                     :product="listing"
-                    :show-delete-button="true"
-                    :show-status-actions="true"
                     @delete="handleDelete"
                     @updateState="handleUpdateState"
                     @renew="handleRenew"
