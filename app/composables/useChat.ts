@@ -23,7 +23,7 @@ export const useChat = () => {
 
   const unreadCount = computed(() => Object.values(unreadCounts.value).reduce((a, b) => a + b, 0));
 
-  const getUserId = () => user.value?.id || (user.value as any)?.sub;
+  const getUserId = () => (user.value as any)?.sub;
   const { fetchProfile, profilesCache } = useProfile();
 
   // Отримати всі чати юзера
@@ -104,10 +104,19 @@ export const useChat = () => {
       return;
     }
 
-    if (productData && (productData.listing_state === 'sold' || productData.listing_state === 'deactivated' || productData.listing_state === 'deleted')) {
+    if (productData && isListingInactive(productData)) {
+      let desc = t('chat.errors.listingUnavailable', 'Цей товар вже продано або знято з публікації.');
+      if (productData.listing_state === 'moderation') {
+        desc = 'Оголошення знаходиться на модерації. Чат тимчасово недоступний.';
+      } else if (productData.listing_state === 'rejected') {
+        desc = 'Оголошення відхилено модератором. Чат недоступний.';
+      } else if (productData.listing_state === 'sold') {
+        desc = 'Товар уже продано. Чат заблоковано.';
+      }
+
       toast.add({ 
-        title: t('chat.errors.unavailableTitle'), 
-        description: t('chat.errors.listingUnavailable'), 
+        title: t('chat.errors.unavailableTitle', 'Недоступно'), 
+        description: desc, 
         color: 'warning' 
       });
       return;
@@ -162,6 +171,17 @@ export const useChat = () => {
     const userId = getUserId();
     const trimmedContent = content.trim();
     if (!userId || !currentChat.value || !trimmedContent) return;
+
+    const state = currentChat.value?.product?.listing_state;
+    const isExpired = currentChat.value?.product?.expires_at && new Date(currentChat.value.product.expires_at).getTime() <= Date.now();
+    if (state === 'sold' || state === 'deactivated' || state === 'deleted' || state === 'moderation' || state === 'rejected' || isExpired) {
+      toast.add({ 
+        title: t('chat.errors.error', 'Помилка'), 
+        description: 'Чат заблоковано, оскільки оголошення неактуальне.', 
+        color: 'warning' 
+      });
+      return;
+    }
 
     if (trimmedContent.startsWith('[SYSTEM_STATUS]:')) {
       toast.add({ title: t('chat.errors.error'), description: 'Ви не можете відправляти системні команди вручну.', color: 'error' });

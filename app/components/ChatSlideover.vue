@@ -24,22 +24,6 @@
 
         <!-- Повідомлення (Body) -->
         <div ref="messagesContainer" class="flex flex-col gap-4 h-full">
-          <!-- Банер статусу товару -->
-          <div v-if="currentChat?.product?.listing_state === 'sold'" class="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-sm p-3 rounded-lg flex items-start gap-2 border border-amber-200 dark:border-amber-800/50 shrink-0">
-            <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 shrink-0 mt-0.5" />
-            <div>
-              <p class="font-medium mb-0.5">Товар продано</p>
-              <p class="text-xs opacity-80">Це оголошення більше не актуальне, але ви можете продовжувати спілкування.</p>
-            </div>
-          </div>
-          <div v-else-if="currentChat?.product?.listing_state === 'deactivated' || currentChat?.product?.listing_state === 'deleted'" class="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm p-3 rounded-lg flex items-start gap-2 border border-gray-300 dark:border-gray-700 shrink-0">
-            <UIcon name="i-heroicons-information-circle" class="w-5 h-5 shrink-0 mt-0.5" />
-            <div>
-              <p class="font-medium mb-0.5">Оголошення неактуальне</p>
-              <p class="text-xs opacity-80">Цей товар було приховано або видалено власником.</p>
-            </div>
-          </div>
-
           <div v-if="currentMessages.length === 0" class="text-center text-gray-500 m-auto">
             Немає повідомлень. Напишіть першим!
           </div>
@@ -89,8 +73,8 @@
 
         <!-- Поле вводу (Footer) -->
         <template #footer>
-          <div v-if="currentChat?.product?.listing_state === 'sold' || currentChat?.product?.listing_state === 'deactivated' || currentChat?.product?.listing_state === 'deleted'" class="text-center text-sm text-gray-500 py-2">
-            Чат заблоковано, оскільки оголошення неактуальне
+          <div v-if="isChatBlocked" class="text-center text-sm text-gray-500 dark:text-gray-400 py-2">
+            {{ blockedMessage }}
           </div>
           <form v-else @submit.prevent="onSendMessage" class="flex items-center gap-2">
             <UInput
@@ -124,7 +108,24 @@ const user = useSupabaseUser();
 const newMessage = ref('');
 const messagesContainer = ref<HTMLElement | null>(null);
 
-const currentUserId = computed(() => user.value?.id || (user.value as any)?.sub);
+const currentUserId = computed(() => (user.value as any)?.sub);
+
+const isProductExpired = computed(() => {
+  return isListingExpired(currentChat.value?.product);
+});
+
+const isChatBlocked = computed(() => {
+  return isListingInactive(currentChat.value?.product);
+});
+
+const blockedMessage = computed(() => {
+  const state = currentChat.value?.product?.listing_state;
+  if (state === 'moderation') return 'Чат заблоковано, оскільки оголошення на модерації';
+  if (state === 'rejected') return 'Чат заблоковано, оскільки оголошення відхилено';
+  if (state === 'sold') return 'Чат заблоковано, оскільки товар продано';
+  if (isProductExpired.value) return 'Чат заблоковано, оскільки термін дії оголошення закінчився';
+  return 'Чат заблоковано, оскільки оголошення неактуальне';
+});
 
 const scrollToBottom = async () => {
   await nextTick();

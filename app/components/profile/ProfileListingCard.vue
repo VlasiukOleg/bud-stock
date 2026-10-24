@@ -246,39 +246,39 @@ const deactivatedStatusDropdown = computed(() => [
     </div>
 
     <!-- 2. Панель показників (Метрики: Перегляди, Чати, Телефон, Обране) -->
-    <div class="bg-brand-50/80 dark:bg-brand-950/20 border border-brand-100 dark:border-brand-900/30 text-neutral-800 dark:text-neutral-200 rounded-xl py-2.5 px-3 sm:px-4 flex items-center justify-between shadow-xs my-3">
+    <div class="bg-neutral-50/70 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 rounded-xl py-2.5 px-3 sm:px-4 flex items-center justify-between shadow-xs my-3">
       <!-- 1. Перегляди -->
       <div class="flex items-center gap-1.5" title="Кількість переглядів оголошення">
-        <UIcon name="i-heroicons-eye" class="w-4 h-4 text-brand-500 shrink-0" />
-        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-900 dark:text-white">{{ product.views || 0 }}</span>
+        <UIcon name="i-heroicons-eye" class="w-4 h-4 text-neutral-400 dark:text-neutral-500 shrink-0" />
+        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-800 dark:text-neutral-100">{{ product.views || 0 }}</span>
       </div>
 
-      <span class="h-3.5 w-px bg-brand-200/70 dark:bg-brand-800/40"></span>
+      <span class="h-3.5 w-px bg-neutral-200 dark:bg-neutral-700"></span>
 
       <!-- 2. Чати -->
       <NuxtLink
         to="/profile/chats"
-        class="flex items-center gap-1.5 hover:text-brand-600 dark:hover:text-brand-400 transition-colors cursor-pointer group"
+        class="flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer group"
         title="Повідомлення по цьому товару"
       >
-        <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="w-4 h-4 text-brand-500 group-hover:scale-110 transition-transform shrink-0" />
-        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-900 dark:text-white">{{ chatsCount }}</span>
+        <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="w-4 h-4 text-neutral-400 dark:text-neutral-500 group-hover:scale-110 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-all shrink-0" />
+        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-800 dark:text-neutral-100">{{ chatsCount }}</span>
       </NuxtLink>
 
-      <span class="h-3.5 w-px bg-brand-200/70 dark:bg-brand-800/40"></span>
+      <span class="h-3.5 w-px bg-neutral-200 dark:bg-neutral-700"></span>
 
       <!-- 3. Дзвінки / Контакти -->
       <div class="flex items-center gap-1.5" title="Кількість переглядів номера телефону">
-        <UIcon name="i-heroicons-phone" class="w-3.5 h-3.5 text-brand-500 shrink-0" />
-        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-900 dark:text-white">{{ (product as any).phone_views || 0 }}</span>
+        <UIcon name="i-heroicons-phone" class="w-3.5 h-3.5 text-neutral-400 dark:text-neutral-500 shrink-0" />
+        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-800 dark:text-neutral-100">{{ (product as any).phone_views || 0 }}</span>
       </div>
 
-      <span class="h-3.5 w-px bg-brand-200/70 dark:bg-brand-800/40"></span>
+      <span class="h-3.5 w-px bg-neutral-200 dark:bg-neutral-700"></span>
 
       <!-- 4. В обраному -->
       <div class="flex items-center gap-1.5" title="Додано в обране">
-        <UIcon name="i-heroicons-heart" class="w-4 h-4 text-brand-500 shrink-0" />
-        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-900 dark:text-white">{{ (product as any).favorites_count || 0 }}</span>
+        <UIcon name="i-heroicons-heart" class="w-4 h-4 text-neutral-400 dark:text-neutral-500 shrink-0" />
+        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-800 dark:text-neutral-100">{{ (product as any).favorites_count || 0 }}</span>
       </div>
     </div>
 
@@ -287,12 +287,12 @@ const deactivatedStatusDropdown = computed(() => [
       <!-- Відхилені -->
       <UButton
         v-if="isRejected"
-        color="warning"
-        variant="solid"
+        color="neutral"
+        variant="outline"
         icon="i-heroicons-pencil-square"
         block
         size="sm"
-        class="font-semibold shadow-xs justify-center rounded-xl py-2"
+        class="font-semibold shadow-xs justify-center rounded-xl py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200"
         @click="emit('edit', product.id)"
       >
         Виправити та переподати
@@ -301,12 +301,12 @@ const deactivatedStatusDropdown = computed(() => [
       <!-- Закінчився термін -->
       <UButton
         v-else-if="isExpired"
-        color="primary"
-        variant="solid"
+        color="neutral"
+        variant="outline"
         icon="i-heroicons-arrow-path"
         block
         size="sm"
-        class="font-semibold shadow-xs justify-center rounded-xl py-2"
+        class="font-semibold shadow-xs justify-center rounded-xl py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200"
         @click="emit('renew', product.id)"
       >
         Продовжити на {{ LISTING_DURATION_DAYS }} днів
@@ -315,23 +315,23 @@ const deactivatedStatusDropdown = computed(() => [
       <!-- Продано -->
       <UButton
         v-else-if="isSold"
-        color="primary"
-        variant="solid"
+        color="neutral"
+        variant="outline"
         icon="i-heroicons-arrow-path"
         block
         size="sm"
-        class="font-semibold shadow-xs justify-center rounded-xl py-2"
+        class="font-semibold shadow-xs justify-center rounded-xl py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200"
         @click="emit('updateState', product.id, 'active')"
       >
         Повернути у продаж (Активувати)
       </UButton>
 
-      <!-- На модерації (кнопка заблокована / не показуємо або інформативна) -->
+      <!-- На модерації (інформативна нейтральна плашка) -->
       <div
         v-else-if="isModeration"
-        class="py-1.5 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 text-xs text-amber-800 dark:text-amber-200 flex items-center justify-center gap-2"
+        class="py-2 px-3 rounded-xl bg-neutral-50/70 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-800 text-xs text-neutral-600 dark:text-neutral-400 flex items-center justify-center gap-2"
       >
-        <UIcon name="i-heroicons-clock" class="w-4 h-4 text-amber-500 animate-spin" />
+        <UIcon name="i-heroicons-clock" class="w-4 h-4 text-neutral-400 dark:text-neutral-500 animate-spin" />
         <span class="font-medium">Очікує перевірки модератором</span>
       </div>
 

@@ -116,32 +116,27 @@ const tabItems = computed(() => [
   { 
     label: t('profile.listings.tabs.active', 'Активні'), 
     count: activeListings.value.length,
-    slot: 'active', 
-    icon: 'i-heroicons-check-circle' 
+    slot: 'active'
   },
   { 
     label: t('profile.listings.tabs.moderation', 'На модерації'), 
     count: moderationListings.value.length,
-    slot: 'moderation', 
-    icon: 'i-heroicons-clock' 
+    slot: 'moderation'
   },
   { 
     label: t('profile.listings.tabs.rejected', 'Відхилені'), 
     count: rejectedListings.value.length,
-    slot: 'rejected', 
-    icon: 'i-heroicons-shield-exclamation' 
+    slot: 'rejected'
   },
   { 
     label: t('profile.listings.tabs.deactivated', 'Неактивні'), 
     count: inactiveListings.value.length,
-    slot: 'deactivated', 
-    icon: 'i-heroicons-pause' 
+    slot: 'deactivated'
   },
   { 
     label: t('profile.listings.tabs.sold', 'Продані'), 
     count: soldListings.value.length,
-    slot: 'sold', 
-    icon: 'i-heroicons-shopping-bag' 
+    slot: 'sold'
   }
 ]);
 
@@ -269,34 +264,27 @@ watch(visibility, async (current, previous) => {
             :ui="{
               list: 'relative flex p-1.5 group bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl shadow-xs w-full justify-around',
               indicator: '!bg-brand-50 dark:!bg-brand-950/40 border border-brand-200/60 dark:border-brand-900/40 rounded-xl shadow-xs',
-              trigger: 'grow flex-col md:flex-row items-center justify-center gap-1 md:gap-2 py-2 px-1 md:py-2.5 md:px-4 rounded-xl text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 data-[state=active]:text-brand-600 dark:data-[state=active]:text-brand-400 font-medium transition-all cursor-pointer relative overflow-hidden after:content-[\'\'] data-[state=active]:after:absolute data-[state=active]:after:bottom-0.5 data-[state=active]:after:left-1/2 data-[state=active]:after:-translate-x-1/2 data-[state=active]:after:w-8 md:data-[state=active]:after:w-12 data-[state=active]:after:h-1 data-[state=active]:after:bg-brand-500 data-[state=active]:after:rounded-full',
-              label: 'text-[10px]/3 sm:text-xs md:text-sm font-semibold'
+              trigger: 'grow flex-col md:flex-row items-center justify-center gap-1 md:gap-2 py-2 px-1 md:py-2.5 md:px-4 rounded-xl text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white data-[state=active]:text-brand-600 dark:data-[state=active]:text-brand-400 font-semibold transition-all cursor-pointer relative overflow-hidden after:content-[\'\'] data-[state=active]:after:absolute data-[state=active]:after:bottom-0.5 data-[state=active]:after:left-1/2 data-[state=active]:after:-translate-x-1/2 data-[state=active]:after:w-8 md:data-[state=active]:after:w-12 data-[state=active]:after:h-1 data-[state=active]:after:bg-brand-500 data-[state=active]:after:rounded-full',
+              label: 'text-xs md:text-sm font-semibold'
             }"
           >
-            <!-- Верхній рядок: іконка + бейдж з цифрою (на мобільному) або іконка зліва (на десктопі) -->
+            <!-- Верхній рядок: бейдж з цифрою (на мобільному) -->
             <template #leading="{ item }">
-              <!-- Мобільний вигляд (як у Figma) -->
-              <div class="flex items-center gap-1 md:hidden">
-                <UIcon :name="item.icon" class="w-4 h-4 shrink-0 transition-colors group-data-[state=active]:text-brand-500" />
-                <span 
-                  class="min-w-[18px] h-4.5 px-1.5 text-[11px] font-bold rounded-full flex items-center justify-center leading-none transition-colors"
-                  :class="[
-                    item.count > 0 
-                      ? 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 group-data-[state=active]:bg-brand-100/90 group-data-[state=active]:text-brand-700 dark:group-data-[state=active]:bg-brand-900/60 dark:group-data-[state=active]:text-brand-300' 
-                      : 'bg-neutral-100/60 text-neutral-400 dark:bg-neutral-800/60 dark:text-neutral-500 group-data-[state=active]:bg-brand-100/60 group-data-[state=active]:text-brand-600'
-                  ]"
-                >
-                  {{ item.count }}
-                </span>
-              </div>
-
-              <!-- Планшет / Десктоп: іконка поруч з назвою -->
-              <UIcon :name="item.icon" class="hidden md:inline-block w-4 h-4 shrink-0 transition-colors group-data-[state=active]:text-brand-500" />
+              <span 
+                class="md:hidden min-w-[20px] h-4.5 px-1.5 text-[11px] font-bold rounded-full flex items-center justify-center leading-none transition-colors"
+                :class="[
+                  item.count > 0 
+                    ? 'bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200 group-data-[state=active]:bg-brand-100/90 group-data-[state=active]:text-brand-700 dark:group-data-[state=active]:bg-brand-900/60 dark:group-data-[state=active]:text-brand-300' 
+                    : 'bg-neutral-100/80 text-neutral-500 dark:bg-neutral-800/80 dark:text-neutral-400 group-data-[state=active]:bg-brand-100/60 group-data-[state=active]:text-brand-600'
+                ]"
+              >
+                {{ item.count }}
+              </span>
             </template>
 
             <!-- Назва статусу (на десктопі додаємо кількість у дужках) -->
             <template #default="{ item }">
-              <span class="text-[10px] sm:text-xs md:text-sm font-semibold truncate">{{ item.label }}</span>
+              <span class="text-xs md:text-sm font-semibold truncate">{{ item.label }}</span>
               <span class="hidden md:inline-block text-xs md:text-sm font-bold opacity-80 ml-1">
                 ({{ item.count }})
               </span>
@@ -326,9 +314,15 @@ watch(visibility, async (current, previous) => {
                   {{ $t('profile.listings.noModeration', 'Немає оголошень на модерації') }}
                 </div>
                 <div v-else>
-                  <div class="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-lg flex items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
-                    <UIcon name="i-heroicons-clock" class="w-4 h-4 shrink-0 text-amber-500" />
-                    <span>Оголошення проходять перевірку модератором на відповідність правилам платформи. Після схвалення вони одразу стануть активними у каталозі.</span>
+                  <!-- Банер статусу у спокійному стилі Figma -->
+                  <div class="mb-6 p-4 sm:p-5 bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl flex items-center gap-3.5 sm:gap-4 shadow-xs">
+                    <div class="w-11 h-11 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+                      <UIcon name="i-heroicons-clock" class="w-6 h-6 text-neutral-700 dark:text-neutral-300" />
+                    </div>
+                    <div>
+                      <h3 class="text-sm sm:text-base font-bold text-neutral-900 dark:text-white leading-snug">На модерації</h3>
+                      <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed">Перевіряємо оголошення. Після схвалення воно стане активним.</p>
+                    </div>
                   </div>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <ProfileListingCard
@@ -351,9 +345,15 @@ watch(visibility, async (current, previous) => {
                   {{ $t('profile.listings.noRejected', 'Немає відхилених оголошень') }}
                 </div>
                 <div v-else>
-                  <div class="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 rounded-lg flex items-center gap-2 text-xs text-red-800 dark:text-red-200">
-                    <UIcon name="i-heroicons-x-circle" class="w-4 h-4 shrink-0 text-red-500" />
-                    <span>Ці оголошення не пройшли модерацію. Ви можете відредагувати опис, фото чи категорію та подати їх знову. Вони зберігаються {{ LISTING_RETENTION_DAYS }} днів.</span>
+                  <!-- Банер статусу у спокійному стилі Figma -->
+                  <div class="mb-6 p-4 sm:p-5 bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl flex items-center gap-3.5 sm:gap-4 shadow-xs">
+                    <div class="w-11 h-11 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+                      <UIcon name="i-heroicons-shield-exclamation" class="w-6 h-6 text-neutral-700 dark:text-neutral-300" />
+                    </div>
+                    <div>
+                      <h3 class="text-sm sm:text-base font-bold text-neutral-900 dark:text-white leading-snug">Відхилені</h3>
+                      <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed">Ці оголошення потребують змін перед повторною публікацією.</p>
+                    </div>
                   </div>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <ProfileListingCard
@@ -376,9 +376,15 @@ watch(visibility, async (current, previous) => {
                   {{ $t('profile.listings.noDeactivated', 'Немає неактивних оголошень') }}
                 </div>
                 <div v-else>
-                  <div class="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-lg flex items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
-                    <UIcon name="i-heroicons-information-circle" class="w-4 h-4 shrink-0 text-amber-500" />
-                    <span>Неактивні оголошення зберігаються {{ LISTING_RETENTION_DAYS }} днів (після завершення терміну або деактивації), після чого автоматично видаляються назавжди.</span>
+                  <!-- Банер статусу у спокійному стилі Figma -->
+                  <div class="mb-6 p-4 sm:p-5 bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl flex items-center gap-3.5 sm:gap-4 shadow-xs">
+                    <div class="w-11 h-11 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+                      <UIcon name="i-heroicons-pause" class="w-6 h-6 text-neutral-700 dark:text-neutral-300" />
+                    </div>
+                    <div>
+                      <h3 class="text-sm sm:text-base font-bold text-neutral-900 dark:text-white leading-snug">Неактивні</h3>
+                      <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed">Оголошення приховані від покупців. Їх можна активувати знову.</p>
+                    </div>
                   </div>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <ProfileListingCard
@@ -401,9 +407,15 @@ watch(visibility, async (current, previous) => {
                   {{ $t('profile.listings.noSold') }}
                 </div>
                 <div v-else>
-                  <div class="mb-4 p-3 bg-neutral-100 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700/60 rounded-lg flex items-center gap-2 text-xs text-neutral-700 dark:text-neutral-300">
-                    <UIcon name="i-heroicons-banknotes" class="w-4 h-4 shrink-0 text-neutral-500" />
-                    <span>Продані оголошення зберігаються в історії {{ LISTING_RETENTION_DAYS }} днів, після чого автоматично очищаються.</span>
+                  <!-- Банер статусу у спокійному стилі Figma -->
+                  <div class="mb-6 p-4 sm:p-5 bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl flex items-center gap-3.5 sm:gap-4 shadow-xs">
+                    <div class="w-11 h-11 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+                      <UIcon name="i-heroicons-shopping-bag" class="w-6 h-6 text-neutral-700 dark:text-neutral-300" />
+                    </div>
+                    <div>
+                      <h3 class="text-sm sm:text-base font-bold text-neutral-900 dark:text-white leading-snug">Продані</h3>
+                      <p class="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed">Ваші завершені продажі зберігаються тут.</p>
+                    </div>
                   </div>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <ProfileListingCard
