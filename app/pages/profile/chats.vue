@@ -157,22 +157,24 @@ const openMyChat = async (chat: any) => {
                   <!-- Верхній блок: Фото + Заголовок + Дата + Шеврон -->
                   <div class="p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4">
                     <!-- Прев'ю фото товару -->
-                    <div class="relative w-12 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/60 dark:border-neutral-700/60 flex items-center justify-center shrink-0 overflow-hidden">
-                      <img
-                        v-if="chat.product?.images && chat.product.images.length > 0"
-                        :src="chat.product.images[0]"
-                        :alt="chat.product?.title || ''"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <UIcon
-                        v-else
-                        name="i-heroicons-photo"
-                        class="w-6 h-6 text-neutral-400 dark:text-neutral-500"
-                      />
+                    <div class="relative w-12 h-12 shrink-0">
+                      <div class="w-full h-full rounded-xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/60 dark:border-neutral-700/60 flex items-center justify-center overflow-hidden">
+                        <img
+                          v-if="chat.product?.images && chat.product.images.length > 0"
+                          :src="chat.product.images[0]"
+                          :alt="chat.product?.title || ''"
+                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <UIcon
+                          v-else
+                          name="i-heroicons-photo"
+                          class="w-6 h-6 text-neutral-400 dark:text-neutral-500"
+                        />
+                      </div>
                       <!-- Бейдж непрочитаних повідомлень -->
                       <span
                         v-if="unreadCounts[chat.id]"
-                        class="absolute -top-1 -right-1 flex items-center justify-center min-w-4 h-4 px-1 bg-red-500 text-white text-[9px] font-bold rounded-full border-2 border-white dark:border-neutral-900 shadow-xs"
+                        class="absolute -top-1.5 -right-1.5 z-10 flex items-center justify-center min-w-[20px] h-5 px-1 bg-red-500 text-white text-[11px] font-bold rounded-full border-2 border-white dark:border-neutral-900 shadow-xs leading-none"
                       >
                         {{ unreadCounts[chat.id] }}
                       </span>
@@ -252,22 +254,24 @@ const openMyChat = async (chat: any) => {
                   <!-- Верхній блок: Фото + Заголовок + Дата + Шеврон -->
                   <div class="p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4">
                     <!-- Прев'ю фото товару -->
-                    <div class="relative w-12 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/60 dark:border-neutral-700/60 flex items-center justify-center shrink-0 overflow-hidden">
-                      <img
-                        v-if="chat.product?.images && chat.product.images.length > 0"
-                        :src="chat.product.images[0]"
-                        :alt="chat.product?.title || ''"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <UIcon
-                        v-else
-                        name="i-heroicons-photo"
-                        class="w-6 h-6 text-neutral-400 dark:text-neutral-500"
-                      />
+                    <div class="relative w-12 h-12 shrink-0">
+                      <div class="w-full h-full rounded-xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/60 dark:border-neutral-700/60 flex items-center justify-center overflow-hidden">
+                        <img
+                          v-if="chat.product?.images && chat.product.images.length > 0"
+                          :src="chat.product.images[0]"
+                          :alt="chat.product?.title || ''"
+                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <UIcon
+                          v-else
+                          name="i-heroicons-photo"
+                          class="w-6 h-6 text-neutral-400 dark:text-neutral-500"
+                        />
+                      </div>
                       <!-- Бейдж непрочитаних повідомлень -->
                       <span
                         v-if="unreadCounts[chat.id]"
-                        class="absolute -top-1 -right-1 flex items-center justify-center min-w-4 h-4 px-1 bg-red-500 text-white text-[9px] font-bold rounded-full border-2 border-white dark:border-neutral-900 shadow-xs"
+                        class="absolute -top-1.5 -right-1.5 z-10 flex items-center justify-center min-w-[20px] h-5 px-1 bg-red-500 text-white text-[11px] font-bold rounded-full border-2 border-white dark:border-neutral-900 shadow-xs leading-none"
                       >
                         {{ unreadCounts[chat.id] }}
                       </span>

@@ -50,10 +50,10 @@
               <div class="flex flex-col gap-1 max-w-full">
                 <div 
                   :class="[
-                    'p-3 rounded-2xl text-sm',
+                    'p-3 rounded-2xl text-sm leading-relaxed',
                     msg.sender_id === currentUserId 
-                      ? 'bg-primary-500 text-white rounded-tr-sm' 
-                      : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-tl-sm shadow-sm'
+                      ? 'bg-brand-100 dark:bg-brand-950/70 border border-brand-200/80 dark:border-brand-900/60 text-neutral-900 dark:text-neutral-100 rounded-tr-sm shadow-xs' 
+                      : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-neutral-900 dark:text-neutral-100 rounded-tl-sm shadow-sm'
                   ]"
                 >
                   {{ msg.content }}
