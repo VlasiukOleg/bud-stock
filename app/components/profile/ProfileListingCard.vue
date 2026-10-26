@@ -351,7 +351,7 @@ const deactivatedStatusDropdown = computed(() => [
     </div>
 
     <!-- 4. Нижня смуга: Статус ліворуч та Термін розміщення праворуч -->
-    <div class="flex items-center justify-between pt-2.5 border-t border-neutral-100 dark:border-neutral-800 min-h-[42px]">
+    <div class="flex items-center justify-between pt-2.5 border-t border-neutral-100 dark:border-neutral-800 min-h-10.5">
       <!-- Ліворуч: Статус товару -->
       <div class="flex items-center">
         <!-- Активне (з дропдауном дій) -->

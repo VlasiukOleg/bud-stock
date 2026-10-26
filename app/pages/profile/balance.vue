@@ -88,7 +88,7 @@ const handleReplenish = async () => {
               >
                 {{ $t('balance.getFreeStocks') }}
               </UButton>
-              <span class="text-xs text-gray-500 text-center max-w-[200px]">
+              <span class="text-xs text-gray-500 text-center max-w-50">
                 {{ $t('balance.replenishNote') }}
               </span>
             </div>

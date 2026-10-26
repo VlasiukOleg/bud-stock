@@ -35,7 +35,7 @@ watch(user, (newUser) => {
   if (newUser && !isSavingProfile.value) {
     profileForm.name = newUser.user_metadata?.full_name || ''
     profileForm.phone = newUser.user_metadata?.phone || ''
-    profileForm.avatar_url = newUser.user_metadata?.avatar_url || ''
+    profileForm.avatar_url = getUserAvatarUrl(newUser) || ''
     profileForm.phone_visibility = newUser.user_metadata?.phone_visibility || 'hidden'
   }
 }, { immediate: true })
@@ -97,11 +97,12 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
   isSavingProfile.value = true
   try {
     let finalAvatarUrl = profileForm.avatar_url
+    const userId = (user.value as any)?.sub
+    if (!userId) throw new Error('Користувач не авторизований')
 
     if (avatarFile.value) {
       const fileExt = avatarFile.value.name.split('.').pop()
       const fileName = `${Date.now()}.${fileExt}`
-      const userId = user.value?.id || user.value?.sub || 'unknown'
       const filePath = `${userId}/${fileName}`
 
       const { error: uploadError } = await client.storage
@@ -115,7 +116,21 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
       profileForm.avatar_url = finalAvatarUrl
     }
 
-    const { data: updateData, error } = await client.auth.updateUser({
+    // 1. Оновлюємо захищену таблицю profiles
+    const { error: profileError } = await client
+      .from('profiles')
+      .update({
+        full_name: profileForm.name,
+        avatar_url: finalAvatarUrl,
+        phone_visibility: profileForm.phone_visibility,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+
+    if (profileError) throw profileError
+
+    // 2. Оновлюємо метадані поточної сесії юзера
+    const { data: updateData, error: authError } = await client.auth.updateUser({
       data: { 
         full_name: profileForm.name,
         phone: '+' + profileForm.phone.replace(/\D/g, ''),
@@ -124,7 +139,7 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
       }
     })
     
-    if (error) throw error
+    if (authError) throw authError
 
     // Оновлюємо сесію, щоб Nuxt Supabase зберіг нові дані в куки
     await client.auth.refreshSession()

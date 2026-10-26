@@ -241,7 +241,7 @@ const actionItems = computed(() => {
       :to="`/catalog/${product.id}`"
       :id="`product-${product.id}`"
       class="flex flex-col flex-1"
-      :class="{ 'opacity-60 grayscale-[30%]': isSold || isDeactivated || isExpired || isRejected }"
+      :class="{ 'opacity-60 grayscale-30': isSold || isDeactivated || isExpired || isRejected }"
     >
       <div
         class="aspect-4/3 overflow-hidden bg-transparent relative"
@@ -352,7 +352,7 @@ const actionItems = computed(() => {
         <div class="flex flex-wrap items-end justify-between gap-2 mb-2 mt-1">
           <div class="flex items-center gap-1 text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
             <UIcon name="i-heroicons-cube" class="w-4 h-4 shrink-0 text-neutral-400" />
-            <span class="font-medium truncate max-w-[80px] sm:max-w-[100px]">{{ product.quantity }} {{ product.unit }}</span>
+            <span class="font-medium truncate max-w-20 sm:max-w-25">{{ product.quantity }} {{ product.unit }}</span>
           </div>
           <div class="flex items-baseline gap-1 text-right">
             <span

@@ -67,7 +67,7 @@ const menuItems = computed(() => {
   return items
 })
 
-const avatarUrl = computed(() => user.value?.user_metadata?.avatar_url)
+const avatarUrl = computed(() => getUserAvatarUrl(user.value))
 const userName = computed(() => user.value?.user_metadata?.full_name || t('userSlideover.defaultUser'))
 const userEmail = computed(() => user.value?.email)
 

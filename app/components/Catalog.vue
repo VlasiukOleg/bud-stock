@@ -88,7 +88,7 @@
           class="flex items-start gap-2 mb-3 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800/60 p-2.5 px-3 rounded-xl"
         >
           <UIcon :name="activeCategoryInfo.icon" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0 mt-0.5" />
-          <span class="text-xs font-semibold text-brand-900 dark:text-brand-100 flex-1 break-words leading-snug">
+          <span class="text-xs font-semibold text-brand-900 dark:text-brand-100 flex-1 wrap-break-word leading-snug">
             {{ activeCategoryInfo.name }}
           </span>
           <UButton
@@ -358,7 +358,7 @@
             class="flex items-start gap-2 mb-3 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800/60 p-2 px-3 rounded-xl mx-1"
           >
             <UIcon :name="activeCategoryInfo.icon" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0 mt-0.5" />
-            <span class="text-xs font-semibold text-brand-900 dark:text-brand-100 flex-1 break-words leading-snug">
+            <span class="text-xs font-semibold text-brand-900 dark:text-brand-100 flex-1 wrap-break-word leading-snug">
               {{ activeCategoryInfo.name }}
             </span>
             <UButton
@@ -393,7 +393,7 @@
           <div
             class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10 scroll-smooth"
           >
-            <div v-if="isLoadingBackendListings" class="col-span-full py-12 flex flex-col items-center justify-center gap-2 min-h-[200px]">
+            <div v-if="isLoadingBackendListings" class="col-span-full py-12 flex flex-col items-center justify-center gap-2 min-h-50">
               <UIcon name="i-heroicons-arrow-path" class="w-7 h-7 text-primary animate-spin" />
               <p class="text-xs text-neutral-500 font-medium">Пошук товарів...</p>
             </div>

@@ -519,7 +519,7 @@ const { data: product, pending } = useAsyncData(
         lng: listingData.longitude || 30.52 
       }, 
       sellerName: getUserDisplayName(profileData),
-      sellerAvatar: profileData?.avatar_url || null,
+      sellerAvatar: getUserAvatarUrl(profileData) || null,
       phoneVisibility,
       category: getCategoryName(listingData.category_id)
     };

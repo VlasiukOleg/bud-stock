@@ -81,7 +81,7 @@ const isProfileRouteActive = computed(() => {
         >
           <CommonUserAvatar
             :uiClass="{ 'ring-2 ring-brand-500': isProfileRouteActive }"
-            :src="user.user_metadata?.avatar_url"
+            :src="getUserAvatarUrl(user)"
             :name="user.user_metadata?.full_name"
             :email="user.email"
             size="sm"

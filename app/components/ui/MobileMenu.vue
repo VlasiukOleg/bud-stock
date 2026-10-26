@@ -14,7 +14,7 @@
     >
       <template #icon v-if="item.to === '/profile' && user">
         <CommonUserAvatar
-          :src="user.user_metadata?.avatar_url"
+          :src="getUserAvatarUrl(user)"
           :name="user.user_metadata?.full_name"
           :email="user.email"
           size="sm"

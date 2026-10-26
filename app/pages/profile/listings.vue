@@ -271,7 +271,7 @@ watch(visibility, async (current, previous) => {
             <!-- Верхній рядок: бейдж з цифрою (на мобільному) -->
             <template #leading="{ item }">
               <span 
-                class="md:hidden min-w-[20px] h-4.5 px-1.5 text-[11px] font-bold rounded-full flex items-center justify-center leading-none transition-colors"
+                class="md:hidden min-w-5 h-4.5 px-1.5 text-[11px] font-bold rounded-full flex items-center justify-center leading-none transition-colors"
                 :class="[
                   item.count > 0 
                     ? 'bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200 group-data-[state=active]:bg-brand-100/90 group-data-[state=active]:text-brand-700 dark:group-data-[state=active]:bg-brand-900/60 dark:group-data-[state=active]:text-brand-300' 

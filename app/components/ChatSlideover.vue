@@ -38,7 +38,7 @@
             >
               <!-- Аватарка -->
               <CommonUserAvatar
-                :src="msg.sender_id === currentUserId ? user?.user_metadata?.avatar_url : chatUserProfiles[msg.sender_id]?.avatar_url"
+                :src="msg.sender_id === currentUserId ? getUserAvatarUrl(user) : getUserAvatarUrl(chatUserProfiles[msg.sender_id])"
                 :name="(msg.sender_id === currentUserId ? user?.user_metadata?.full_name : chatUserProfiles[msg.sender_id]?.full_name)"
                 size="sm"
                 class="shrink-0"
