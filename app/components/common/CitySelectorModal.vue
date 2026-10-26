@@ -78,7 +78,6 @@ const handleExactLocation = () => {
           size="lg"
           class="w-full"
           :loading="isSearching"
-          autofocus
         />
 
         <!-- Результати пошуку -->

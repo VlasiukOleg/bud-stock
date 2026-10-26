@@ -73,12 +73,25 @@
         <!-- Банери статусів для автора при неактивному товарі -->
         <div v-if="isInactive" class="mb-6 space-y-3">
           <!-- На модерації -->
-          <div v-if="isModeration" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 flex items-center gap-3 text-amber-800 dark:text-amber-200">
-            <UIcon name="i-heroicons-clock" class="w-6 h-6 text-amber-500 shrink-0" />
-            <div>
-              <h4 class="font-bold text-sm">Оголошення на ручній модерації</h4>
-              <p class="text-xs text-amber-700 dark:text-amber-300">Оголошення приховане з публічного пошуку та очікує перевірки адміністратором.</p>
+          <div v-if="isModeration" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-800 dark:text-amber-200">
+            <div class="flex items-center gap-3">
+              <UIcon name="i-heroicons-clock" class="w-6 h-6 text-amber-500 shrink-0" />
+              <div>
+                <h4 class="font-bold text-sm">Оголошення на ручній модерації</h4>
+                <p class="text-xs text-amber-700 dark:text-amber-300">Оголошення приховане з публічного пошуку та очікує перевірки адміністратором.</p>
+              </div>
             </div>
+            <UButton
+              v-if="isAdmin"
+              to="/admin/moderation"
+              color="warning"
+              variant="soft"
+              size="sm"
+              icon="i-heroicons-shield-check"
+              class="self-start sm:self-auto shrink-0 font-medium"
+            >
+              До модерації
+            </UButton>
           </div>
 
           <!-- Відхилено -->
@@ -481,6 +494,7 @@ const showPhone = ref(false);
 const isReportModalOpen = ref(false);
 
 const currentUser = useSupabaseUser();
+const { isAdmin } = useAdmin();
 const { openChat } = useChat();
 const { fetchProfile } = useProfile();
 const { getListingById } = useListings();
@@ -567,7 +581,7 @@ const deliveryDetailsText = computed(() => {
 
 const isUserOwnerProduct = computed(() => {
   if (!product.value || !currentUser.value) return false;
-  const currentUserId = (currentUser.value as any)?.sub;
+  const currentUserId = (currentUser.value as any)?.sub || (currentUser.value as any)?.id;
   return currentUserId === product.value.user_id;
 });
 
@@ -589,8 +603,8 @@ const canViewFullDetails = computed(() => {
   if (!product.value) return false;
   // Якщо оголошення активне — бачать усі
   if (!isInactive.value) return true;
-  // Якщо неактивне/продане/приховане — бачить виключно автор оголошення
-  return isUserOwnerProduct.value;
+  // Автор оголошення або адміністратор мають повний доступ до деталей
+  return isUserOwnerProduct.value || isAdmin.value;
 });
 
 // Реактивно обчислюємо видимість телефону, щоб вона миттєво реагувала на вхід/вихід з акаунту
@@ -601,8 +615,8 @@ const canSeePhone = computed(() => {
   const visibility = product.value.phoneVisibility;
   
   return isUserOwnerProduct.value
-    || visibility === 'everyone'
-    || (visibility === 'registered' && isLoggedIn);
+    || isAdmin.value
+    || (!isInactive.value && (visibility === 'everyone' || (visibility === 'registered' && isLoggedIn)));
 });
 
 const sellerPhone = ref<string | null>(null);
@@ -659,9 +673,9 @@ const viewedListings = useSessionStorage<string[]>('viewed_listings', []);
 watch(product, async (newProduct) => {
   if (!newProduct) return;
   
-  // Правило 1: Свої перегляди не рахуємо
-  const currentUserId = (currentUser.value as any)?.sub;
-  if (currentUserId === newProduct.user_id) return;
+  // Правило 1: Свої перегляди та перегляди адміна не рахуємо
+  const currentUserId = (currentUser.value as any)?.sub || (currentUser.value as any)?.id;
+  if (currentUserId === newProduct.user_id || isAdmin.value) return;
 
   // Правило 2: Для неактивних оголошень перегляди не рахуємо
   if (isInactive.value) return;

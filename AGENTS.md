@@ -32,9 +32,9 @@
 
 ## 4. Product Details Page Access (`/catalog/[id]`)
 * If a listing is inactive (`sold`, `deactivated`, `expired`, `moderation`, `rejected`):
-  * **Only the author** (`(currentUser.value as any)?.sub === product.user_id`) can view full product details and management status banners.
-  * **All other visitors** (guests, other users, admins via public catalog URL) see a clean stub ("Оголошення більше не актуальне" or "Товар уже продано") with zero pictures, description, phone numbers, or map.
-* **Views Count**: Never increment views (`incrementViews`) for inactive listings.
+  * **The author and admins** (`isUserOwnerProduct || isAdmin`) can view full product details and management status banners (allowing admins to review listings from the `/admin/moderation` queue via "Повний перегляд").
+  * **All other visitors** (guests and other regular users) see a clean stub ("Оголошення більше не актуальне" or "Товар уже продано") with zero pictures, description, phone numbers, or map.
+* **Views Count**: Never increment views (`incrementViews`) for inactive listings or admin reviews.
 
 ---
 
