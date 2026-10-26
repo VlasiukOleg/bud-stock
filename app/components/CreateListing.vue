@@ -852,13 +852,16 @@ const handleInitialUpload = async (event: FormSubmitEvent<any>) => {
 
   isLoading.value = true;
   step1Error.value = "";
-  formData.images = [file];
   activeStep.value = 1;
 
-  const body = new FormData();
-  body.append("image", file);
-
   try {
+    // Стискаємо фото перед відправкою (до 1920px, 0.85 WebP) — миттєво долає ліміт Vercel 4.5MB
+    const optimizedFile = await compressImageToWebP(file, 1920, 0.85);
+    formData.images = [optimizedFile];
+
+    const body = new FormData();
+    body.append("image", optimizedFile);
+
     const response = await $fetch<any>("/api/analyze", {
       method: "POST",
       body,
@@ -927,7 +930,8 @@ const handleNewImage = async (file: File | null | undefined) => {
 
   try {
     await fileSchema.validate(file);
-    formData.images.push(file);
+    const optimizedFile = await compressImageToWebP(file, 1920, 0.85);
+    formData.images.push(optimizedFile);
     tempFile.value = undefined;
   } catch (e: any) {
     tempError.value = e.message;
@@ -966,10 +970,12 @@ const fillFromPhoto = async () => {
   if (!file) return;
 
   isAnalyzingFromPhoto.value = true;
-  const body = new FormData();
-  body.append("image", file);
 
   try {
+    const optimizedFile = await compressImageToWebP(file, 1920, 0.85);
+    const body = new FormData();
+    body.append("image", optimizedFile);
+
     const response = await $fetch<any>("/api/analyze", {
       method: "POST",
       body,
@@ -1157,16 +1163,19 @@ const onFinalSubmit = async (event: FormSubmitEvent<any>) => {
   try {
     const uploadedImageUrls: string[] = [];
 
-    // Завантажуємо фотографії
+    // Завантажуємо фотографії (оптимізовані WebP)
     for (const file of formData.images) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const optimizedFile = await compressImageToWebP(file, 1920, 0.85);
+      const fileName = `${Math.random().toString(36).substring(2, 15)}.webp`;
       const userId = (user.value as any)?.sub || 'unknown';
       const filePath = `${userId}/${fileName}`;
 
       const { data, error } = await supabase.storage
         .from('listing_images')
-        .upload(filePath, file);
+        .upload(filePath, optimizedFile, {
+          contentType: 'image/webp',
+          cacheControl: '3600',
+        });
 
       if (error) throw error;
 

@@ -101,13 +101,17 @@ const saveProfile = async (event?: FormSubmitEvent<any>) => {
     if (!userId) throw new Error('Користувач не авторизований')
 
     if (avatarFile.value) {
-      const fileExt = avatarFile.value.name.split('.').pop()
-      const fileName = `${Date.now()}.${fileExt}`
+      const optimizedAvatar = await compressImageToWebP(avatarFile.value, 800, 0.85)
+      const fileName = `${Date.now()}.webp`
       const filePath = `${userId}/${fileName}`
 
       const { error: uploadError } = await client.storage
         .from('avatars')
-        .upload(filePath, avatarFile.value, { upsert: true })
+        .upload(filePath, optimizedAvatar, { 
+          upsert: true,
+          contentType: 'image/webp',
+          cacheControl: '3600'
+        })
 
       if (uploadError) throw uploadError
 

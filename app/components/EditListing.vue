@@ -541,11 +541,14 @@ const onSubmit = async () => {
   try {
     const uploadedNewUrls: string[] = [];
     for (const file of formData.newImages) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = Math.random().toString(36).substring(2, 15) + '.' + fileExt;
+      const optimizedFile = await compressImageToWebP(file, 1920, 0.85);
+      const fileName = `${Math.random().toString(36).substring(2, 15)}.webp`;
       const userId = (user.value as any)?.sub || 'unknown';
-      const filePath = userId + '/' + fileName;
-      const { error } = await supabase.storage.from('listing_images').upload(filePath, file);
+      const filePath = `${userId}/${fileName}`;
+      const { error } = await supabase.storage.from('listing_images').upload(filePath, optimizedFile, {
+        contentType: 'image/webp',
+        cacheControl: '3600',
+      });
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from('listing_images').getPublicUrl(filePath);
       uploadedNewUrls.push(publicUrl);
