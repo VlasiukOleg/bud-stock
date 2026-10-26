@@ -390,6 +390,8 @@
     }
   },
   "chat": {
+    "today": "Сегодня",
+    "yesterday": "Вчера",
     "errors": {
       "notLoggedIn": "Необходимо войти в систему",
       "unavailableTitle": "Недоступно",

@@ -15,7 +15,7 @@
             <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
               Чат
               <span v-if="currentChat?.product" class="text-sm font-normal text-gray-500 ml-2">
-                (Товар: {{ currentChat.product.title }})
+                (Оголошення: {{ currentChat.product.title }})
               </span>
             </h3>
             <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="() => {isSlideoverOpen = false}" />
@@ -24,13 +24,22 @@
 
         <!-- Повідомлення (Body) -->
         <div ref="messagesContainer" class="flex flex-col gap-4 h-full">
-          <div v-if="currentMessages.length === 0" class="text-center text-gray-500 m-auto">
+          <div v-if="visibleMessages.length === 0" class="text-center text-gray-500 m-auto">
             Немає повідомлень. Напишіть першим!
           </div>
           
-          <template v-for="msg in currentMessages" :key="msg.id">
+          <template v-for="(msg, index) in visibleMessages" :key="msg.id">
+            <!-- Розділювач днів -->
+            <div 
+              v-if="shouldShowDateDivider(index)" 
+              class="flex items-center justify-center my-1"
+            >
+              <span class="px-3 py-1 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/60 dark:border-neutral-700/60 rounded-full shadow-2xs select-none">
+                {{ formatDateDivider(msg.created_at) }}
+              </span>
+            </div>
+
             <div
-              v-if="!msg.content.startsWith('[SYSTEM_STATUS]:')"
               :class="[
                 'flex gap-3 max-w-[85%]',
                 msg.sender_id === currentUserId ? 'ml-auto flex-row-reverse' : ''
@@ -45,7 +54,6 @@
                 :uiClass="{ 'bg-primary-100 dark:bg-primary-900': msg.sender_id === currentUserId, 'bg-gray-100 dark:bg-gray-800': msg.sender_id !== currentUserId }"
               />
               
-              <!-- Бульбашка повідомлення -->
               <!-- Бульбашка повідомлення та час -->
               <div class="flex flex-col gap-1 max-w-full">
                 <div 
@@ -64,7 +72,7 @@
                     msg.sender_id === currentUserId ? 'text-right' : 'text-left'
                   ]"
                 >
-                  {{ new Date(msg.created_at).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) }}
+                  {{ format(new Date(msg.created_at), 'HH:mm') }}
                 </span>
               </div>
             </div>
@@ -102,11 +110,40 @@
 <script setup lang="ts">
 import { useChat } from '~/composables/useChat';
 import { computed, ref, watch, nextTick } from 'vue';
+import { isSameDay, isToday, isYesterday, isSameYear, format } from 'date-fns';
+import { uk, enUS, ru } from 'date-fns/locale';
+
+const dateLocales = { uk, en: enUS, ru };
 
 const { isSlideoverOpen, currentMessages, currentChat, sendMessage, chatUserProfiles } = useChat();
 const user = useSupabaseUser();
+const { t, locale } = useI18n();
 const newMessage = ref('');
 const messagesContainer = ref<HTMLElement | null>(null);
+
+const visibleMessages = computed(() => {
+  return currentMessages.value.filter(m => !m.content.startsWith('[SYSTEM_STATUS]:'));
+});
+
+const shouldShowDateDivider = (index: number): boolean => {
+  if (index === 0) return true;
+  const prevMsg = visibleMessages.value[index - 1];
+  const currentMsg = visibleMessages.value[index];
+  if (!prevMsg?.created_at || !currentMsg?.created_at) return false;
+  return !isSameDay(new Date(currentMsg.created_at), new Date(prevMsg.created_at));
+};
+
+const formatDateDivider = (dateStr?: string): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+
+  if (isToday(date)) return t('chat.today', 'Сьогодні');
+  if (isYesterday(date)) return t('chat.yesterday', 'Вчора');
+
+  const currentLocale = dateLocales[locale.value as keyof typeof dateLocales] || uk;
+  const pattern = isSameYear(date, new Date()) ? 'd MMMM' : 'd MMMM yyyy';
+  return format(date, pattern, { locale: currentLocale });
+};
 
 const currentUserId = computed(() => (user.value as any)?.sub);
 

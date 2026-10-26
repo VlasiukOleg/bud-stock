@@ -398,6 +398,8 @@
     }
   },
   "chat": {
+    "today": "Сьогодні",
+    "yesterday": "Вчора",
     "errors": {
       "notLoggedIn": "Необхідно увійти в систему",
       "unavailableTitle": "Недоступно",

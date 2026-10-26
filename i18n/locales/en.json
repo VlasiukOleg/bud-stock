@@ -390,6 +390,8 @@
     }
   },
   "chat": {
+    "today": "Today",
+    "yesterday": "Yesterday",
     "errors": {
       "notLoggedIn": "You must log in",
       "unavailableTitle": "Unavailable",
