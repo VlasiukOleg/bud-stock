@@ -120,40 +120,98 @@
           />
         </div>
 
-        <div v-if="isLoadingBackendListings" class="py-12 flex flex-col items-center justify-center gap-3">
-          <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 text-primary animate-spin" />
-          <p class="text-xs text-neutral-500 font-medium">Пошук товарів у радіусі...</p>
-        </div>
-        <div class="grid grid-cols-1 gap-4" v-else-if="productsInRadius.length > 0">
-          <div class="font-medium text-sm text-neutral-600 dark:text-neutral-400">
-            {{ $t('catalog.foundItems', { count: productsInRadius.length }) }}
+        <!-- Стан 1: Визначення геопозиції користувача (USkeleton) -->
+        <div v-if="isLocating" class="space-y-4">
+          <div class="flex items-center gap-2 px-1 text-xs text-neutral-500 font-medium">
+            <UIcon name="i-heroicons-map-pin" class="w-4 h-4 text-brand-500 animate-bounce" />
+            <span>{{ $t('catalog.locating', 'Визначаємо вашу локацію...') }}</span>
           </div>
-          <CommonProductCard
-            v-for="product in displayedProducts"
-            :key="product.id"
-            :id="`product-${product.id}`"
-            :product="product"
-            :show-map-button="true"
-            @map-click="handleZoomToProduct"
-            :class="[
-              'transition-all duration-300 rounded-xl scroll-mt-4',
-              selectedProductOnMap === product.id
-                ? 'ring-2 ring-brand-500 shadow-lg'
-                : '',
-            ]"
-          />
-          <UButton
-            v-if="hasMoreProducts"
-            color="primary"
-            variant="soft"
-            block
-            size="lg"
-            class="mt-2"
-            :loading="isLoadingMoreCards"
-            @click="loadMoreProducts"
+
+          <div
+            v-for="i in 3"
+            :key="i"
+            class="flex flex-col bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 p-3 space-y-3"
           >
-            {{ $t('catalog.showMoreItems', { count: Math.min(20, productsInRadius.length - cardListings.length), remaining: productsInRadius.length - cardListings.length }) }}
-          </UButton>
+            <USkeleton class="aspect-4/3 w-full rounded-lg" />
+            <div class="space-y-2">
+              <USkeleton class="h-4 w-3/4 rounded" />
+              <USkeleton class="h-3 w-1/2 rounded" />
+              <div class="flex items-center justify-between pt-2">
+                <USkeleton class="h-5 w-20 rounded" />
+                <USkeleton class="h-3.5 w-16 rounded" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Стан 2: Первинне завантаження коли карток ще немає в списку (USkeleton) -->
+        <div v-else-if="isLoadingBackendListings && displayedProducts.length === 0" class="space-y-4">
+          <div class="flex items-center gap-2 px-1 text-xs text-neutral-500 font-medium">
+            <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 text-brand-500 animate-spin" />
+            <span>{{ $t('catalog.searchingListings', 'Пошук товарів у радіусі...') }}</span>
+          </div>
+
+          <div
+            v-for="i in 3"
+            :key="i"
+            class="flex flex-col bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 p-3 space-y-3"
+          >
+            <USkeleton class="aspect-4/3 w-full rounded-lg" />
+            <div class="space-y-2">
+              <USkeleton class="h-4 w-3/4 rounded" />
+              <USkeleton class="h-3 w-1/2 rounded" />
+              <div class="flex items-center justify-between pt-2">
+                <USkeleton class="h-5 w-20 rounded" />
+                <USkeleton class="h-3.5 w-16 rounded" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Стан 3: Товари є (Airbnb-style: зберігаємо попередні картки з soft-opacity під час оновлення) -->
+        <div v-else-if="productsInRadius.length > 0" class="relative">
+          <div class="flex items-center justify-between font-medium text-sm text-neutral-600 dark:text-neutral-400 mb-3">
+            <span>{{ $t('catalog.foundItems', { count: productsInRadius.length }) }}</span>
+            <span
+              v-if="isLoadingBackendListings"
+              class="flex items-center gap-1.5 text-xs text-brand-600 dark:text-brand-400 font-normal animate-pulse"
+            >
+              <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5 animate-spin" />
+              <span>Оновлюємо...</span>
+            </span>
+          </div>
+
+          <div
+            class="grid grid-cols-1 gap-4 transition-opacity duration-200"
+            :class="{ 'opacity-50 pointer-events-none select-none': isLoadingBackendListings }"
+          >
+            <CommonProductCard
+              v-for="product in displayedProducts"
+              :key="product.id"
+              :id="`product-${product.id}`"
+              :product="product"
+              :show-map-button="true"
+              @map-click="handleZoomToProduct"
+              :class="[
+                'transition-all duration-300 rounded-xl scroll-mt-4',
+                selectedProductOnMap === product.id
+                  ? 'ring-2 ring-brand-500 shadow-lg'
+                  : '',
+              ]"
+            />
+            <UButton
+              v-if="hasMoreProducts"
+              color="primary"
+              variant="soft"
+              block
+              size="lg"
+              class="mt-2"
+              :loading="isLoadingMoreCards"
+              @click="loadMoreProducts"
+            >
+              {{ $t('catalog.showMoreItems', { count: Math.min(20, productsInRadius.length - cardListings.length), remaining: productsInRadius.length - cardListings.length }) }}
+            </UButton>
+          </div>
         </div>
         <div v-else class="text-center py-10 px-2">
           <UIcon name="i-heroicons-inbox" class="w-12 h-12 mx-auto text-neutral-300 dark:text-neutral-700 mb-3" />
@@ -224,11 +282,33 @@
           </LMarker>
         </LMap>
 
-        <!-- Універсальний лоадер над картою (для геолокації або завантаження оголошень на мобілці/планшеті/десктопі) -->
+        <!-- Лоадер над картою тільки при первинному визначенні геопозиції -->
         <MapOverlayLoader
-          :show="isLocating || isLoadingBackendListings"
-          :text="isLocating ? $t('catalog.locating') : $t('catalog.searchingListings')"
+          :show="isLocating"
+          :text="$t('catalog.locating')"
         />
+
+        <!-- Плаваючий бейдж на карті (Airbnb-style: карта залишається активною і не блокується блюром) -->
+        <Transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="opacity-0 -translate-y-2 scale-95"
+          enter-to-class="opacity-100 translate-y-0 scale-100"
+          leave-active-class="transition duration-150 ease-in"
+          leave-from-class="opacity-100 translate-y-0 scale-100"
+          leave-to-class="opacity-0 -translate-y-2 scale-95"
+        >
+          <div
+            v-if="isLoadingBackendListings && !isLocating"
+            class="absolute top-4 left-1/2 -translate-x-1/2 z-1000 pointer-events-none"
+          >
+            <div
+              class="flex items-center gap-2 px-3.5 py-1.5 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md rounded-full shadow-lg border border-neutral-200/80 dark:border-neutral-800 text-xs font-medium text-neutral-800 dark:text-neutral-100"
+            >
+              <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5 text-brand-500 animate-spin" />
+              <span>{{ $t('catalog.searchingNearby', 'Шукаємо матеріали поруч...') }}</span>
+            </div>
+          </div>
+        </Transition>
 
         <Transition
           enter-active-class="transition duration-500 ease-out"
@@ -335,10 +415,11 @@
           <UButton
             icon="i-heroicons-list-bullet"
             size="md"
-            class="ring-3 ring-white bg-brand-500 dark:ring-neutral-950 hover:bg-brand-600"
+            class="ring-3 ring-white bg-brand-500 dark:ring-neutral-950 hover:bg-brand-600 font-medium"
+            :loading="isLocating"
             @click="() => { isProductsSliderOpen = true }"
           >
-            {{ $t('catalog.list', { count: productsInRadius.length }) }}
+            {{ isLocating ? $t('catalog.locating', 'Визначаємо локацію...') : $t('catalog.list', { count: productsInRadius.length }) }}
           </UButton>
         </div>
       </main>
@@ -346,7 +427,7 @@
       <USlideover
         v-model:open="isProductsSliderOpen"
         side="bottom"
-        :title="isLoadingBackendListings ? $t('catalog.searchingListings') : $t('catalog.foundItems', { count: productsInRadius.length })"
+        :title="isLocating ? $t('catalog.locating', 'Визначаємо локацію...') : (isLoadingBackendListings && displayedProducts.length === 0 ? $t('catalog.searchingListings') : $t('catalog.foundItems', { count: productsInRadius.length }))"
         :ui="{
           content: 'h-[75%]',
         }"
@@ -391,13 +472,50 @@
           </div>
 
           <div
-            class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10 scroll-smooth"
+            class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10 scroll-smooth relative"
           >
-            <div v-if="isLoadingBackendListings" class="col-span-full py-12 flex flex-col items-center justify-center gap-2 min-h-50">
-              <UIcon name="i-heroicons-arrow-path" class="w-7 h-7 text-primary animate-spin" />
-              <p class="text-xs text-neutral-500 font-medium">Пошук товарів...</p>
+            <!-- Стан 1: Геолокація (USkeleton) -->
+            <div v-if="isLocating" class="col-span-full py-4 space-y-3">
+              <div class="flex items-center gap-2 px-1 text-xs text-neutral-500 font-medium">
+                <UIcon name="i-heroicons-map-pin" class="w-4 h-4 text-brand-500 animate-bounce" />
+                <span>{{ $t('catalog.locating', 'Визначаємо вашу локацію...') }}</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div v-for="i in 4" :key="i" class="p-2.5 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 space-y-2">
+                  <USkeleton class="aspect-4/3 w-full rounded-lg" />
+                  <USkeleton class="h-3.5 w-3/4 rounded" />
+                  <USkeleton class="h-3 w-1/2 rounded" />
+                  <USkeleton class="h-4 w-16 rounded" />
+                </div>
+              </div>
             </div>
+
+            <!-- Стан 2: Первинне завантаження коли карток ще немає в списку (USkeleton) -->
+            <div v-else-if="isLoadingBackendListings && displayedProducts.length === 0" class="col-span-full py-4 space-y-3">
+              <div class="flex items-center gap-2 px-1 text-xs text-neutral-500 font-medium">
+                <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 text-brand-500 animate-spin" />
+                <span>{{ $t('catalog.searchingListings', 'Пошук товарів...') }}</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div v-for="i in 4" :key="i" class="p-2.5 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 space-y-2">
+                  <USkeleton class="aspect-4/3 w-full rounded-lg" />
+                  <USkeleton class="h-3.5 w-3/4 rounded" />
+                  <USkeleton class="h-3 w-1/2 rounded" />
+                  <USkeleton class="h-4 w-16 rounded" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Стан 3: Товари є (Airbnb-style: плавне оновлення без видалення карток з екрана) -->
             <template v-else-if="productsInRadius.length > 0">
+              <div
+                v-if="isLoadingBackendListings"
+                class="col-span-full flex items-center justify-center gap-1.5 py-1 text-xs text-brand-600 dark:text-brand-400 font-medium animate-pulse"
+              >
+                <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5 animate-spin" />
+                <span>Оновлюємо результати...</span>
+              </div>
+
               <CommonProductCard
                 v-for="product in displayedProducts"
                 :key="product.id"
@@ -410,6 +528,7 @@
                   selectedProductOnMap === product.id
                     ? 'ring-2 ring-brand-500 shadow-lg'
                     : '',
+                  isLoadingBackendListings ? 'opacity-50 pointer-events-none select-none' : '',
                 ]"
               />
               <div v-if="hasMoreProducts" class="col-span-full mt-2">
@@ -448,6 +567,7 @@
       <CitySelectorModal
         v-model="isCityModalOpen"
         :detected-city="detectedCityName"
+        :detected-coords="detectedCityCoords"
         @select="onCitySelect"
         @exact-location="triggerExactLocation"
       />
@@ -618,7 +738,20 @@ const isGeolocationErrorPopoverOpen = ref(false);
 
 const isCityModalOpen = ref(false);
 const detectedCityName = ref("");
+const detectedCityCoords = ref<PointTuple | null>(null);
 const isManualLocationRequest = ref(false);
+
+// Якщо користувач закрив модалку без вибору міста, беремо визначені по IP або дефолтні координати
+watch(isCityModalOpen, (isOpen) => {
+  if (!isOpen && !initialUserLocation.value && !isManualLocationRequest.value) {
+    const fallback = detectedCityCoords.value || [...center.value];
+    initialUserLocation.value = fallback;
+    center.value = fallback;
+    if (map.value?.leafletObject) {
+      map.value.leafletObject.flyTo(fallback, 12);
+    }
+  }
+});
 
 // Запускаємо запит на геолокацію одразу
 const { coords, error, pause, resume } = useGeolocation();
@@ -778,9 +911,9 @@ const refreshClusters = async () => {
   });
 };
 
-// Показуємо лоадер, поки не отримаємо координати АБО якщо йде ручний запит
+// Показуємо скелетон, поки не встановлено локацію (GPS або вибір міста в модалці) АБО якщо йде ручний запит
 const isLocating = computed(() => 
-  (!initialUserLocation.value && !error.value) || isManualLocationRequest.value
+  !initialUserLocation.value || isManualLocationRequest.value
 );
 
 // 1. Легкі маркери для карти (тільки id, title, price, lat, lng, is_exact, category_id)
@@ -793,6 +926,10 @@ const isLoadingMoreCards = ref(false);
 let lastFetchKey = "";
 
 const fetchRadiusProducts = async () => {
+  // Не завантажуємо товари завчасно за дефолтними координатами,
+  // доки триває пошук реальної геопозиції користувача
+  if (isLocating.value) return;
+
   const userCoords = initialUserLocation.value || center.value;
   if (!userCoords) return;
 
@@ -1079,6 +1216,7 @@ watch(
       pause();
     }
   },
+  { immediate: true }
 );
 
 watch(error, async (newError) => {
@@ -1094,24 +1232,35 @@ watch(error, async (newError) => {
       return;
     }
 
+    if (isManualLocationRequest.value) {
+      isGeolocationErrorPopoverOpen.value = true;
+      isManualLocationRequest.value = false;
+      isCityModalOpen.value = true;
+      pause();
+      return;
+    }
+
     // Якщо ми тут, значить локації ще немає, а користувач заборонив доступ або сталась помилка
-    // Пробуємо визначити по IP
+    // Пробуємо визначити по IP для підказки в модалці, АЛЕ НЕ встановлюємо initialUserLocation,
+    // щоб не робити запит і не підтягувати товари до того, як користувач підтвердить або обере місто
+    let fallbackCoords: PointTuple = [...center.value];
     try {
       const config = useRuntimeConfig();
       const res = await fetch(config.public.api.ipapiBaseUrl);
       const data = await res.json();
       if (data.latitude && data.longitude) {
-         initialUserLocation.value = [data.latitude, data.longitude];
-         detectedCityName.value = data.city || data.region || "ваше місто";
-      } else {
-         initialUserLocation.value = [...center.value];
+        fallbackCoords = [data.latitude, data.longitude];
+        detectedCityName.value = data.city || data.region || "ваше місто";
       }
     } catch (err) {
-       initialUserLocation.value = [...center.value];
+      console.warn("Не вдалося визначити місто по IP:", err);
     }
 
+    detectedCityCoords.value = fallbackCoords;
+    center.value = fallbackCoords;
+
     if (map.value?.leafletObject) {
-      map.value.leafletObject.flyTo(initialUserLocation.value, 12);
+      map.value.leafletObject.flyTo(fallbackCoords, 12);
     }
     
     // Показуємо модалку для підтвердження або зміни міста
@@ -1119,7 +1268,7 @@ watch(error, async (newError) => {
     
     pause();
   }
-});
+}, { immediate: true });
 </script>
 
 <style>

@@ -5,6 +5,7 @@ import { refDebounced } from '@vueuse/core';
 const props = defineProps<{
   modelValue: boolean;
   detectedCity?: string;
+  detectedCoords?: [number, number] | null;
 }>();
 
 const emit = defineEmits(['update:modelValue', 'select', 'exact-location']);
@@ -62,6 +63,24 @@ const selectCity = (lat: number, lon: number, name: string) => {
   isOpen.value = false;
 };
 
+const handleConfirmDetected = () => {
+  if (props.detectedCoords) {
+    emit('select', {
+      lat: props.detectedCoords[0],
+      lng: props.detectedCoords[1],
+      name: props.detectedCity || 'Київ'
+    });
+  } else {
+    const kyiv = popularCities.value[0];
+    emit('select', {
+      lat: kyiv.lat,
+      lng: kyiv.lon,
+      name: props.detectedCity || kyiv.name
+    });
+  }
+  isOpen.value = false;
+};
+
 const handleExactLocation = () => {
   emit('exact-location');
 };
@@ -103,7 +122,7 @@ const handleExactLocation = () => {
               {{ $t('citySelector.yourCity', { city: detectedCity }) }}
             </p>
             <div class="flex gap-2">
-              <UButton size="sm" color="primary" @click="() => {isOpen = false}">{{ $t('citySelector.yesCorrect') }}</UButton>
+              <UButton size="sm" color="primary" @click="handleConfirmDetected">{{ $t('citySelector.yesCorrect') }}</UButton>
             </div>
           </div>
 

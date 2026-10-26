@@ -1,11 +1,8 @@
 <template>
   <div class="flex-1 flex flex-col bg-neutral-50 dark:bg-neutral-950">
-    <UContainer class="flex-1 w-full py-2 sm:py-4 flex flex-col">
-      <!-- Завантаження -->
-      <div v-if="pending" class="flex flex-col items-center justify-center py-32 text-brand-500">
-        <UIcon name="i-heroicons-arrow-path" class="w-12 h-12 animate-spin mb-4" />
-        <p class="font-medium animate-pulse">Завантаження деталей...</p>
-      </div>
+    <UContainer class="flex-1 w-full pt-2 sm:pt-4 pb-22 sm:pb-24 lg:pb-8 flex flex-col">
+      <!-- Завантаження (Скелетон сторінки товару) -->
+      <CatalogProductDetailsSkeleton v-if="pending" />
 
       <!-- Повна заглушка для неактивних / проданих оголошень для сторонніх користувачів -->
       <div v-else-if="product && !canViewFullDetails" class="max-w-sm w-full mx-auto my-auto px-2">
