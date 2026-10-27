@@ -13,13 +13,13 @@ const items = computed<NavigationMenuItem[]>(() => [
   {
     label: t('header.sellMaterial'),
     to: APP_ROUTES.CREATE_LISTING,
-    icon: "i-streamline-emojis:money-bag",
+    icon: "i-heroicons-plus-circle",
     active: route.path.startsWith("/sell"),
   },
   {
     label: t('header.buyMaterial'),
     to: APP_ROUTES.CATALOG,
-    icon: "i-streamline-ultimate-color:e-commerce-touch-buy",
+    icon: "i-heroicons-magnifying-glass-circle",
     active: route.path.startsWith("/catalog"),
   },
 ]);

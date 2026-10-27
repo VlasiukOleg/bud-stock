@@ -37,33 +37,9 @@ const goToCategory = (categoryId: string) => {
             {{ $t("hero.description") }}
           </p>
 
-          <div
-            class="mt-8 md:mt-10 flex flex-col items-center justify-center lg:justify-start lg:items-start gap-4 sm:flex-row"
-          >
-            <UButton
-              :to="APP_ROUTES.CATALOG"
-              size="xl"
-              class="bg-brand-500 hover:bg-brand-600 text-lg"
-              icon="i-streamline-ultimate-color:e-commerce-touch-buy"
-            >
-              {{ $t("hero.buttons.buy") }}
-            </UButton>
-
-            <UButton
-              :to="APP_ROUTES.CREATE_LISTING"
-              size="xl"
-              color="neutral"
-              variant="outline"
-              class="text-lg hover:bg-neutral-50 dark:hover:bg-neutral-900"
-              icon="i-streamline-emojis:money-bag"
-            >
-              {{ $t("hero.buttons.sell") }}
-            </UButton>
-          </div>
-
           <!-- Блок спеціалізації платформи замість фіктивних цифр -->
           <div
-            class="mt-8 lg:mt-10 p-4 rounded-2xl bg-neutral-100/80 dark:bg-neutral-800/60 border border-neutral-200/80 dark:border-neutral-700/60 backdrop-blur-sm shadow-xs max-w-xl mx-auto lg:mx-0 text-left"
+            class="mt-6 md:mt-8 p-4 sm:p-4.5 rounded-2xl bg-neutral-100/90 dark:bg-neutral-800/70 border border-neutral-200 dark:border-neutral-700/70 shadow-xs max-w-xl mx-auto lg:mx-0 text-left"
           >
             <div class="flex items-start gap-3">
               <div
@@ -80,21 +56,49 @@ const goToCategory = (categoryId: string) => {
                 <p
                   class="text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-snug"
                 >
-                  Залишки будматеріалів: від чорнових робіт до чистового оздоблення (все до меблювання).
+                  Залишки будматеріалів: від чорнових робіт до чистового оздоблення (все до меблювання та побутової техніки).
                 </p>
               </div>
             </div>
 
             <div
-              class="mt-3 pt-3 border-t border-neutral-200/60 dark:border-neutral-700/60"
+              class="mt-3.5 pt-3 border-t border-neutral-200/80 dark:border-neutral-700/70"
             >
               <CommonCategoryPicker
-                size="sm"
-                variant="soft"
-                trigger-class="rounded-xl text-xs py-2 px-3"
+                size="md"
+                variant="outline"
+                placeholder="Обрати категорію матеріалів"
+                trigger-class="!bg-white dark:!bg-neutral-900 border border-neutral-300 dark:border-neutral-700 hover:border-brand-400 dark:hover:border-brand-500 shadow-xs hover:shadow-sm !font-semibold !text-neutral-900 dark:!text-white py-2.5 px-3.5 rounded-xl transition-all cursor-pointer"
+                icon-class="!text-brand-500 dark:!text-brand-400 !w-4.5 !h-4.5"
+                text-class="!font-semibold !text-neutral-900 dark:!text-white text-sm"
+                chevron-class="!text-brand-500 dark:!text-brand-400"
                 @select="goToCategory"
               />
             </div>
+          </div>
+
+          <div
+            class="mt-5 sm:mt-6 md:mt-8 flex flex-col items-center justify-center lg:justify-start lg:items-start gap-2.5 sm:gap-3.5 sm:flex-row"
+          >
+            <UButton
+              :to="APP_ROUTES.CATALOG"
+              size="lg"
+              class="bg-brand-500 hover:bg-brand-600 text-sm sm:text-base py-2 sm:py-2.5 px-4.5 sm:px-5 font-bold rounded-xl shadow-sm transition-all"
+              icon="i-heroicons-magnifying-glass-circle"
+            >
+              {{ $t("hero.buttons.buy") }}
+            </UButton>
+
+            <UButton
+              :to="APP_ROUTES.CREATE_LISTING"
+              size="lg"
+              color="neutral"
+              variant="outline"
+              class="text-sm sm:text-base py-2 sm:py-2.5 px-4.5 sm:px-5 font-semibold bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 border-neutral-300 dark:border-neutral-700 rounded-xl shadow-xs transition-all"
+              icon="i-heroicons-plus-circle"
+            >
+              {{ $t("hero.buttons.sell") }}
+            </UButton>
           </div>
         </div>
 

@@ -13,6 +13,9 @@ const props = withDefaults(
     size?: "xs" | "sm" | "md" | "lg" | "xl";
     variant?: "outline" | "soft" | "subtle" | "ghost";
     triggerClass?: string;
+    iconClass?: string;
+    textClass?: string;
+    chevronClass?: string;
     disabled?: boolean;
   }>(),
   {
@@ -24,6 +27,9 @@ const props = withDefaults(
     size: "lg",
     variant: "outline",
     triggerClass: "",
+    iconClass: "",
+    textClass: "",
+    chevronClass: "",
     disabled: false,
   }
 );
@@ -110,17 +116,30 @@ watch(isOpen, (open) => {
         <UIcon
           :name="selectedInfo?.icon || 'i-lucide-layout-grid'"
           class="w-4 h-4 shrink-0"
-          :class="selectedInfo ? (disabled ? 'text-neutral-500' : 'text-brand-600 dark:text-brand-400') : 'text-neutral-500'"
+          :class="[
+            selectedInfo
+              ? (disabled ? 'text-neutral-500' : 'text-brand-600 dark:text-brand-400')
+              : (iconClass || 'text-neutral-500')
+          ]"
         />
         <span
           class="truncate"
-          :class="selectedInfo ? (disabled ? 'font-medium text-neutral-600 dark:text-neutral-300' : 'font-medium text-neutral-900 dark:text-white') : 'text-neutral-600 dark:text-neutral-300'"
+          :class="[
+            selectedInfo
+              ? (disabled ? 'font-medium text-neutral-600 dark:text-neutral-300' : 'font-medium text-neutral-900 dark:text-white')
+              : (textClass || 'text-neutral-600 dark:text-neutral-300')
+          ]"
         >
           {{ selectedInfo?.name || placeholder }}
         </span>
       </span>
       <UIcon v-if="disabled" name="i-lucide-lock" class="w-4 h-4 text-neutral-400 shrink-0" />
-      <UIcon v-else name="i-lucide-chevron-down" class="w-4 h-4 text-neutral-400 shrink-0" />
+      <UIcon
+        v-else
+        name="i-lucide-chevron-down"
+        class="w-4 h-4 shrink-0 transition-transform duration-200"
+        :class="[chevronClass || 'text-neutral-400', { 'rotate-180': isOpen }]"
+      />
     </UButton>
 
     <!-- Вміст вибору (спільний для модалки та шторки) -->
