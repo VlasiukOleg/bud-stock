@@ -99,7 +99,7 @@
     "filters": "Фильтры",
     "searchRadius": "Радиус поиска",
     "km": "км",
-    "foundItems": "Найдено: {count} позиций",
+    "foundItems": "Найдено: {count} объявлений",
     "showMoreItems": "Показать еще {count} (Осталось: {remaining})",
     "noResults": "Материалы не найдены. Попробуйте увеличить радиус поиска.",
     "youAreHere": "Вы здесь",
@@ -109,7 +109,7 @@
     "accessDenied": "Доступ запрещен",
     "allowLocation": "Пожалуйста, разрешите доступ к вашей геопозиции в настройках браузера.",
     "gotIt": "Понятно",
-    "list": "Список ({count})",
+    "list": "Список объявлений ({count})",
     "showOnMap": "Показать на карте",
     "showMore": "Показать еще ({remaining})",
     "searchingListings": "Ищем объявления..."

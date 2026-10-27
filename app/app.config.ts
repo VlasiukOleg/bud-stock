@@ -46,10 +46,26 @@ export default defineAppConfig({
       primary: 'brand',
     },
     modal: {
-      slots: { overlay: "bg-gray-900/75 dark:bg-gray-900/90 backdrop-blur-sm" },
+      slots: {
+        overlay: "!bg-gray-900/75 dark:!bg-gray-900/90 !backdrop-blur-sm",
+      },
+      variants: {
+        overlay: {
+          true: {
+            overlay: "!bg-gray-900/75 dark:!bg-gray-900/90 !backdrop-blur-sm",
+          },
+        },
+      },
     },
     slideover: {
-      slots: { overlay: "bg-gray-900/75 dark:bg-gray-900/90 backdrop-blur-sm" },
-    }
+      slots: {
+        overlay: "!bg-gray-900/75 dark:!bg-gray-900/90 !backdrop-blur-sm",
+      },
+    },
+    drawer: {
+      slots: {
+        overlay: "!bg-gray-900/75 dark:!bg-gray-900/90 !backdrop-blur-sm",
+      },
+    },
   },
 });

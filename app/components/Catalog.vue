@@ -415,7 +415,7 @@
           <UButton
             icon="i-heroicons-list-bullet"
             size="md"
-            class="ring-3 ring-white bg-brand-500 dark:ring-neutral-950 hover:bg-brand-600 font-medium"
+            class="ring-3 ring-white bg-brand-500 dark:ring-neutral-950 hover:bg-brand-600 font-medium whitespace-nowrap shadow-lg"
             :loading="isLocating"
             @click="() => { isProductsSliderOpen = true }"
           >
@@ -424,12 +424,15 @@
         </div>
       </main>
 
-      <USlideover
+      <UDrawer
         v-model:open="isProductsSliderOpen"
-        side="bottom"
+        close
         :title="isLocating ? $t('catalog.locating', 'Визначаємо локацію...') : (isLoadingBackendListings && displayedProducts.length === 0 ? $t('catalog.searchingListings') : $t('catalog.foundItems', { count: productsInRadius.length }))"
         :ui="{
-          content: 'h-[75%]',
+          content: 'mt-0 h-[75vh] max-h-[75vh]',
+          container: 'flex-1 min-h-0 flex flex-col p-4 gap-3 overflow-hidden',
+          body: 'flex-1 min-h-0 overflow-y-auto p-1',
+          overlay: '!bg-gray-900/75 dark:!bg-gray-900/90 !backdrop-blur-sm',
         }"
       >
         <template #body>
@@ -472,7 +475,7 @@
           </div>
 
           <div
-            class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 overflow-y-auto pb-10 scroll-smooth relative"
+            class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1 pb-10 scroll-smooth relative"
           >
             <!-- Стан 1: Геолокація (USkeleton) -->
             <div v-if="isLocating" class="col-span-full py-4 space-y-3">
@@ -562,7 +565,7 @@
             </div>
           </div>
         </template>
-      </USlideover>
+      </UDrawer>
 
       <CitySelectorModal
         v-model="isCityModalOpen"

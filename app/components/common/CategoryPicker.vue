@@ -148,17 +148,27 @@ watch(isOpen, (open) => {
       v-model:open="isOpen"
       title="Категорія матеріалів"
       description="Оберіть категорію або підкатегорію"
-      :ui="isDesktop ? { content: 'sm:max-w-md' } : { content: 'max-h-[85vh]' }"
+      :ui="isDesktop ? {
+        content: 'sm:max-w-md',
+        body: 'p-4 sm:p-6 overflow-hidden flex flex-col',
+        overlay: '!bg-gray-900/75 dark:!bg-gray-900/90 !backdrop-blur-sm',
+      } : {
+        content: 'mt-0 max-h-[88vh]',
+        container: 'overflow-hidden p-4 gap-3',
+        body: 'overflow-hidden',
+        overlay: '!bg-gray-900/75 dark:!bg-gray-900/90 !backdrop-blur-sm',
+      }"
     >
       <template #body>
         <div
-          class="border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden bg-white dark:bg-neutral-900"
+          class="border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden bg-white dark:bg-neutral-900 flex flex-col"
+          :class="isDesktop ? 'h-[60vh] max-h-[60vh]' : 'h-[63vh] max-h-[63vh]'"
         >
           <!-- Всі категорії -->
           <button
             v-if="allowAll"
             type="button"
-            class="w-full flex items-center justify-between p-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors border-b border-neutral-100 dark:border-neutral-800/60"
+            class="w-full flex items-center justify-between p-3 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors border-b border-neutral-100 dark:border-neutral-800/60 shrink-0"
             :class="{ 'bg-brand-50/70 dark:bg-brand-950/30 font-semibold text-brand-700 dark:text-brand-300': !modelValue }"
             @click="choose('')"
           >
@@ -169,7 +179,9 @@ watch(isOpen, (open) => {
             <UIcon v-if="!modelValue" name="i-lucide-check" class="w-4 h-4 text-brand-600" />
           </button>
 
-          <div class="max-h-[55vh] overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/60">
+          <div
+            class="flex-1 min-h-0 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/60 overscroll-contain"
+          >
             <div v-for="cat in displayedCategories" :key="cat.id">
               <!-- Головна категорія -->
               <button

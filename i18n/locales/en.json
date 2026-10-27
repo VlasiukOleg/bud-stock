@@ -99,7 +99,7 @@
     "filters": "Filters",
     "searchRadius": "Search radius",
     "km": "km",
-    "foundItems": "Found: {count} items",
+    "foundItems": "Found: {count} listings",
     "showMoreItems": "Show {count} more (Remaining: {remaining})",
     "noResults": "No materials found. Try increasing the search radius.",
     "youAreHere": "You are here",
@@ -109,7 +109,7 @@
     "accessDenied": "Access denied",
     "allowLocation": "Please allow access to your geolocation in browser settings.",
     "gotIt": "Got it",
-    "list": "List ({count})",
+    "list": "Listings ({count})",
     "showOnMap": "Show on map",
     "showMore": "Show more ({remaining})",
     "searchingListings": "Searching listings..."
