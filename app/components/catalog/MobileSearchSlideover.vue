@@ -204,7 +204,7 @@ const clearQuery = () => {
           />
         </div>
 
-        <div class="border-t border-neutral-200 dark:border-neutral-800 my-1"></div>
+        <div class="border-t border-brand-400/50 dark:border-brand-500/40 my-1"></div>
 
         <!-- Стан 1: Поле порожнє — Показуємо швидкі підказки -->
         <div v-if="!localQuery.trim()" class="space-y-3 flex-1 overflow-y-auto">

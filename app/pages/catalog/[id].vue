@@ -128,9 +128,9 @@
           </div>
         </div>
 
-        <div class="grid lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 space-y-6">
-          <UCard>
+        <div class="grid lg:grid-cols-3 gap-6 min-w-0">
+        <div class="lg:col-span-2 space-y-6 min-w-0">
+          <UCard class="min-w-0 overflow-hidden">
             <div
               class="aspect-4/3 relative bg-neutral-100 dark:bg-neutral-800"
             >
@@ -149,14 +149,14 @@
 
             <div
               v-if="product.images.length > 1"
-              class="p-4 flex gap-2 overflow-x-auto scrollbar-hide"
+              class="pt-3 sm:pt-4 flex gap-2 overflow-x-auto scrollbar-hide min-w-0 max-w-full"
             >
               <button
                 v-for="(image, index) in product.images"
                 :key="index"
                 @click="currentImageIndex = Number(index)"
                 :class="[
-                  'shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all',
+                  'shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all',
                   currentImageIndex === Number(index)
                     ? 'border-brand-500 ring-2 ring-brand-500/20'
                     : 'border-transparent',
@@ -319,8 +319,8 @@
           />
         </div>
 
-        <div class="space-y-4">
-          <div class="lg:sticky lg:top-20 space-y-4">
+        <div class="space-y-4 min-w-0">
+          <div class="lg:sticky lg:top-20 space-y-4 min-w-0">
             <UCard shadow="md">
               <div v-if="product.is_free || product.price === 0" class="mb-4">
                 <UBadge color="success" variant="solid" size="lg" class="text-base font-bold px-3 py-1.5">

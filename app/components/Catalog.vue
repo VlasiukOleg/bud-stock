@@ -59,7 +59,7 @@
             <span class="font-medium text-neutral-500">{{ $t('catalog.searchRadius') }}</span>
             <UBadge
               size="md"
-              class="bg-brand-100 text-neutral-800"
+              class="!bg-brand-100 !text-neutral-800"
               variant="soft"
             >{{ searchRadiusKm }} {{ $t('catalog.km') }}</UBadge>
           </div>
@@ -70,8 +70,8 @@
             :step="1000"
             size="md"
             :ui="{
-              range: 'bg-brand-400',
-              thumb: 'ring-brand-400 focus-visible:outline-brand-400/50',
+              range: '!bg-brand-400',
+              thumb: '!ring-brand-400 focus-visible:!outline-brand-400/50',
             }"
           />
         </div>

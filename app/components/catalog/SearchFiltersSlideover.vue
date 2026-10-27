@@ -367,9 +367,9 @@ const handleApply = () => {
     </template>
 
     <template #body>
-      <div class="flex flex-col h-full space-y-4 overflow-y-auto pr-1 pb-4">
-        <!-- 1. Категорія матеріалів (Зручний інлайн вибір із підкатегоріями - зверху!) -->
-        <div class="space-y-2">
+      <div class="flex flex-col h-full space-y-3 overflow-y-auto overflow-x-hidden pb-4">
+        <!-- 1. Категорія матеріалів -->
+        <div class="bg-neutral-100 dark:bg-neutral-800/70 rounded-2xl p-3.5 sm:p-4 border border-neutral-200 dark:border-neutral-700/70 space-y-2.5">
           <div class="flex justify-between items-center">
             <label class="block font-medium text-sm text-neutral-800 dark:text-neutral-200">
               Категорія матеріалів
@@ -392,43 +392,43 @@ const handleApply = () => {
           />
         </div>
 
-        <div class="border-t border-neutral-200 dark:border-neutral-800"></div>
-
         <!-- 2. Поле пошуку з кнопкою очищення -->
-        <div class="space-y-1.5">
-          <label class="block font-medium text-sm text-neutral-800 dark:text-neutral-200">
-            Пошук за назвою або описом
-          </label>
-          <div class="relative">
-            <UInput
-              id="search-filters-input"
-              v-model="localQuery"
-              icon="i-heroicons-magnifying-glass"
-              placeholder="Що шукаєте? (напр. гіпсокартон)"
-              size="lg"
-              class="w-full"
-              :ui="{
-                trailing: 'pe-2'
-              }"
-              @keydown.enter="handleApply"
-            >
-              <template #trailing v-if="localQuery">
-                <UButton
-                  color="neutral"
-                  variant="link"
-                  size="xs"
-                  icon="i-heroicons-x-mark"
-                  class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 p-0.5"
-                  @click="clearQuery"
-                />
-              </template>
-            </UInput>
-            <p
-              v-if="localQuery.trim().length > 0 && localQuery.trim().length < 3"
-              class="text-xs text-amber-600 dark:text-amber-400 px-1 pt-1 font-medium"
-            >
-              Введіть щонайменше 3 символи для пошуку...
-            </p>
+        <div class="bg-neutral-100 dark:bg-neutral-800/70 rounded-2xl p-3.5 sm:p-4 border border-neutral-200 dark:border-neutral-700/70 space-y-3">
+          <div class="space-y-1.5">
+            <label class="block font-medium text-sm text-neutral-800 dark:text-neutral-200">
+              Пошук за назвою або описом
+            </label>
+            <div class="relative">
+              <UInput
+                id="search-filters-input"
+                v-model="localQuery"
+                icon="i-heroicons-magnifying-glass"
+                placeholder="Що шукаєте? (напр. гіпсокартон)"
+                size="lg"
+                class="w-full bg-white dark:bg-neutral-900 rounded-lg"
+                :ui="{
+                  trailing: 'pe-2'
+                }"
+                @keydown.enter="handleApply"
+              >
+                <template #trailing v-if="localQuery">
+                  <UButton
+                    color="neutral"
+                    variant="link"
+                    size="xs"
+                    icon="i-heroicons-x-mark"
+                    class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 p-0.5"
+                    @click="clearQuery"
+                  />
+                </template>
+              </UInput>
+              <p
+                v-if="localQuery.trim().length > 0 && localQuery.trim().length < 3"
+                class="text-xs text-amber-600 dark:text-amber-400 px-1 pt-1 font-medium"
+              >
+                Введіть щонайменше 3 символи для пошуку...
+              </p>
+            </div>
           </div>
 
           <!-- Опція: Шукати також в описі -->
@@ -446,92 +446,94 @@ const handleApply = () => {
               color="primary"
             />
           </div>
-        </div>
 
-        <!-- 3. Підказки для уточнення категорії при текстовому пошуку -->
-        <div v-if="localQuery.trim()" class="space-y-2">
-          <div v-if="breakdown.categories.length > 0" class="space-y-2">
-            <div class="flex justify-between items-center px-1">
-              <span class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                Уточнити за категорією:
-              </span>
-              <span class="text-xs text-neutral-400">
-                Разом: {{ breakdown.totalMatches }} шт
-              </span>
-            </div>
+          <!-- Підказки для уточнення категорії при текстовому пошуку -->
+          <div v-if="localQuery.trim()" class="space-y-2 pt-2 border-t border-neutral-200/60 dark:border-neutral-700/50">
+            <div v-if="breakdown.categories.length > 0" class="space-y-2">
+              <div class="flex justify-between items-center px-1">
+                <span class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                  Уточнити за категорією:
+                </span>
+                <span class="text-xs text-neutral-400">
+                  Разом: {{ breakdown.totalMatches }} шт
+                </span>
+              </div>
 
-            <div class="space-y-1.5 max-h-48 overflow-y-auto">
-              <div
-                v-for="group in breakdown.categories"
-                :key="group.id"
-                class="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-900 shadow-xs"
-              >
-                <!-- Головна категорія -->
+              <div class="space-y-1.5 max-h-48 overflow-y-auto">
                 <div
-                  class="flex items-center justify-between p-2.5 bg-neutral-50/70 dark:bg-neutral-800/40 hover:bg-brand-50/50 dark:hover:bg-brand-950/30 cursor-pointer transition-colors"
-                  :class="{ 'ring-2 ring-brand-500 bg-brand-50/70 font-bold': localCategory === group.id }"
-                  @click="handleSelectCategory(localCategory === group.id ? '' : group.id)"
+                  v-for="group in breakdown.categories"
+                  :key="group.id"
+                  class="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-900 shadow-xs"
                 >
-                  <div class="flex items-center gap-2">
-                    <UIcon :name="group.icon" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
-                    <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200">
-                      {{ group.name }}
-                    </span>
-                  </div>
-                  <UBadge size="xs" :color="localCategory === group.id ? 'primary' : 'neutral'" variant="subtle">
-                    {{ group.count }}
-                  </UBadge>
-                </div>
-
-                <!-- Підкатегорії -->
-                <div v-if="group.subcategories.length > 0" class="divide-y divide-neutral-100 dark:divide-neutral-800/60 border-t border-neutral-100 dark:border-neutral-800/60">
+                  <!-- Головна категорія -->
                   <div
-                    v-for="sub in group.subcategories"
-                    :key="sub.id"
-                    class="flex items-center justify-between py-1.5 px-3 pl-8 hover:bg-brand-50/40 dark:hover:bg-brand-950/20 cursor-pointer transition-colors"
-                    :class="{ 'bg-brand-100/60 font-bold dark:bg-brand-900/40': localCategory === sub.id }"
-                    @click="handleSelectCategory(localCategory === sub.id ? '' : sub.id)"
+                    class="flex items-center justify-between p-2.5 bg-neutral-50/70 dark:bg-neutral-800/40 hover:bg-brand-50/50 dark:hover:bg-brand-950/30 cursor-pointer transition-colors"
+                    :class="{ 'ring-2 ring-brand-500 bg-brand-50/70 font-bold': localCategory === group.id }"
+                    @click="handleSelectCategory(localCategory === group.id ? '' : group.id)"
                   >
-                    <span class="text-xs text-neutral-700 dark:text-neutral-300">
-                      {{ sub.name }}
-                    </span>
-                    <span class="text-xs font-semibold text-brand-600 dark:text-brand-400">
-                      {{ sub.count }}
-                    </span>
+                    <div class="flex items-center gap-2">
+                      <UIcon :name="group.icon" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0" />
+                      <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                        {{ group.name }}
+                      </span>
+                    </div>
+                    <UBadge size="xs" :color="localCategory === group.id ? 'primary' : 'neutral'" variant="subtle">
+                      {{ group.count }}
+                    </UBadge>
+                  </div>
+
+                  <!-- Підкатегорії -->
+                  <div v-if="group.subcategories.length > 0" class="divide-y divide-neutral-100 dark:divide-neutral-800/60 border-t border-neutral-100 dark:border-neutral-800/60">
+                    <div
+                      v-for="sub in group.subcategories"
+                      :key="sub.id"
+                      class="flex items-center justify-between py-1.5 px-3 pl-8 hover:bg-brand-50/40 dark:hover:bg-brand-950/20 cursor-pointer transition-colors"
+                      :class="{ 'bg-brand-100/60 font-bold dark:bg-brand-900/40': localCategory === sub.id }"
+                      @click="handleSelectCategory(localCategory === sub.id ? '' : sub.id)"
+                    >
+                      <span class="text-xs text-neutral-700 dark:text-neutral-300">
+                        {{ sub.name }}
+                      </span>
+                      <span class="text-xs font-semibold text-brand-600 dark:text-brand-400">
+                        {{ sub.count }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div
-            v-else-if="isCounting"
-            class="text-center py-4 px-3 rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800"
-          >
-            <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 mx-auto text-brand-500 animate-spin mb-1" />
-            <p class="text-xs text-neutral-500 font-medium">
-              Пошук категорій на сервері...
-            </p>
-          </div>
+            <div
+              v-else-if="isCounting"
+              class="text-center py-4 px-3 rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800"
+            >
+              <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 mx-auto text-brand-500 animate-spin mb-1" />
+              <p class="text-xs text-neutral-500 font-medium">
+                Пошук категорій на сервері...
+              </p>
+            </div>
 
-          <div
-            v-else
-            class="text-center py-4 px-3 rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800"
-          >
-            <UIcon name="i-heroicons-face-frown" class="w-7 h-7 mx-auto text-neutral-400 mb-1" />
-            <p class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-              Нічого не знайдено за запитом «{{ localQuery }}»
-            </p>
+            <div
+              v-else
+              class="text-center py-4 px-3 rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800"
+            >
+              <UIcon name="i-heroicons-face-frown" class="w-7 h-7 mx-auto text-neutral-400 mb-1" />
+              <p class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                Нічого не знайдено за запитом «{{ localQuery }}»
+              </p>
+            </div>
           </div>
         </div>
 
-        <div class="border-t border-neutral-200 dark:border-neutral-800"></div>
-
-        <!-- 4. Радіус пошуку -->
-        <div class="space-y-2">
+        <!-- 3. Радіус пошуку -->
+        <div class="bg-neutral-100 dark:bg-neutral-800/70 rounded-2xl p-3.5 sm:p-4 border border-neutral-200 dark:border-neutral-700/70 space-y-3">
           <div class="flex justify-between items-center">
             <span class="font-medium text-sm text-neutral-800 dark:text-neutral-200">Радіус пошуку</span>
-            <UBadge size="md" color="neutral" variant="soft" class="font-bold">
+            <UBadge
+              size="md"
+              class="!bg-white dark:!bg-neutral-800 !text-neutral-800 dark:!text-neutral-200 font-bold border border-neutral-200/80 dark:border-neutral-700/60 shadow-2xs"
+              variant="soft"
+            >
               {{ localRadiusKm }} км
             </UBadge>
           </div>
@@ -543,16 +545,14 @@ const handleApply = () => {
             :step="1000"
             size="md"
             :ui="{
-              range: 'bg-brand-500',
-              thumb: 'ring-brand-500 focus-visible:outline-brand-500/50',
+              range: '!bg-brand-400',
+              thumb: '!ring-brand-400 focus-visible:!outline-brand-400/50',
             }"
           />
         </div>
 
-        <div class="border-t border-neutral-200 dark:border-neutral-800"></div>
-
-        <!-- 5. Стан матеріалів -->
-        <div class="space-y-1.5">
+        <!-- 4. Стан матеріалів -->
+        <div class="bg-neutral-100 dark:bg-neutral-800/70 rounded-2xl p-3.5 sm:p-4 border border-neutral-200 dark:border-neutral-700/70 space-y-3">
           <label class="block font-medium text-sm text-neutral-800 dark:text-neutral-200">
             Стан матеріалів
           </label>
@@ -564,10 +564,11 @@ const handleApply = () => {
                 { label: 'Відкритий / б/в', value: 'залишок' }
               ]"
               :key="st.value"
-              :color="localStatus === st.value ? 'primary' : 'neutral'"
-              :variant="localStatus === st.value ? 'solid' : 'soft'"
               size="sm"
-              class="justify-center"
+              class="justify-center font-medium transition-colors"
+              :class="localStatus === st.value
+                ? '!bg-brand-400 hover:!bg-brand-500 !text-white border-transparent shadow-xs'
+                : '!bg-white hover:!bg-neutral-100 !text-neutral-700 dark:!bg-neutral-800 dark:hover:!bg-neutral-700 dark:!text-neutral-200 border border-neutral-200/80 dark:border-neutral-700/60 shadow-2xs'"
               @click="() => { handleSelectStatus(st.value) }"
             >
               {{ st.label }}
