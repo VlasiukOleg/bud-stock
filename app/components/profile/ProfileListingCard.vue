@@ -223,10 +223,15 @@ const deactivatedStatusDropdown = computed(() => [
         </div>
 
         <!-- Ціна та кількість -->
-        <div class="flex items-baseline justify-between gap-2 mt-1">
-          <span class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
-            {{ formattedPrice }} <span class="text-xs font-normal text-neutral-500 dark:text-neutral-400">грн / {{ product.unit || 'шт' }}</span>
-          </span>
+        <div class="flex items-center justify-between gap-2 mt-1">
+          <div class="flex items-baseline gap-1">
+            <span class="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
+              {{ formattedPrice }}
+            </span>
+            <span class="text-xs font-normal text-neutral-500 dark:text-neutral-400">
+              грн / {{ product.unit || 'шт' }}
+            </span>
+          </div>
           <div v-if="product.quantity" class="flex items-center gap-1 text-xs text-neutral-600 dark:text-neutral-400 font-medium whitespace-nowrap">
             <UIcon name="i-heroicons-cube" class="w-3.5 h-3.5 shrink-0 text-neutral-400 dark:text-neutral-500" />
             <span>{{ product.quantity }} {{ product.unit || 'шт' }}</span>

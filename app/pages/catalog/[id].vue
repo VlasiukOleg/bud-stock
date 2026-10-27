@@ -196,7 +196,7 @@
                       {{ $t('catalog.quantity') }}
                     </div>
                     <div class="font-medium">
-                      {{ product.quantity }} {{ product.unit }}
+                      {{ product.quantity }} {{ product.unit || 'шт' }}
                     </div>
                   </div>
                 </div>

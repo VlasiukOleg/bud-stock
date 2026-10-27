@@ -250,13 +250,13 @@ const handleModerate = async (id: string | number, action: 'approve' | 'reject')
                 <div class="bg-neutral-50 dark:bg-neutral-800/50 p-2.5 rounded-lg border border-neutral-100 dark:border-neutral-800">
                   <span class="text-neutral-400 block mb-0.5">Ціна:</span>
                   <span class="font-bold text-neutral-900 dark:text-white text-sm">
-                    {{ listing.price ? `${listing.price} грн` : 'Безкоштовно' }}
+                    {{ listing.price ? `${listing.price} грн / ${listing.unit || 'шт'}` : 'Безкоштовно' }}
                   </span>
                 </div>
                 <div class="bg-neutral-50 dark:bg-neutral-800/50 p-2.5 rounded-lg border border-neutral-100 dark:border-neutral-800">
                   <span class="text-neutral-400 block mb-0.5">Кількість:</span>
                   <span class="font-bold text-neutral-900 dark:text-white text-sm">
-                    {{ listing.quantity }} {{ listing.unit }}
+                    {{ listing.quantity }} {{ listing.unit || 'шт' }}
                   </span>
                 </div>
                 <div class="col-span-2 sm:col-span-1 bg-neutral-50 dark:bg-neutral-800/50 p-2.5 rounded-lg border border-neutral-100 dark:border-neutral-800">

@@ -115,6 +115,7 @@ export const useListings = () => {
       console.error('Помилка продовження оголошення:', error)
       throw error
     }
+
     return true
   }
 
@@ -364,15 +365,14 @@ export const useListings = () => {
           p_limit: 50000,
           p_offset: 0,
         })
-        .select('count');
+        .select('id');
 
       if (error) {
         console.error('Помилка підрахунку оголошень (RPC search_listings count):', error);
         throw error;
       }
 
-      const total = (data as any[])?.[0]?.count;
-      return typeof total === 'number' ? total : 0;
+      return (data as any[] || []).length;
     }
 
     // Для двомовних запитів (напр. "гипсокартон" і "гіпсокартон")

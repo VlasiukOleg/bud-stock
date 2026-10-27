@@ -349,21 +349,29 @@ const actionItems = computed(() => {
           {{ product.title }}
         </h3>
 
-        <div class="flex flex-wrap items-end justify-between gap-2 mb-2 mt-1">
-          <div class="flex items-center gap-1 text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
-            <UIcon name="i-heroicons-cube" class="w-4 h-4 shrink-0 text-neutral-400" />
-            <span class="font-medium truncate max-w-20 sm:max-w-25">{{ product.quantity }} {{ product.unit }}</span>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mb-2 mt-1">
+          <div class="flex items-center gap-1.5 text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
+            <UIcon name="i-heroicons-cube" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-neutral-400" />
+            <span class="font-medium truncate">{{ product.quantity }} {{ product.unit || 'шт' }}</span>
           </div>
-          <div class="flex items-baseline gap-1 text-right">
-            <span
-              class="text-base sm:text-xl font-bold text-green-600 dark:text-green-400"
-            >
-              {{ formattedPrice }}
-            </span>
-            <span
-              class="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 font-public"
-              >грн</span
-            >
+          <div class="flex items-baseline gap-1 text-left sm:text-right">
+            <template v-if="product.is_free || product.price === 0">
+              <span class="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400">
+                Даром
+              </span>
+            </template>
+            <template v-else>
+              <span
+                class="text-base sm:text-xl font-bold text-green-600 dark:text-green-400 leading-tight"
+              >
+                {{ formattedPrice }}
+              </span>
+              <span
+                class="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 font-public whitespace-nowrap"
+              >
+                грн / {{ product.unit || 'шт' }}
+              </span>
+            </template>
           </div>
         </div>
 
