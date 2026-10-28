@@ -3,15 +3,22 @@ import { ref, computed, watchEffect } from 'vue'
 import type { FormSubmitEvent, AuthFormField } from '@nuxt/ui'
 import * as yup from 'yup'
 import { getSupabaseAuthErrorMessage } from '~/utils/supabaseErrors'
+import { APP_ROUTES } from '~/utils/routes'
 
 const { t } = useI18n()
+const route = useRoute()
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
 const authMode = ref<'login' | 'signup' | 'forgotPassword'>('login')
+if (route.query.mode === 'signup') {
+  authMode.value = 'signup'
+}
+
 const isLoading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const redirect = (route.query.redirect as string) || ''
 
 const schema = computed(() => {
   if (authMode.value === 'forgotPassword') {
@@ -37,10 +44,10 @@ const schema = computed(() => {
   })
 })
 
-// Якщо користувач вже авторизований, перенаправляємо на головну
+// Якщо користувач вже авторизований, перенаправляємо на цільову сторінку або на головну
 watchEffect(() => {
   if (user.value) {
-    navigateTo(APP_ROUTES.HOME)
+    navigateTo(redirect || APP_ROUTES.HOME)
   }
 })
 
@@ -83,13 +90,12 @@ const handleAuth = async (payload: FormSubmitEvent<any>) => {
 
   try {
     if (authMode.value === 'signup') {
-      // Реєстрація
+      const emailRedirectTo = `${window.location.origin}/confirm${redirect ? `?redirect=${redirect}` : '?new_user=true'}`
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/confirm`,
-        },
+        options: { emailRedirectTo },
       })
       if (error) throw error
 
@@ -98,8 +104,13 @@ const handleAuth = async (payload: FormSubmitEvent<any>) => {
         throw { code: 'user_already_exists', message: 'User already registered' }
       }
 
+      // Якщо користувача авторизовано одразу
+      if (data.session) {
+        return navigateTo(redirect || APP_ROUTES.PROFILE.INFORMATION)
+      }
+
       successMessage.value =
-        'Реєстрація успішна! Будь ласка, перевірте свою пошту для підтвердження (якщо вимагається), або увійдіть.'
+        'Реєстрація успішна! Будь ласка, перевірте свою пошту для підтвердження або увійдіть.'
       authMode.value = 'login'
     } else if (authMode.value === 'login') {
       // Вхід
@@ -108,7 +119,7 @@ const handleAuth = async (payload: FormSubmitEvent<any>) => {
         password,
       })
       if (error) throw error
-      navigateTo(APP_ROUTES.HOME)
+      navigateTo(redirect || APP_ROUTES.HOME)
     } else if (authMode.value === 'forgotPassword') {
       // Скидання пароля
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -127,11 +138,11 @@ const handleAuth = async (payload: FormSubmitEvent<any>) => {
 
 const loginWithGoogle = async () => {
   try {
+    const redirectTo = `${window.location.origin}/confirm${redirect ? `?redirect=${redirect}` : ''}`
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/confirm`,
-      },
+      options: { redirectTo },
     })
     if (error) throw error
   } catch (error: any) {

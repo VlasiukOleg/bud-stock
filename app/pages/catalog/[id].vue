@@ -384,49 +384,164 @@
 
             <UCard>
               <div class="space-y-3">
-                <UButton
-                  size="xl"
-                  block
-                  :color="showPhone ? 'neutral' : 'primary'"
-                  :variant="showPhone ? 'outline' : 'solid'"
-                  :icon="
-                    showPhone
-                      ? 'i-heroicons-phone-20-solid'
-                      : (canSeePhone ? 'i-heroicons-device-phone-mobile-20-solid' : 'i-heroicons-lock-closed-20-solid')
-                  "
-                  :loading="isLoadingPhone"
-                  @click="togglePhone"
-                  :disabled="!canSeePhone"
+                <!-- Сценарій 7: Автор переглядає власне оголошення -->
+                <div
+                  v-if="isUserOwnerProduct"
+                  class="p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700/60 space-y-2"
                 >
-                  <template v-if="showPhone">{{ sellerPhone }}</template>
-                  <template v-else-if="canSeePhone">Показати телефон</template>
-                  <template v-else-if="!currentUser">Увійдіть, щоб побачити телефон</template>
-                  <template v-else>Телефон приховано продавцем</template>
-                </UButton>
-
-                <!-- Підказка для незареєстрованих -->
-                <div v-if="!canSeePhone && !currentUser" class="text-[11px] text-center text-neutral-500">
-                  <NuxtLink :to="APP_ROUTES.AUTH.LOGIN" class="text-primary-500 hover:underline font-medium">Зареєструйтеся</NuxtLink>
-                  , щоб отримати доступ до контактів продавця
+                  <div class="flex items-center gap-2 text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                    <UIcon name="i-heroicons-user-circle-20-solid" class="w-4 h-4 text-primary-500 shrink-0" />
+                    <span>Це ваше оголошення</span>
+                  </div>
+                  <p class="text-xs text-neutral-600 dark:text-neutral-400">
+                    <template v-if="product.phoneVisibility === 'hidden'">
+                      Ваш номер <b>приховано</b> від покупців (зв'язок тільки через чат).
+                    </template>
+                    <template v-else-if="product.phoneVisibility === 'registered'">
+                      Ваш номер видно <b>тільки зареєстрованим</b> покупцям.
+                    </template>
+                    <template v-else>
+                      Ваш номер видно <b>всім відвідувачам</b>.
+                    </template>
+                  </p>
+                  <div class="pt-1">
+                    <NuxtLink
+                      :to="APP_ROUTES.PROFILE.INFORMATION"
+                      class="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium inline-flex items-center gap-1"
+                    >
+                      <span>Змінити налаштування приватності</span>
+                      <UIcon name="i-heroicons-arrow-right-20-solid" class="w-3.5 h-3.5" />
+                    </NuxtLink>
+                  </div>
                 </div>
 
-                <p
-                  v-if="showPhone"
-                  class="text-[11px] text-center text-neutral-500"
-                >
-                  Скажіть, що знайшли оголошення на <b>BudStock</b>
-                </p>
+                <!-- Для покупців та гостей (не автора) -->
+                <template v-else>
+                  <!-- Сценарій 5 & 6: Телефон приховано продавцем (якщо не адмін) -->
+                  <template v-if="product.phoneVisibility === 'hidden' && !isAdmin">
+                    <UButton
+                      size="xl"
+                      block
+                      color="neutral"
+                      variant="subtle"
+                      icon="i-heroicons-eye-slash-20-solid"
+                      disabled
+                      class="opacity-80 cursor-not-allowed justify-center"
+                    >
+                      Телефон приховано
+                    </UButton>
+                    <p class="text-xs text-center text-neutral-500 dark:text-neutral-400 font-medium">
+                      Для зв'язку з продавцем напишіть у чат нижче
+                    </p>
+                  </template>
 
-                <UButton
-                  size="xl"
-                  block
-                  variant="soft"
-                  color="neutral"
-                  icon="i-heroicons-chat-bubble-left-right-20-solid"
-                  label="Написати повідомлення"
-                  @click="openChat(product.user_id, product.id, product)"
-                  v-if="!isUserOwnerProduct"
-                />
+                  <!-- Сценарій 3: Тільки для зареєстрованих, дивиться Гість -->
+                  <template v-else-if="!canSeePhone && !currentUser">
+                    <UButton
+                      size="xl"
+                      block
+                      color="neutral"
+                      variant="subtle"
+                      icon="i-heroicons-lock-closed-20-solid"
+                      disabled
+                      class="opacity-80 cursor-not-allowed justify-center"
+                    >
+                      Телефон приховано
+                    </UButton>
+                    <p class="text-xs text-center text-neutral-500 dark:text-neutral-400">
+                      Номер доступний зареєстрованим користувачам.
+                      <NuxtLink
+                        :to="loginWithRedirectUrl"
+                        class="text-primary-600 dark:text-primary-400 font-semibold hover:underline"
+                      >
+                        Увійти
+                      </NuxtLink>
+                      або
+                      <NuxtLink
+                        :to="registerWithRedirectUrl"
+                        class="text-primary-600 dark:text-primary-400 font-semibold hover:underline"
+                      >
+                        Зареєструватися
+                      </NuxtLink>
+                    </p>
+                  </template>
+
+                  <!-- Сценарії 1, 2, 4, 8: Номер доступний для перегляду -->
+                  <template v-else>
+                    <!-- До кліку: кнопка «Показати телефон» -->
+                    <UButton
+                      v-if="!showPhone"
+                      size="xl"
+                      block
+                      color="primary"
+                      variant="solid"
+                      icon="i-heroicons-device-phone-mobile-20-solid"
+                      :loading="isLoadingPhone"
+                      @click="togglePhone"
+                    >
+                      Показати телефон
+                    </UButton>
+
+                    <!-- Після кліку: номер відкрито -->
+                    <template v-else>
+                      <!-- Якщо номер успішно отримано -->
+                      <template v-if="sellerPhone && sellerPhone !== 'Не вказано'">
+                        <UButton
+                          :to="`tel:${sellerPhone}`"
+                          size="xl"
+                          block
+                          color="neutral"
+                          variant="outline"
+                          icon="i-heroicons-phone-20-solid"
+                          class="justify-center font-bold text-base sm:text-lg"
+                        >
+                          {{ sellerPhone }}
+                        </UButton>
+                        <p class="text-xs text-center text-neutral-500 dark:text-neutral-400">
+                          Скажіть, що знайшли оголошення на <b class="text-neutral-700 dark:text-neutral-300">BudStock</b>
+                        </p>
+                      </template>
+
+                      <!-- Якщо продавець не зазначив номер телефону в профілі -->
+                      <template v-else>
+                        <UButton
+                          size="xl"
+                          block
+                          color="neutral"
+                          variant="subtle"
+                          icon="i-heroicons-phone-x-mark-20-solid"
+                          disabled
+                          class="opacity-80 cursor-not-allowed justify-center"
+                        >
+                          Номер не вказано
+                        </UButton>
+                        <p class="text-xs text-center text-neutral-500 dark:text-neutral-400 font-medium">
+                          Продавець не зазначив номер телефону. Скористайтеся чатом для зв'язку
+                        </p>
+                      </template>
+                    </template>
+
+                    <!-- Службова позначка для адміна при прихованому номері -->
+                    <div
+                      v-if="isAdmin && product.phoneVisibility === 'hidden'"
+                      class="text-[11px] text-center text-amber-600 dark:text-amber-400 font-medium flex items-center justify-center gap-1"
+                    >
+                      <UIcon name="i-heroicons-shield-check-20-solid" class="w-3.5 h-3.5" />
+                      <span>Телефон видно адміністратору (приховано від покупців)</span>
+                    </div>
+                  </template>
+
+                  <!-- Кнопка «Написати повідомлення» (стає primary, якщо дзвінок неможливий) -->
+                  <UButton
+                    size="xl"
+                    block
+                    :color="isChatPrimary ? 'primary' : 'neutral'"
+                    :variant="isChatPrimary ? 'solid' : 'soft'"
+                    icon="i-heroicons-chat-bubble-left-right-20-solid"
+                    label="Написати повідомлення"
+                    @click="handleChatClick"
+                  />
+                </template>
               </div>
             </UCard>
 
@@ -477,8 +592,8 @@
 
 <script setup lang="ts">
 import { useSessionStorage, useMediaQuery } from '@vueuse/core';
-
 import { CATEGORY_DATA } from '~/constants/category/category';
+import { APP_ROUTES } from '~/utils/routes';
 
 const nuxtApp = useNuxtApp();
 const route = useRoute();
@@ -662,6 +777,30 @@ watch(() => (currentUser.value as any)?.sub, () => {
   showPhone.value = false;
   sellerPhone.value = null;
 });
+
+const loginWithRedirectUrl = computed(() => {
+  return `/login?redirect=${route.fullPath}`;
+});
+
+const registerWithRedirectUrl = computed(() => {
+  return `/login?mode=signup&redirect=${route.fullPath}`;
+});
+
+const isChatPrimary = computed(() => {
+  if (!product.value) return false;
+  return product.value.phoneVisibility === 'hidden' || (showPhone.value && sellerPhone.value === 'Не вказано');
+});
+
+const handleChatClick = () => {
+  if (!product.value) return;
+
+  if (!currentUser.value) {
+    navigateTo(loginWithRedirectUrl.value);
+    return;
+  }
+
+  openChat(product.value.user_id, product.value.id, product.value);
+};
 
 const viewedListings = useSessionStorage<string[]>('viewed_listings', []);
 

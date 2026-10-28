@@ -1,23 +1,24 @@
 <script setup lang="ts">
+import { APP_ROUTES } from '~/utils/routes'
+
 const user = useSupabaseUser()
+const route = useRoute()
 const redirectInfo = useSupabaseCookieRedirect()
 
 watch(user, () => {
   if (user.value) {
-    // Get redirect path, and clear it from the cookie
-    const path = redirectInfo.pluck()
-    // Redirect to the saved path, or fallback to home
-    return navigateTo(path || '/') 
+    const target = (route.query.redirect as string) || redirectInfo.pluck()
+    if (target && target !== '/') return navigateTo(target)
+
+    // Якщо новий користувач або не заповнено ім'я — на заповнення профілю
+    const isNew = route.query.new_user === 'true' || !user.value.user_metadata?.full_name
+    return navigateTo(isNew ? APP_ROUTES.PROFILE.INFORMATION : APP_ROUTES.HOME)
   }
 }, { immediate: true })
 
 onMounted(() => {
-  // Якщо за 3 секунди авторизація не відбулася (наприклад, юзер просто ввів цю адресу вручну),
-  // перекидаємо його на сторінку логіну, щоб він не дивився вічно на спінер.
   setTimeout(() => {
-    if (!user.value) {
-      navigateTo('/login')
-    }
+    if (!user.value) navigateTo(APP_ROUTES.AUTH.LOGIN)
   }, 3000)
 })
 </script>

@@ -208,7 +208,7 @@ watch(visibility, async (current) => {
               </template>
             </UFormField>
 
-            <UFormField :label="$t('profile.information.phoneVisibilityLabel')" :help="$t('profile.information.phoneVisibilityHelp')">
+            <UFormField :label="$t('profile.information.phoneVisibilityLabel')" :description="$t('profile.information.phoneVisibilityHelp')">
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
                 <label
                   v-for="option in phoneVisibilityOptions"
