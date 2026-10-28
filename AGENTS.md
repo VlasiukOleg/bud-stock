@@ -55,3 +55,10 @@
 * The workspace is equipped with **MCP servers** for **`nuxt`** and **`nuxt-ui`**.
 * Always use these MCP tools (`search-components`, `get-component`, `get-documentation-page`, `search-icons`, `get-migration-guide`, etc.) to consult official, up-to-date documentation and component APIs when building or updating UI features.
 
+---
+
+## 7. Git Commits Policy (STRICT)
+* **NEVER run `git commit` automatically**.
+* The user always reviews changes first and commits manually.
+* The agent only proposes a clear, formatted commit message for the user.
+

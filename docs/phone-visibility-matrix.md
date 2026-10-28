@@ -110,3 +110,35 @@
 3. **Швидкі дії після розкриття номера:**
    * На мобільних: один тап по відкритому номеру одразу викликає системний додаток «Телефон» (`tel:+380...`).
    * На комп'ютерах: з'являється зручна іконка копіювання в буфер обміну поруч із номером.
+
+---
+
+## 5. Лічильник переглядів номеру телефону (Phone Views Counter)
+
+### Бізнес-логіка:
+* **Ціль**: Дати продавцю в кабінеті метрику прямих лідів — скільки людей зацікавилися товаром настільки, що розкрили телефон для дзвінка.
+* **Захист від накрутки**:
+  1. Не зараховуються кліки самого власника оголошення (`isUserOwnerProduct`).
+  2. Не зараховуються службові кліки адміністратора (`isAdmin`).
+  3. Не зараховуються перегляди для неактивних товарів.
+  4. Сесійний кеш (`useSessionStorage('viewed_phone_listings')`): один покупець у межах однієї вкладки зараховується лише один раз (повторні згортання/розгортання чи F5 не збільшують лічильник).
+
+### SQL Міграція (Supabase SQL Editor):
+```sql
+-- 1. Додаємо колонку phone_views
+ALTER TABLE public.listings 
+ADD COLUMN IF NOT EXISTS phone_views integer DEFAULT 0 NOT NULL;
+
+-- 2. Створюємо RPC функцію для безпечного інкременту покупцями
+CREATE OR REPLACE FUNCTION public.increment_phone_views(p_listing_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE public.listings
+  SET phone_views = COALESCE(phone_views, 0) + 1
+  WHERE id = p_listing_id;
+END;
+$$;
+```

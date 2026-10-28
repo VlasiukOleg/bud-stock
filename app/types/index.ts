@@ -37,6 +37,7 @@ export interface Product {
   sellerName?: string;
   sellerRating: number;
   views?: number;
+  phone_views?: number;
   delivery?: string;
   deliveryDetails?: string;
   category?: string;

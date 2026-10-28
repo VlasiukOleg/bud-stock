@@ -275,7 +275,7 @@ const deactivatedStatusDropdown = computed(() => [
       <!-- 3. Дзвінки / Контакти -->
       <div class="flex items-center gap-1.5" title="Кількість переглядів номера телефону">
         <UIcon name="i-heroicons-phone" class="w-3.5 h-3.5 text-neutral-400 dark:text-neutral-500 shrink-0" />
-        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-800 dark:text-neutral-100">{{ (product as any).phone_views || 0 }}</span>
+        <span class="text-xs sm:text-sm font-bold tracking-tight text-neutral-800 dark:text-neutral-100">{{ product.phone_views || 0 }}</span>
       </div>
 
       <span class="h-3.5 w-px bg-neutral-200 dark:bg-neutral-700"></span>

@@ -734,6 +734,33 @@ const canSeePhone = computed(() => {
 const sellerPhone = ref<string | null>(null);
 const isLoadingPhone = ref(false);
 
+const { incrementViews, incrementPhoneViews } = useListings();
+const viewedListings = useSessionStorage<string[]>('viewed_listings', []);
+const viewedPhoneListings = useSessionStorage<string[]>('viewed_phone_listings', []);
+
+const trackPhoneView = async () => {
+  if (!product.value) return;
+
+  // Правило 1: Свій номер та перегляд адміна не рахуємо
+  const currentUserId = (currentUser.value as any)?.sub;
+  if (currentUserId === product.value.user_id || isAdmin.value) return;
+
+  // Правило 2: Для неактивних оголошень не рахуємо
+  if (isInactive.value) return;
+
+  // Правило 3: Перевіряємо sessionStorage, щоб уникнути накрутки повторними кліками
+  const listingId = String(product.value.id);
+  if (!viewedPhoneListings.value.includes(listingId)) {
+    const success = await incrementPhoneViews(listingId);
+    if (success) {
+      viewedPhoneListings.value = [...viewedPhoneListings.value, listingId];
+      if (product.value.phone_views !== undefined) {
+        product.value.phone_views++;
+      }
+    }
+  }
+};
+
 // Телефон запитуємо в БД лише на клік (як на OLX).
 // Функція get_seller_phone сама перевіряє phone_visibility та auth.uid(),
 // тому підробити доступ з фронта неможливо.
@@ -754,6 +781,7 @@ const togglePhone = async () => {
     if (!error && data) {
       sellerPhone.value = data;
       showPhone.value = true;
+      trackPhoneView();
       return;
     }
 
@@ -802,15 +830,13 @@ const handleChatClick = () => {
   openChat(product.value.user_id, product.value.id, product.value);
 };
 
-const viewedListings = useSessionStorage<string[]>('viewed_listings', []);
-
 // Використовуємо watch замість onMounted, бо при переходах між сторінками 
 // onMounted може спрацювати раніше, ніж завантажиться product
 watch(product, async (newProduct) => {
   if (!newProduct) return;
   
   // Правило 1: Свої перегляди та перегляди адміна не рахуємо
-  const currentUserId = (currentUser.value as any)?.sub || (currentUser.value as any)?.id;
+  const currentUserId = (currentUser.value as any)?.sub;
   if (currentUserId === newProduct.user_id || isAdmin.value) return;
 
   // Правило 2: Для неактивних оголошень перегляди не рахуємо
@@ -820,7 +846,6 @@ watch(product, async (newProduct) => {
   const listingId = String(newProduct.id);
   
   if (!viewedListings.value.includes(listingId)) {
-    const { incrementViews } = useListings();
     const success = await incrementViews(listingId);
     
     if (success) {

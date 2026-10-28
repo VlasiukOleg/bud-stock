@@ -202,6 +202,19 @@ export const useListings = () => {
     return true
   }
 
+  const incrementPhoneViews = async (listingId: string) => {
+    // Виклик RPC функції на стороні бази даних (Supabase)
+    const { error } = await client.rpc('increment_phone_views', {
+      p_listing_id: listingId
+    })
+
+    if (error) {
+      console.error('Помилка збільшення переглядів телефону:', error)
+      return false
+    }
+    return true
+  }
+
   const getListingById = async (id: string | number) => {
     // 1. Спочатку шукаємо в основній таблиці listings
     const { data: realListing } = await client
@@ -422,6 +435,7 @@ export const useListings = () => {
     moderateListing,
     deleteListing,
     updateListing,
-    incrementViews
+    incrementViews,
+    incrementPhoneViews
   }
 }
