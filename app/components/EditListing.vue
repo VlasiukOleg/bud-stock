@@ -457,7 +457,8 @@ const selectedCategoryLabel = computed(() => {
 const totalPrice = computed(() => {
   if (formData.quantity && formData.price && !formData.isFree) {
     const qty = Number(formData.quantity) || 0;
-    return Number((qty * pr).toFixed(2));
+    const price = Number(formData.price) || 0;
+    return Number((qty * price).toFixed(2));
   }
   return 0;
 });
@@ -483,19 +484,20 @@ const mainFormSchema = yup.object({
     .number()
     .typeError(t('createListing.validation.reqQuantityNum'))
     .positive(t('createListing.validation.reqQuantityPos'))
-    .test('valid-quantity-precision', function (val) {
+    .test('valid-quantity-precision', (val, context) => {
       if (val === undefined || val === null) return true;
-      const unit = this.parent.unit;
+      const unit = (context.parent as any)?.unit;
       if (unit === 'шт') {
         if (!Number.isInteger(val)) {
-          return this.createError({
+          return context.createError({
             message: t('createListing.validation.integerQuantity'),
           });
         }
       } else {
-        const str = val.toString();
-        if (str.includes('.') && str.split('.')[1].length > 2) {
-          return this.createError({
+        const parts = val.toString().split('.');
+        const decimals = parts[1];
+        if (decimals && decimals.length > 2) {
+          return context.createError({
             message: t('createListing.validation.maxTwoDecimalsQuantity'),
           });
         }
@@ -512,11 +514,12 @@ const mainFormSchema = yup.object({
       schema
         .typeError(t('createListing.validation.reqPriceNum'))
         .positive(t('createListing.validation.reqPricePos'))
-        .test('valid-price-precision', function (val) {
+        .test('valid-price-precision', (val, context) => {
           if (val === undefined || val === null) return true;
-          const str = val.toString();
-          if (str.includes('.') && str.split('.')[1].length > 2) {
-            return this.createError({
+          const parts = val.toString().split('.');
+          const decimals = parts[1];
+          if (decimals && decimals.length > 2) {
+            return context.createError({
               message: t('createListing.validation.maxTwoDecimalsPrice'),
             });
           }
@@ -693,7 +696,8 @@ const onSubmit = async () => {
       const pathsToDelete = removedImageUrls
         .map((url) => {
           const match = url.match(/listing_images\/([^?#]+)/);
-          return match ? decodeURIComponent(match[1]) : null;
+          const path = match?.[1];
+          return path ? decodeURIComponent(path) : null;
         })
         .filter((p): p is string => Boolean(p));
 

@@ -14,4 +14,4 @@ export const PRODUCT_UNITS = [
   { label: 'рулон', value: 'рулон' },
   { label: 'лист', value: 'лист' },
   { label: 'відро', value: 'відро' },
-] as const;
+];
