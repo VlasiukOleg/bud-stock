@@ -52,12 +52,12 @@ const goToCategory = (categoryId: string) => {
                 <p
                   class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400 mb-0.5"
                 >
-                  Спеціалізація платформи
+                  {{ $t("hero.specialization.title") }}
                 </p>
                 <p
                   class="text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-snug"
                 >
-                  Залишки будматеріалів: від чорнових робіт до чистового оздоблення (все до меблювання та побутової техніки).
+                  {{ $t("hero.specialization.description") }}
                 </p>
               </div>
             </div>
@@ -68,7 +68,7 @@ const goToCategory = (categoryId: string) => {
               <CommonCategoryPicker
                 size="md"
                 variant="outline"
-                placeholder="Обрати категорію матеріалів"
+                :placeholder="$t('hero.specialization.chooseCategory')"
                 trigger-class="!bg-white dark:!bg-neutral-900 border border-neutral-300 dark:border-neutral-700 hover:border-brand-400 dark:hover:border-brand-500 shadow-xs hover:shadow-sm !font-semibold !text-neutral-900 dark:!text-white py-2.5 px-3.5 rounded-xl transition-all cursor-pointer"
                 icon-class="!text-brand-500 dark:!text-brand-400 !w-4.5 !h-4.5"
                 text-class="!font-semibold !text-neutral-900 dark:!text-white text-sm"

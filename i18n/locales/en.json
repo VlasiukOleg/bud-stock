@@ -12,6 +12,11 @@
       "line3": "surplus building materials"
     },
     "description": "BudStock is a platform where leftover building materials find new owners. Save time and money by buying cheaper, or free up your space.",
+    "specialization": {
+      "title": "Platform specialization",
+      "description": "Surplus building materials: from rough construction to finish trim (everything prior to furniture and appliances).",
+      "chooseCategory": "Choose materials category"
+    },
     "buttons": {
       "buy": "I want to buy",
       "sell": "Sell leftovers"
