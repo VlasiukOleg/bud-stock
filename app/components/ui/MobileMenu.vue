@@ -5,14 +5,14 @@
     <CommonMobileMenuLinkItem
       v-for="item in MOBILE_MENU_LIST"
       :key="item.to"
-      :to="item.to"
-      :icon-name="item.iconName"
-      :link-label="item.linkLabel"
+      :to="getItemTo(item)"
+      :icon-name="getItemIcon(item)"
+      :link-label="getItemLabel(item)"
       :is-active="isItemActive(item.to)"
       @click.capture="handleItemClick($event, item)"
       class="relative"
     >
-      <template #icon v-if="item.to === '/profile' && user">
+      <template #icon v-if="item.to === APP_ROUTES.PROFILE.ROOT && user">
         <CommonUserAvatar
           :src="getUserAvatarUrl(user)"
           :name="user.user_metadata?.full_name"
@@ -43,24 +43,49 @@ import { MOBILE_MENU_LIST } from "~/constants/mobileMenu/mobileMenuList";
 import type { MobileMenuItem } from "~/types";
 import { useRoute } from 'vue-router';
 import { useChat } from '~/composables/useChat';
+import { APP_ROUTES } from '~/utils/routes';
 
 const { unreadCount } = useChat();
 const user = useSupabaseUser()
 const isSlideoverOpen = useState('isSlideoverOpen', () => false)
 const route = useRoute()
 
-const isItemActive = (itemTo: string) => {
-  if (itemTo === '/') {
-    return route.path === '/'
+const getItemLabel = (item: MobileMenuItem) => {
+  if (item.to === APP_ROUTES.PROFILE.ROOT && !user.value) {
+    return 'mobileMenu.list.login'
   }
-  if (itemTo === '/profile') {
-    return route.path.startsWith('/profile') && !route.path.startsWith('/profile/chats')
+  return item.linkLabel
+}
+
+const getItemTo = (item: MobileMenuItem) => {
+  if (item.to === APP_ROUTES.PROFILE.ROOT && !user.value) {
+    return APP_ROUTES.AUTH.LOGIN
+  }
+  return item.to
+}
+
+const getItemIcon = (item: MobileMenuItem) => {
+  if (item.to === APP_ROUTES.PROFILE.ROOT && !user.value) {
+    return 'i-heroicons-arrow-right-end-on-rectangle'
+  }
+  return item.iconName
+}
+
+const isItemActive = (itemTo: string) => {
+  if (itemTo === APP_ROUTES.HOME) {
+    return route.path === APP_ROUTES.HOME
+  }
+  if (itemTo === APP_ROUTES.PROFILE.ROOT) {
+    if (!user.value) {
+      return route.path.startsWith(APP_ROUTES.AUTH.LOGIN)
+    }
+    return route.path.startsWith(APP_ROUTES.PROFILE.ROOT) && !route.path.startsWith(APP_ROUTES.PROFILE.CHATS)
   }
   return route.path.startsWith(itemTo)
 }
 
 const handleItemClick = (e: MouseEvent, item: MobileMenuItem) => {
-  if (item.to === '/profile') {
+  if (item.to === APP_ROUTES.PROFILE.ROOT) {
     if (user.value) {
       e.preventDefault()
       e.stopPropagation()

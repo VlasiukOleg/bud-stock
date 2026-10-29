@@ -73,29 +73,30 @@ const isProfileRouteActive = computed(() => {
 
       <UButton
         v-if="user"
-          color="neutral"
-          variant="ghost"
-          @click="() => {isSlideoverOpen = true}"
-          :aria-label="t('header.profile')"
-          class="hidden lg:flex"
-        >
-          <CommonUserAvatar
-            :uiClass="{ 'ring-2 ring-brand-500': isProfileRouteActive }"
-            :src="getUserAvatarUrl(user)"
-            :name="user.user_metadata?.full_name"
-            :email="user.email"
-            size="sm"
-          />
-        </UButton>
-        <UButton
-          v-else
-          color="neutral"
-          variant="ghost"
-          :to="APP_ROUTES.AUTH.LOGIN"
-          icon="i-icon-park-solid:people"
-          :aria-label="t('header.login')"
-          class="hidden lg:flex"
+        color="neutral"
+        variant="ghost"
+        @click="() => { isSlideoverOpen = true }"
+        :aria-label="t('header.profile')"
+        class="hidden lg:flex items-center gap-2"
+      >
+        <CommonUserAvatar
+          :uiClass="{ 'ring-2 ring-brand-500': isProfileRouteActive }"
+          :src="getUserAvatarUrl(user)"
+          :name="user.user_metadata?.full_name"
+          :email="user.email"
+          size="sm"
         />
+        <span class="text-sm font-medium">{{ $t('header.profile') }}</span>
+      </UButton>
+      <UButton
+        v-else
+        color="neutral"
+        variant="ghost"
+        :to="APP_ROUTES.AUTH.LOGIN"
+        icon="i-heroicons-arrow-right-end-on-rectangle"
+        :label="$t('header.login')"
+        class="hidden lg:flex font-medium"
+      />
     </template>
   </UHeader>
   

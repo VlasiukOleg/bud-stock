@@ -85,7 +85,8 @@
       "main": "Home",
       "buy": "Buy",
       "sell": "Sell",
-      "profile": "Cabinet",
+      "profile": "Profile",
+      "login": "Log in",
       "messages": "Chats"
     }
   },
@@ -117,8 +118,8 @@
   "header": {
     "sellMaterial": "Sell material",
     "buyMaterial": "Buy material",
-    "profile": "Profile",
-    "login": "Login"
+    "profile": "Cabinet",
+    "login": "Log in"
   },
   "footer": {
     "privacyPolicy": "Privacy Policy"

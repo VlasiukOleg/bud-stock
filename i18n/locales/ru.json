@@ -86,6 +86,7 @@
       "buy": "Купить",
       "sell": "Продать",
       "profile": "Кабинет",
+      "login": "Войти",
       "messages": "Чаты"
     }
   },
@@ -117,8 +118,8 @@
   "header": {
     "sellMaterial": "Продать материал",
     "buyMaterial": "Купить материал",
-    "profile": "Профиль",
-    "login": "Вход"
+    "profile": "Кабинет",
+    "login": "Войти"
   },
   "footer": {
     "privacyPolicy": "Политика конфиденциальности"

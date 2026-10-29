@@ -172,7 +172,7 @@ const setMode = (mode: 'login' | 'signup' | 'forgotPassword') => {
 </script>
 
 <template>
-  <div class="h-[calc(100vh-var(--ui-header-height))] flex items-center justify-center bg-gray-50 dark:bg-neutral-900 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-[calc(100dvh-var(--ui-header-height))] flex-1 flex items-center justify-center bg-gray-50 dark:bg-neutral-900 px-4 sm:px-6 lg:px-8 py-6 sm:py-12 pb-24 lg:pb-12">
     <UPageCard class="w-full max-w-md bg-white dark:bg-neutral-800">
       <UAuthForm
         :fields="fields"
@@ -184,6 +184,7 @@ const setMode = (mode: 'login' | 'signup' | 'forgotPassword') => {
         :submit="{
           label: authMode === 'signup' ? 'Зареєструватися' : authMode === 'forgotPassword' ? 'Відправити лист' : 'Увійти',
           loading: isLoading,
+          class: 'mt-4 sm:mt-5 cursor-pointer',
         }"
         @submit="handleAuth"
       >
