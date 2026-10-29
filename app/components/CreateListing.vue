@@ -382,6 +382,9 @@
                   <UFormField name="quantity" :label="$t('createListing.step3.quantityLabel')">
                     <UInput
                       v-model="formData.quantity"
+                      type="number"
+                      step="any"
+                      min="0"
                       size="lg"
                       :placeholder="$t('createListing.step3.quantityPlaceholder')"
                       class="w-full"
@@ -415,6 +418,8 @@
                     <UInput
                       v-model="formData.price"
                       type="number"
+                      step="any"
+                      min="0"
                       size="lg"
                       :placeholder="$t('createListing.step3.pricePlaceholder')"
                       class="w-full"
@@ -427,7 +432,7 @@
                   <div class="flex flex-col justify-center text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">{{ $t('createListing.step3.totalPriceLabel') }}</span>
                     <span class="text-xl font-bold text-gray-900">
-                      {{ totalPrice > 0 ? totalPrice + ' ' + $t('createListing.step3.currency') : '—' }}
+                      {{ formattedTotalPrice }}
                     </span>
                   </div>
                 </div>
@@ -646,7 +651,7 @@ import * as yup from "yup";
 import type { DropdownMenuItem, FormSubmitEvent, FormErrorEvent, StepperItem } from "@nuxt/ui";
 import type { PointTuple } from "leaflet";
 import { COST_PER_LISTING } from "~/constants/balance";
-import { LISTING_DURATION_DAYS } from "~/constants/listing";
+import { LISTING_DURATION_DAYS, PRODUCT_UNITS } from "~/constants/listing";
 
 import { CATEGORY_DATA } from "~/constants/category/category";
 import ListingForm from "./ui/ListingForm.vue";
@@ -682,14 +687,7 @@ const productStatuses = computed(() => [
   { value: "залишок", label: t('createListing.constants.statusRemnant') },
 ]);
 
-const productUnits = [
-  { label: "шт", value: "шт" },
-  { label: "м²", value: "м²" },
-  { label: "м³", value: "м³" },
-  { label: "м.п.", value: "м.п." },
-  { label: "кг", value: "кг" },
-  { label: "мішок", value: "мішок" },
-];
+const productUnits = PRODUCT_UNITS;
 
 const deliveryOptions = computed(() => [
   { label: t('createListing.constants.pickup'), value: "Самовивіз" },
@@ -802,10 +800,17 @@ const isFormValid = computed(() => {
 
 const totalPrice = computed(() => {
   if (formData.quantity && formData.price && !formData.isFree) {
-    return formData.quantity * formData.price;
+    const qty = Number(formData.quantity) || 0;
+    return Number((qty * pr).toFixed(2));
   }
   return 0;
 });
+
+const formattedTotalPrice = computed(() => {
+  if (totalPrice.value <= 0) return '—';
+  return `${totalPrice.value.toLocaleString('uk-UA')} ${t('createListing.step3.currency')}`;
+});
+
 
 // --- ФОРМА ТА ФАЙЛИ ---
 const createObjectUrl = (file: File) => URL.createObjectURL(file);
@@ -1344,6 +1349,25 @@ const mainFormSchema = yup.object({
     .number()
     .typeError(t('createListing.validation.reqQuantityNum'))
     .positive(t('createListing.validation.reqQuantityPos'))
+    .test('valid-quantity-precision', function (val) {
+      if (val === undefined || val === null) return true;
+      const unit = this.parent.unit;
+      if (unit === 'шт') {
+        if (!Number.isInteger(val)) {
+          return this.createError({
+            message: t('createListing.validation.integerQuantity'),
+          });
+        }
+      } else {
+        const str = val.toString();
+        if (str.includes('.') && str.split('.')[1].length > 2) {
+          return this.createError({
+            message: t('createListing.validation.maxTwoDecimalsQuantity'),
+          });
+        }
+      }
+      return true;
+    })
     .required(t('createListing.validation.reqQuantity')),
   unit: yup.string().required(t('createListing.validation.reqUnit')),
   isFree: yup.boolean(),
@@ -1356,6 +1380,16 @@ const mainFormSchema = yup.object({
         schema
           .typeError(t('createListing.validation.reqPriceNum'))
           .positive(t('createListing.validation.reqPricePos'))
+          .test('valid-price-precision', function (val) {
+            if (val === undefined || val === null) return true;
+            const str = val.toString();
+            if (str.includes('.') && str.split('.')[1].length > 2) {
+              return this.createError({
+                message: t('createListing.validation.maxTwoDecimalsPrice'),
+              });
+            }
+            return true;
+          })
           .required(t('createListing.validation.reqPrice')),
     }),
   address: yup.string().required(t('createListing.validation.reqAddress')),

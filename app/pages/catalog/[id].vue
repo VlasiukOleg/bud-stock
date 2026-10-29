@@ -668,7 +668,7 @@ const totalPrice = computed(() => {
   if (product.value.is_free) return 0;
   const price = Number(product.value.price) || 0;
   const qty = Number(product.value.quantity) || 1;
-  return price * qty;
+  return Number((price * qty).toFixed(2));
 });
 
 const deliveryList = computed<string[]>(() => {

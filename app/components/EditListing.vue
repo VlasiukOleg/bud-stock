@@ -218,7 +218,15 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <UFormField name="quantity" :label="$t('createListing.step3.quantityLabel')">
-                <UInput v-model="formData.quantity" size="lg" :placeholder="$t('createListing.step3.quantityPlaceholder')" class="w-full" />
+                <UInput
+                  v-model="formData.quantity"
+                  type="number"
+                  step="any"
+                  min="0"
+                  size="lg"
+                  :placeholder="$t('createListing.step3.quantityPlaceholder')"
+                  class="w-full"
+                />
               </UFormField>
               <UFormField name="unit" :label="$t('createListing.step3.unitLabel')">
                 <USelect v-model="formData.unit" :items="productUnits" size="lg" :placeholder="$t('createListing.step3.unitPlaceholder')" class="w-full" />
@@ -229,13 +237,21 @@
             </div>
             <div v-if="!formData.isFree" class="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
               <UFormField name="price" :label="$t('createListing.step3.priceLabel')">
-                <UInput v-model="formData.price" type="number" size="lg" :placeholder="$t('createListing.step3.pricePlaceholder')" class="w-full">
+                <UInput
+                  v-model="formData.price"
+                  type="number"
+                  step="any"
+                  min="0"
+                  size="lg"
+                  :placeholder="$t('createListing.step3.pricePlaceholder')"
+                  class="w-full"
+                >
                   <template #trailing>{{ $t('createListing.step3.currency') }}</template>
                 </UInput>
               </UFormField>
               <div class="flex flex-col justify-center text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">{{ $t('createListing.step3.totalPriceLabel') }}</span>
-                <span class="text-xl font-bold text-gray-900">{{ totalPrice > 0 ? totalPrice + ' ' + $t('createListing.step3.currency') : '—' }}</span>
+                <span class="text-xl font-bold text-gray-900">{{ formattedTotalPrice }}</span>
               </div>
             </div>
             <UFormField name="address" :label="$t('createListing.step3.locationLabel')">
@@ -301,6 +317,7 @@ import type { DropdownMenuItem, FormErrorEvent } from '@nuxt/ui';
 import type { PointTuple } from 'leaflet';
 import type { Product } from '~/types/index';
 import { CATEGORY_DATA } from '~/constants/category/category';
+import { PRODUCT_UNITS } from '~/constants/listing';
 
 const props = defineProps<{
   listing: Product & { category_id?: string; is_free?: boolean; delivery_details?: string };
@@ -326,14 +343,7 @@ const productStatuses = computed(() => [
   { value: 'залишок', label: t('createListing.constants.statusRemnant') },
 ]);
 
-const productUnits = [
-  { label: 'шт', value: 'шт' },
-  { label: 'м²', value: 'м²' },
-  { label: 'м³', value: 'м³' },
-  { label: 'м.п.', value: 'м.п.' },
-  { label: 'кг', value: 'кг' },
-  { label: 'мішок', value: 'мішок' },
-];
+const productUnits = PRODUCT_UNITS;
 
 const deliveryOptions = computed(() => [
   { label: t('createListing.constants.pickup'), value: 'Самовивіз' },
@@ -445,9 +455,18 @@ const selectedCategoryLabel = computed(() => {
 });
 
 const totalPrice = computed(() => {
-  if (formData.quantity && formData.price && !formData.isFree) return formData.quantity * formData.price;
+  if (formData.quantity && formData.price && !formData.isFree) {
+    const qty = Number(formData.quantity) || 0;
+    return Number((qty * pr).toFixed(2));
+  }
   return 0;
 });
+
+const formattedTotalPrice = computed(() => {
+  if (totalPrice.value <= 0) return '—';
+  return `${totalPrice.value.toLocaleString('uk-UA')} ${t('createListing.step3.currency')}`;
+});
+
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -460,13 +479,50 @@ const mainFormSchema = yup.object({
     .required(t('createListing.validation.reqTitle')),
   categoryId: yup.string().required(t('createListing.validation.reqCategory')),
   status: yup.string().required(t('createListing.validation.reqStatus')),
-  quantity: yup.number().typeError(t('createListing.validation.reqQuantityNum')).positive(t('createListing.validation.reqQuantityPos')).required(t('createListing.validation.reqQuantity')),
+  quantity: yup
+    .number()
+    .typeError(t('createListing.validation.reqQuantityNum'))
+    .positive(t('createListing.validation.reqQuantityPos'))
+    .test('valid-quantity-precision', function (val) {
+      if (val === undefined || val === null) return true;
+      const unit = this.parent.unit;
+      if (unit === 'шт') {
+        if (!Number.isInteger(val)) {
+          return this.createError({
+            message: t('createListing.validation.integerQuantity'),
+          });
+        }
+      } else {
+        const str = val.toString();
+        if (str.includes('.') && str.split('.')[1].length > 2) {
+          return this.createError({
+            message: t('createListing.validation.maxTwoDecimalsQuantity'),
+          });
+        }
+      }
+      return true;
+    })
+    .required(t('createListing.validation.reqQuantity')),
   unit: yup.string().required(t('createListing.validation.reqUnit')),
   isFree: yup.boolean(),
   price: yup.number().when('isFree', {
     is: true,
     then: (schema) => schema.optional().nullable(),
-    otherwise: (schema) => schema.typeError(t('createListing.validation.reqPriceNum')).positive(t('createListing.validation.reqPricePos')).required(t('createListing.validation.reqPrice')),
+    otherwise: (schema) =>
+      schema
+        .typeError(t('createListing.validation.reqPriceNum'))
+        .positive(t('createListing.validation.reqPricePos'))
+        .test('valid-price-precision', function (val) {
+          if (val === undefined || val === null) return true;
+          const str = val.toString();
+          if (str.includes('.') && str.split('.')[1].length > 2) {
+            return this.createError({
+              message: t('createListing.validation.maxTwoDecimalsPrice'),
+            });
+          }
+          return true;
+        })
+        .required(t('createListing.validation.reqPrice')),
   }),
   address: yup.string().required(t('createListing.validation.reqAddress')),
   latitude: yup.number().required(t('createListing.validation.reqLat')),
