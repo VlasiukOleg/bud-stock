@@ -21,6 +21,7 @@ export default defineNuxtConfig({
     families: {
       Nunito: [400, 700, 900],
       "Public Sans": [400, 700, 900],
+      Raleway: [600, 700, 800, 900],
     },
     display: "swap",
     download: true,

@@ -4,9 +4,12 @@
   },
   "hero": {
     "title": {
-      "line1": "Fast. Convenient.",
+      "line1": "fast • convenient • nearby",
+      "fast": "fast",
+      "convenient": "convenient",
+      "nearby": "nearby",
       "line2": "Sell or Buy",
-      "line3": "Leftover building materials"
+      "line3": "surplus building materials"
     },
     "description": "BudStock is a platform where leftover building materials find new owners. Save time and money by buying cheaper, or free up your space.",
     "buttons": {

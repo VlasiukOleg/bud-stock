@@ -19,20 +19,21 @@ const goToCategory = (categoryId: string) => {
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         <div class="text-center lg:text-left">
           <h1
-            class="text-4xl sm:text-5xl xl:text-6xl font-bold tracking-tight text-neutral-900 font-public dark:text-white space-y-3 md:space-y-4"
+            class="text-2xl sm:text-4xl md:text-3xl xl:text-4xl font-extrabold tracking-tight text-neutral-700 font-raleway dark:text-white space-y-3 sm:space-y-3 md:space-y-4 uppercase"
           >
-            <span class="block">{{ $t("hero.title.line1") }}</span>
-            <span
-              class="block text-brand-500 text-3xl sm:text-[40px] xl:text-5xl"
-              >{{ $t("hero.title.line2") }}</span
-            >
-            <span class="block text-3xl sm:text-4xl xl:text-5xl">{{
-              $t("hero.title.line3")
-            }}</span>
+            <span class="block">
+              <span class="whitespace-nowrap">{{ $t("hero.title.fast") }}</span>
+              <span class="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 xl:w-2.5 xl:h-2.5 rounded-full bg-neutral-700 mx-1.5 sm:mx-2.5 align-middle -mt-0.5"></span>
+              <span class="whitespace-nowrap">{{ $t("hero.title.convenient") }}</span>
+              <span class="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 xl:w-2.5 xl:h-2.5 rounded-full bg-neutral-700 mx-1.5 sm:mx-2.5 align-middle -mt-0.5"></span>
+              <span class="whitespace-nowrap">{{ $t("hero.title.nearby") }}</span>
+            </span>
+            <span class="block text-brand-500 text-3xl sm:text-5xl md:text-4xl xl:text-5xl">{{ $t("hero.title.line2") }}</span>
+            <span class="block">{{ $t("hero.title.line3") }}</span>
           </h1>
 
           <p
-            class="mx-auto lg:mx-0 mt-8 max-w-2xl text-base md:text-xl text-neutral-600 dark:text-neutral-400"
+            class="mx-auto lg:mx-0 mt-6 sm:mt-8 max-w-2xl text-base md:text-xl text-neutral-600 dark:text-neutral-400"
           >
             {{ $t("hero.description") }}
           </p>
