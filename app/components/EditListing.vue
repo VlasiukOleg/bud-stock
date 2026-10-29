@@ -629,6 +629,32 @@ const onSubmit = async () => {
       listing_state: newListingState,
     });
 
+    // Видаляємо старі замінені фотографії зі сховища Supabase Storage, щоб не накопичувати файли-сироти
+    const initialImages = (props.listing.images || []) as string[];
+    const removedImageUrls = initialImages.filter((url) => !formData.existingImageUrls.includes(url));
+
+    if (removedImageUrls.length > 0) {
+      const pathsToDelete = removedImageUrls
+        .map((url) => {
+          const match = url.match(/listing_images\/([^?#]+)/);
+          return match ? decodeURIComponent(match[1]) : null;
+        })
+        .filter((p): p is string => Boolean(p));
+
+      if (pathsToDelete.length > 0) {
+        try {
+          const { error: removeStorageError } = await supabase.storage
+            .from('listing_images')
+            .remove(pathsToDelete);
+          if (removeStorageError) {
+            console.warn('Could not remove replaced images from storage:', removeStorageError);
+          }
+        } catch (storageErr) {
+          console.warn('Error deleting replaced images from storage:', storageErr);
+        }
+      }
+    }
+
     if (requiresModerationToast) {
       toast.add({
         title: t('createListing.toasts.moderationTitle', 'Надіслано на модерацію'),
