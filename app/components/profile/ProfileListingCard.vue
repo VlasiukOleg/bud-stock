@@ -5,7 +5,10 @@ import { useClipboard } from '@vueuse/core';
 
 const props = withDefaults(defineProps<{
   product: Product;
-}>(), {});
+  isRenewing?: boolean;
+}>(), {
+  isRenewing: false
+});
 
 const emit = defineEmits<{
   (e: 'delete', id: string | number): void;
@@ -63,6 +66,22 @@ const daysRemaining = computed(() => {
   if (diffMs <= 0) return 0;
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 });
+
+// Раннє продовження (<= 5 днів до завершення для активних товарів)
+const isExpiringSoon = computed(() => {
+  return isActive.value && daysRemaining.value !== null && daysRemaining.value <= 5;
+});
+
+const expiringSoonText = computed(() => {
+  if (daysRemaining.value === null) return '';
+  const expiresDate = props.product.expires_at ? new Date(props.product.expires_at) : null;
+  const isToday = expiresDate && expiresDate.toDateString() === new Date().toDateString();
+  if (isToday || daysRemaining.value === 0) {
+    return 'Термін спливає сьогодні!';
+  }
+  return `Термін спливає через ${daysRemaining.value} ${daysText(daysRemaining.value)}`;
+});
+
 
 // Скільки днів до остаточного видалення (45 днів)
 const daysUntilPermanentDelete = computed(() => {
@@ -128,6 +147,18 @@ const menuActions = computed(() => {
   ];
 
   if (isActive.value) {
+    items[0].unshift({
+      label: 'Редагувати оголошення',
+      icon: 'i-heroicons-pencil-square',
+      onSelect: () => emit('edit', props.product.id)
+    });
+    if (isExpiringSoon.value) {
+      items[0].push({
+        label: `Продовжити на ${LISTING_DURATION_DAYS} днів`,
+        icon: 'i-heroicons-arrow-path',
+        onSelect: () => emit('renew', props.product.id)
+      });
+    }
     items.push([
       {
         label: 'Позначити проданим',
@@ -181,7 +212,7 @@ const deactivatedStatusDropdown = computed(() => [
 </script>
 
 <template>
-  <div class="bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+  <div class="bg-white dark:bg-neutral-900 border border-neutral-200/90 dark:border-neutral-800 border-t-[3px] border-t-brand-400 dark:border-t-brand-400 rounded-2xl p-4 shadow-[0_4px_18px_-2px_rgba(0,0,0,0.07)] dark:shadow-none hover:shadow-md transition-all flex flex-col justify-between">
     <!-- 1. Верхній рядок: Фото + Основна інформація -->
     <div class="flex items-start gap-3.5">
       <!-- Квадратне фото товару -->
@@ -209,16 +240,16 @@ const deactivatedStatusDropdown = computed(() => [
             {{ product.title }}
           </NuxtLink>
 
-          <!-- Меню додаткових дій -->
+          <!-- Меню додаткових дій (Фірмовий м'який кружечок) -->
           <UDropdownMenu :items="menuActions" :content="{ align: 'end' }">
-            <UButton
-              icon="i-heroicons-ellipsis-horizontal"
-              variant="ghost"
-              color="neutral"
-              size="xs"
-              class="shrink-0 -mr-1 -mt-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 rounded-lg"
+            <button
+              type="button"
+              class="rounded-full w-7 h-7 p-0 flex items-center justify-center shrink-0 -mr-1 -mt-1 bg-brand-50 hover:bg-brand-100 text-brand-600 dark:bg-brand-950/60 dark:hover:bg-brand-900/60 dark:text-brand-400 cursor-pointer transition-colors shadow-2xs"
               aria-label="Меню оголошення"
-            />
+              title="Додаткові дії"
+            >
+              <UIcon name="i-heroicons-ellipsis-vertical" class="w-4 h-4" />
+            </button>
           </UDropdownMenu>
         </div>
 
@@ -309,9 +340,10 @@ const deactivatedStatusDropdown = computed(() => [
         color="neutral"
         variant="outline"
         icon="i-heroicons-arrow-path"
+        :loading="isRenewing"
         block
         size="sm"
-        class="font-semibold shadow-xs justify-center rounded-xl py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200"
+        class="font-semibold shadow-xs justify-center rounded-xl py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 cursor-pointer"
         @click="emit('renew', product.id)"
       >
         Продовжити на {{ LISTING_DURATION_DAYS }} днів
@@ -340,7 +372,32 @@ const deactivatedStatusDropdown = computed(() => [
         <span class="font-medium">Очікує перевірки модератором</span>
       </div>
 
-      <!-- Активні або деактивовані: Кнопка "Редагувати оголошення" -->
+      <!-- Активні з раннім продовженням (<= 5 днів до закінчення) -->
+      <div v-else-if="isExpiringSoon" class="flex items-center gap-2">
+        <UButton
+          color="warning"
+          variant="solid"
+          icon="i-heroicons-arrow-path"
+          :loading="isRenewing"
+          size="sm"
+          class="flex-1 font-semibold shadow-xs justify-center rounded-xl py-2 cursor-pointer"
+          @click="emit('renew', product.id)"
+        >
+          Продовжити на {{ LISTING_DURATION_DAYS }} днів
+        </UButton>
+        <UButton
+          color="neutral"
+          variant="outline"
+          icon="i-heroicons-pencil-square"
+          size="sm"
+          class="shrink-0 font-semibold shadow-xs justify-center rounded-xl py-2 px-3 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 cursor-pointer"
+          title="Редагувати оголошення"
+          aria-label="Редагувати оголошення"
+          @click="emit('edit', product.id)"
+        />
+      </div>
+
+      <!-- Звичайні активні або деактивовані: Кнопка "Редагувати оголошення" -->
       <UButton
         v-else
         color="neutral"
@@ -425,14 +482,19 @@ const deactivatedStatusDropdown = computed(() => [
 
       <!-- Праворуч: Дата та лічильник днів -->
       <div class="text-right">
-        <!-- Якщо активне: До 17 листопада + Ще 25 днів -->
+        <!-- Якщо активне: До 17 листопада + Ще 25 днів / Термін спливає -->
         <template v-if="isActive">
           <p v-if="expiresFormatted" class="text-xs text-neutral-600 dark:text-neutral-300 flex items-center justify-end gap-1 font-medium">
             <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-neutral-400" />
             <span>До {{ expiresFormatted }}</span>
           </p>
-          <p v-if="daysRemaining !== null" class="text-xs font-bold text-amber-600 dark:text-brand-500 mt-0.5">
-            Ще {{ daysRemaining }} {{ daysText(daysRemaining) }}
+          <p
+            v-if="daysRemaining !== null"
+            class="text-xs font-bold mt-0.5 flex items-center justify-end gap-1"
+            :class="isExpiringSoon ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-brand-500'"
+          >
+            <UIcon v-if="isExpiringSoon" name="i-heroicons-exclamation-triangle" class="w-3.5 h-3.5 text-red-500 shrink-0" />
+            <span>{{ isExpiringSoon ? expiringSoonText : `Ще ${daysRemaining} ${daysText(daysRemaining)}` }}</span>
           </p>
         </template>
 

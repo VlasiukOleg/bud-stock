@@ -145,6 +145,7 @@ const toast = useToast();
 const isDeleteModalOpen = ref(false);
 const listingToDelete = ref<string | number | null>(null);
 const isDeleting = ref(false);
+const renewingId = ref<string | number | null>(null);
 
 const handleDelete = (id: string | number) => {
   listingToDelete.value = id;
@@ -152,6 +153,7 @@ const handleDelete = (id: string | number) => {
 };
 
 const handleRenew = async (id: string | number) => {
+  renewingId.value = id;
   try {
     await renewListing(String(id));
     toast.add({
@@ -160,9 +162,11 @@ const handleRenew = async (id: string | number) => {
     });
     clearNuxtData(`user-listings-${user.value?.sub}`);
     clearNuxtData('all-listings');
-    refresh();
+    await refresh();
   } catch (err) {
     toast.add({ title: t('profile.listings.renewError', 'Помилка подовження оголошення'), color: 'error' });
+  } finally {
+    renewingId.value = null;
   }
 };
 
@@ -299,6 +303,7 @@ watch(visibility, async (current, previous) => {
                     v-for="listing in activeListings" 
                     :key="listing.id"
                     :product="listing"
+                    :is-renewing="renewingId === listing.id"
                     @delete="handleDelete"
                     @updateState="handleUpdateState"
                     @renew="handleRenew"
@@ -391,6 +396,7 @@ watch(visibility, async (current, previous) => {
                       v-for="listing in inactiveListings" 
                       :key="listing.id"
                       :product="listing"
+                      :is-renewing="renewingId === listing.id"
                       @delete="handleDelete"
                       @updateState="handleUpdateState"
                       @renew="handleRenew"

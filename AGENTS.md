@@ -27,9 +27,10 @@
 * **Client-side Filtering**: `profile/listings.vue` filters out any listings older than 45 days immediately so users never see expired items even before the nightly cron runs.
 * **Reactivating Listings**: When reactivating an inactive listing, if `expires_at > now()`, preserve the remaining active days instead of resetting to +25 days (prevents infinite renewal exploit).
 * **Permanent Deletion**: Normal users cannot manually delete listings; items automatically delete permanently after the 45-day retention period.
-* **Early Renewal Before Expiry (Planned / Backlog)**:
-  * When an active listing has `<= 3-5 days` remaining before expiration, highlight the badge (e.g., orange/amber: "Термін спливає через X дн.") and show the button `[ 🔄 Продовжити на 25 днів ]` directly on the active card in user profile.
-  * Clicking it extends `expires_at` by +25 days from now, keeping the product continuously active on the map without dropping into "Неактивні".
+* **Early Renewal Before Expiry (Implemented)**:
+  * When an active listing has `<= 5 days` remaining before expiration (`daysRemaining <= 5`), the badge highlights with an amber warning icon and text: `"Термін спливає через X дн."` (or `"Термін спливає сьогодні!"`).
+  * Directly displays the prominent button `[ 🔄 Продовжити на 25 днів ]` alongside a compact edit button `[ ✏️ ]` on the active card in user profile (`ProfileListingCard.vue`).
+  * Clicking it extends `expires_at` by +25 days from now (`renewListing`), keeping the product continuously active on the map without dropping into "Неактивні".
 
 ---
 

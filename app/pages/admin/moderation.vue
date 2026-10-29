@@ -119,6 +119,14 @@ const handleModerate = async (id: string | number, action: 'approve' | 'reject')
             Очікують: {{ listings.length }}
           </UBadge>
           <UButton
+            to="/admin/designs"
+            variant="soft"
+            color="primary"
+            icon="i-heroicons-paint-brush"
+          >
+            Дизайни
+          </UButton>
+          <UButton
             variant="soft"
             color="neutral"
             icon="i-heroicons-arrow-path"
