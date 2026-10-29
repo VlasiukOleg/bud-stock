@@ -63,3 +63,10 @@
 * The user always reviews changes first and commits manually.
 * The agent only proposes a clear, formatted commit message for the user.
 
+---
+
+## 8. Application Routes & Navigation (STRICT)
+* **Always use `APP_ROUTES` constants** (defined in `app/utils/routes.ts`) for internal paths, links, and redirects instead of raw hardcoded string literals (e.g. use `APP_ROUTES.AUTH.LOGIN`, `APP_ROUTES.AUTH.CONFIRM`, `APP_ROUTES.CATALOG`, `APP_ROUTES.HOME` instead of `'/login'`, `'/confirm'`, `'/catalog'`, `'/'`).
+* **Auth & Temporary Redirects**: Always use `{ replace: true }` when redirecting from temporary auth handler/callback pages (such as `confirm.vue` or auto-redirects in `login.vue`) to avoid polluting the browser history and creating infinite bounce loops when users click the "Back" button.
+* **Back Button Navigation**: In detail pages (e.g. `catalog/[id].vue`, `user/[id].vue`), the "Back" action must check `window.history.state?.back` (safeguarded with `import.meta.client`). If the previous page was an auth route (`APP_ROUTES.AUTH.LOGIN`, `APP_ROUTES.AUTH.CONFIRM`) or if no history exists (direct entry or external OAuth redirect), safely fall back to `APP_ROUTES.CATALOG`.
+

@@ -62,7 +62,7 @@
           color="neutral"
           icon="i-heroicons-arrow-left-20-solid"
           class="mb-3 sm:mb-4 self-start"
-          @click="router.back()"
+          @click="handleBack"
         >
           {{ $t('catalog.backBtn') }}
         </UButton>
@@ -600,6 +600,17 @@ const route = useRoute();
 const router = useRouter();
 const supabase = useSupabaseClient<any>();
 
+const handleBack = () => {
+  if (import.meta.client) {
+    const prevRoute = (window.history.state as any)?.back;
+    if (!prevRoute || prevRoute.includes(APP_ROUTES.AUTH.LOGIN) || prevRoute.includes(APP_ROUTES.AUTH.CONFIRM)) {
+      navigateTo(APP_ROUTES.CATALOG);
+      return;
+    }
+  }
+  router.back();
+};
+
 const isDesktop = useMediaQuery('(min-width: 1024px)');
 const currentImageIndex = ref(0);
 const showPhone = ref(false);
@@ -807,11 +818,11 @@ watch(() => (currentUser.value as any)?.sub, () => {
 });
 
 const loginWithRedirectUrl = computed(() => {
-  return `/login?redirect=${route.fullPath}`;
+  return `${APP_ROUTES.AUTH.LOGIN}?redirect=${route.fullPath}`;
 });
 
 const registerWithRedirectUrl = computed(() => {
-  return `/login?mode=signup&redirect=${route.fullPath}`;
+  return `${APP_ROUTES.AUTH.LOGIN}?mode=signup&redirect=${route.fullPath}`;
 });
 
 const isChatPrimary = computed(() => {

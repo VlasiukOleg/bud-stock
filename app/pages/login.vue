@@ -47,7 +47,7 @@ const schema = computed(() => {
 // Якщо користувач вже авторизований, перенаправляємо на цільову сторінку або на головну
 watchEffect(() => {
   if (user.value) {
-    navigateTo(redirect || APP_ROUTES.HOME)
+    navigateTo(redirect || APP_ROUTES.HOME, { replace: true })
   }
 })
 
@@ -90,7 +90,7 @@ const handleAuth = async (payload: FormSubmitEvent<any>): Promise<void> => {
 
   try {
     if (authMode.value === 'signup') {
-      const emailRedirectTo = `${window.location.origin}/confirm${redirect ? `?redirect=${redirect}` : '?new_user=true'}`
+      const emailRedirectTo = `${window.location.origin}${APP_ROUTES.AUTH.CONFIRM}${redirect ? `?redirect=${redirect}` : '?new_user=true'}`
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -106,7 +106,7 @@ const handleAuth = async (payload: FormSubmitEvent<any>): Promise<void> => {
 
       // Якщо користувача авторизовано одразу
       if (data.session) {
-        await navigateTo(redirect || APP_ROUTES.PROFILE.INFORMATION)
+        await navigateTo(redirect || APP_ROUTES.PROFILE.INFORMATION, { replace: true })
         return
       }
 
@@ -120,11 +120,11 @@ const handleAuth = async (payload: FormSubmitEvent<any>): Promise<void> => {
         password,
       })
       if (error) throw error
-      await navigateTo(redirect || APP_ROUTES.HOME)
+      await navigateTo(redirect || APP_ROUTES.HOME, { replace: true })
     } else if (authMode.value === 'forgotPassword') {
       // Скидання пароля
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/update-password`,
+        redirectTo: `${window.location.origin}${APP_ROUTES.AUTH.UPDATE_PASSWORD}`,
       })
       if (error) throw error
       successMessage.value = 'Інструкції з відновлення пароля надіслано на вашу пошту.'
@@ -139,7 +139,7 @@ const handleAuth = async (payload: FormSubmitEvent<any>): Promise<void> => {
 
 const loginWithGoogle = async () => {
   try {
-    const redirectTo = `${window.location.origin}/confirm${redirect ? `?redirect=${redirect}` : ''}`
+    const redirectTo = `${window.location.origin}${APP_ROUTES.AUTH.CONFIRM}${redirect ? `?redirect=${redirect}` : ''}`
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

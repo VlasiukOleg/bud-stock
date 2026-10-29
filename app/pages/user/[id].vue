@@ -6,7 +6,7 @@
         color="neutral"
         icon="i-heroicons-arrow-left-20-solid"
         class="mb-6"
-        @click="router.back()"
+        @click="handleBack"
       >
         Назад
       </UButton>
@@ -41,12 +41,24 @@
     </UContainer>
   </div>
 </template>
-
 <script setup lang="ts">
+import { APP_ROUTES } from '~/utils/routes';
+
 const route = useRoute();
 const router = useRouter();
 const supabase = useSupabaseClient<any>();
 const currentUser = useSupabaseUser();
+
+const handleBack = () => {
+  if (import.meta.client) {
+    const prevRoute = (window.history.state as any)?.back;
+    if (!prevRoute || prevRoute.includes(APP_ROUTES.AUTH.LOGIN) || prevRoute.includes(APP_ROUTES.AUTH.CONFIRM)) {
+      navigateTo(APP_ROUTES.CATALOG);
+      return;
+    }
+  }
+  router.back();
+};
 
 const userId = route.params.id as string;
 const isOwner = computed(() => (currentUser.value as any)?.sub === userId);

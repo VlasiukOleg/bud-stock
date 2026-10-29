@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { getSupabaseAuthErrorMessage } from "~/utils/supabaseErrors";
+import { APP_ROUTES } from "~/utils/routes";
 
 const { t } = useI18n();
 const supabase = useSupabaseClient();
@@ -78,7 +79,7 @@ const updateUserPassword = async () => {
   } else {
     successMessage.value = 'Пароль успішно оновлено! Перенаправлення...';
     setTimeout(() => {
-      router.push('/');
+      router.push(APP_ROUTES.HOME);
     }, 2000);
   }
   isLoading.value = false;
@@ -102,7 +103,7 @@ const updateUserPassword = async () => {
           Для безпечної зміни пароля перейдіть за лінком із листа на вашій пошті або надішліть новий запит.
         </p>
         <UButton
-          to="/login"
+          :to="APP_ROUTES.AUTH.LOGIN"
           color="primary"
           block
           size="lg"

@@ -8,17 +8,17 @@ const redirectInfo = useSupabaseCookieRedirect()
 watch(user, () => {
   if (user.value) {
     const target = (route.query.redirect as string) || redirectInfo.pluck()
-    if (target && target !== '/') return navigateTo(target)
+    if (target && target !== '/') return navigateTo(target, { replace: true })
 
     // Якщо новий користувач або не заповнено ім'я — на заповнення профілю
     const isNew = route.query.new_user === 'true' || !user.value.user_metadata?.full_name
-    return navigateTo(isNew ? APP_ROUTES.PROFILE.INFORMATION : APP_ROUTES.HOME)
+    return navigateTo(isNew ? APP_ROUTES.PROFILE.INFORMATION : APP_ROUTES.HOME, { replace: true })
   }
 }, { immediate: true })
 
 onMounted(() => {
   setTimeout(() => {
-    if (!user.value) navigateTo(APP_ROUTES.AUTH.LOGIN)
+    if (!user.value) navigateTo(APP_ROUTES.AUTH.LOGIN, { replace: true })
   }, 3000)
 })
 </script>

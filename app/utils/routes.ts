@@ -12,6 +12,8 @@ export const APP_ROUTES = {
   AUTH: {
     LOGIN: '/login',
     REGISTER: '/register',
+    CONFIRM: '/confirm',
+    UPDATE_PASSWORD: '/update-password',
   },
   CREATE_LISTING: '/sell',
   ADMIN: {
