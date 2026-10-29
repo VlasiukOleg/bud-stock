@@ -147,22 +147,20 @@
                   <div
                     v-for="(file, index) in formData.images"
                     :key="index"
-                    class="relative aspect-square group"
+                    class="relative aspect-square"
                   >
                     <img
                       :src="createObjectUrl(file)"
                       class="w-full h-full object-cover rounded-lg border border-gray-200"
                     />
-                    <div
-                      class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2"
-                    >
-                      <UButton
-                        size="xs"
-                        icon="i-heroicons-trash"
-                        @click="removeImage(index)"
-                        class="bg-red-500 hover:bg-red-600 text-white"
-                      />
-                    </div>
+                    <UButton
+                      size="xs"
+                      color="neutral"
+                      variant="solid"
+                      icon="i-heroicons-x-mark"
+                      class="absolute -top-2 -right-2 rounded-full w-6 h-6 p-0 flex items-center justify-center shadow-md z-10 cursor-pointer bg-neutral-900/85 hover:bg-red-500 text-white transition-colors"
+                      @click.stop="removeImage(index)"
+                    />
                     <UBadge
                       v-if="index === 0"
                       class="absolute -top-2 -left-2"
