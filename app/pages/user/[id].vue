@@ -61,12 +61,14 @@ const { data: pageData, pending } = useAsyncData(
       .eq('id', userId)
       .single();
       
-    // Get user's active listings
+    // Get user's active listings (тільки активні та не протерміновані)
+    const now = new Date().toISOString();
     const { data: userListings } = await supabase
       .from('listings')
       .select('*')
       .eq('user_id', userId)
-      .eq('listing_state', 'active')
+      .or('listing_state.eq.active,listing_state.is.null')
+      .or(`expires_at.gt.${now},expires_at.is.null`)
       .order('created_at', { ascending: false });
       
     return {
