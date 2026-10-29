@@ -147,6 +147,11 @@ const listingToDelete = ref<string | number | null>(null);
 const isDeleting = ref(false);
 const renewingId = ref<string | number | null>(null);
 
+const listingToDeleteObj = computed(() => {
+  if (!listingToDelete.value) return null;
+  return userListings.value?.find(l => String(l.id) === String(listingToDelete.value));
+});
+
 const handleDelete = (id: string | number) => {
   listingToDelete.value = id;
   isDeleteModalOpen.value = true;
@@ -444,23 +449,67 @@ watch(visibility, async (current, previous) => {
 
     <UModal 
       v-model:open="isDeleteModalOpen" 
-      :title="$t('profile.listings.deleteConfirmTitle')" 
-      :description="$t('profile.listings.deleteConfirmDesc')"
       :ui="{ overlay: 'bg-gray-900/75 dark:bg-gray-900/90 backdrop-blur-sm' }"
     >
+      <template #header>
+        <div class="flex items-center gap-2.5 text-red-600 dark:text-red-400 font-bold text-base sm:text-lg">
+          <UIcon name="i-heroicons-exclamation-triangle" class="w-6 h-6 shrink-0 text-red-500" />
+          <span>Видалити оголошення?</span>
+        </div>
+      </template>
+
+      <template #body>
+        <div class="space-y-3.5">
+          <p class="text-sm text-neutral-600 dark:text-neutral-300">
+            Ви збираєтесь видалити це оголошення:
+          </p>
+
+          <div v-if="listingToDeleteObj" class="p-3 rounded-2xl bg-neutral-100/80 dark:bg-neutral-800/80 border border-neutral-200/80 dark:border-neutral-700 flex items-center gap-3">
+            <img
+              v-if="listingToDeleteObj.images?.[0]"
+              :src="listingToDeleteObj.images[0]"
+              :alt="listingToDeleteObj.title"
+              class="w-12 h-12 rounded-xl object-contain bg-white dark:bg-neutral-900 p-0.5 shrink-0"
+            />
+            <div class="min-w-0 flex-1">
+              <h4 class="font-bold text-sm text-neutral-900 dark:text-white truncate">
+                {{ listingToDeleteObj.title }}
+              </h4>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                {{ listingToDeleteObj.price }} грн / {{ listingToDeleteObj.unit || 'шт' }}
+              </p>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-red-50/70 dark:bg-red-950/30 border border-red-200/60 dark:border-red-900/40 text-xs text-red-800 dark:text-red-300 space-y-1.5">
+            <div class="flex items-center gap-2 font-semibold">
+              <UIcon name="i-heroicons-information-circle" class="w-4 h-4 shrink-0 text-red-500" />
+              <span>Зверніть увагу перед підтвердженням:</span>
+            </div>
+            <ul class="list-disc list-inside space-y-1.5 pl-1 text-xs leading-relaxed text-red-700 dark:text-red-300/90 font-medium">
+              <li>Оголошення назавжди зникне з вашого кабінету</li>
+              <li>Чати по цьому товару буде заблоковано для нових повідомлень</li>
+            </ul>
+          </div>
+        </div>
+      </template>
+
       <template #footer>
-        <div class="flex justify-end gap-3">
+        <div class="flex justify-end gap-2.5 w-full">
           <UButton
             color="neutral"
-            variant="ghost"
-            :label="$t('profile.listings.cancel')"
-            @click="() =>{ isDeleteModalOpen = false }"
+            variant="outline"
+            label="Скасувати"
+            class="rounded-xl px-4 cursor-pointer font-medium"
             :disabled="isDeleting"
+            @click="() => {isDeleteModalOpen = false}"
           />
           <UButton
             color="error"
             variant="solid"
-            :label="$t('profile.listings.delete')"
+            icon="i-heroicons-trash"
+            label="Так, видалити"
+            class="rounded-xl px-4 cursor-pointer font-semibold"
             :loading="isDeleting"
             @click="confirmDelete"
           />

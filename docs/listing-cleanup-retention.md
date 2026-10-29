@@ -69,8 +69,8 @@ BEGIN
       -- 1. Будь-яке оголошення, термін дії якого минув понад 45 днів тому
       (expires_at IS NOT NULL AND expires_at < (now() - v_retention_interval))
       OR
-      -- 2. Оголошення, які деактивовано / продано / відхилено понад 45 днів тому
-      (listing_state IN ('sold', 'deactivated', 'rejected') AND updated_at < (now() - v_retention_interval))
+      -- 2. Оголошення, які деактивовано / продано / відхилено / видалено понад 45 днів тому
+      (listing_state IN ('sold', 'deactivated', 'rejected', 'deleted') AND updated_at < (now() - v_retention_interval))
   LOOP
     -- А. Видаляємо всі прикріплені фото зі сховища Supabase Storage через Storage API
     IF v_listing.images IS NOT NULL THEN

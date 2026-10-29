@@ -81,7 +81,7 @@ const fields = computed<AuthFormField[]>(() => {
   ]
 })
 
-const handleAuth = async (payload: FormSubmitEvent<any>) => {
+const handleAuth = async (payload: FormSubmitEvent<any>): Promise<void> => {
   isLoading.value = true
   errorMessage.value = ''
   successMessage.value = ''
@@ -106,7 +106,8 @@ const handleAuth = async (payload: FormSubmitEvent<any>) => {
 
       // Якщо користувача авторизовано одразу
       if (data.session) {
-        return navigateTo(redirect || APP_ROUTES.PROFILE.INFORMATION)
+        await navigateTo(redirect || APP_ROUTES.PROFILE.INFORMATION)
+        return
       }
 
       successMessage.value =
@@ -119,7 +120,7 @@ const handleAuth = async (payload: FormSubmitEvent<any>) => {
         password,
       })
       if (error) throw error
-      navigateTo(redirect || APP_ROUTES.HOME)
+      await navigateTo(redirect || APP_ROUTES.HOME)
     } else if (authMode.value === 'forgotPassword') {
       // Скидання пароля
       const { error } = await supabase.auth.resetPasswordForEmail(email, {

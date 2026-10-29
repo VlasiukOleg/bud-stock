@@ -357,7 +357,7 @@ const dotsVariants = [
                 block
                 size="sm"
                 class="font-semibold shadow-xs justify-center rounded-xl py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200"
-                @click="toast.add({ title: 'Натиснуто редагувати', color: 'info' })"
+                @click="() => {toast.add({ title: 'Натиснуто редагувати', color: 'info' })}"
               >
                 Редагувати оголошення
               </UButton>

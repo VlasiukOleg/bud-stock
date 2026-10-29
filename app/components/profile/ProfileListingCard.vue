@@ -171,12 +171,22 @@ const menuActions = computed(() => {
         onSelect: () => emit('updateState', props.product.id, 'deactivated')
       }
     ]);
-  } else if (isDeactivated.value || isSold.value) {
+  } else {
+    if (isDeactivated.value || isSold.value) {
+      items.push([
+        {
+          label: 'Активувати',
+          icon: 'i-heroicons-play',
+          onSelect: () => emit('updateState', props.product.id, 'active')
+        }
+      ]);
+    }
     items.push([
       {
-        label: 'Активувати',
-        icon: 'i-heroicons-play',
-        onSelect: () => emit('updateState', props.product.id, 'active')
+        label: 'Видалити оголошення',
+        icon: 'i-heroicons-trash',
+        color: 'error',
+        onSelect: () => emit('delete', props.product.id)
       }
     ]);
   }

@@ -22,11 +22,11 @@
 
 ## 3. Listing Lifecycle & Expiration Rules
 * **Active Duration**: 25 days (`LISTING_DURATION_DAYS = 25` in `app/constants/listing.ts`).
-* **Retention Period**: 45 days (`LISTING_RETENTION_DAYS = 45` in `app/constants/listing.ts`) for inactive states (`sold`, `deactivated`, `expired`, `rejected`).
+* **Retention Period**: 45 days (`LISTING_RETENTION_DAYS = 45` in `app/constants/listing.ts`) for inactive states (`sold`, `deactivated`, `expired`, `rejected`, `deleted`).
 * **Automatic Deletion**: Handled exclusively on the Supabase server via `pg_cron` running nightly at 03:00 (`SELECT cleanup_expired_listings()`). Do NOT perform client-side batch delete queries.
 * **Client-side Filtering**: `profile/listings.vue` filters out any listings older than 45 days immediately so users never see expired items even before the nightly cron runs.
 * **Reactivating Listings**: When reactivating an inactive listing, if `expires_at > now()`, preserve the remaining active days instead of resetting to +25 days (prevents infinite renewal exploit).
-* **Permanent Deletion**: Normal users cannot manually delete listings; items automatically delete permanently after the 45-day retention period.
+* **Manual Deletion by User**: Users can delete inactive listings (`sold`, `deactivated`, `expired`, `rejected`) via the 3-dots menu with a confirmation modal. This sets `listing_state = 'deleted'`, immediately hiding it from the author's cabinet and switching related chats to read-only mode ("Чат заблоковано, оскільки оголошення видалено автором"). Physical removal from DB, Storage, and chats happens automatically after the 45-day retention period.
 * **Early Renewal Before Expiry (Implemented)**:
   * When an active listing has `<= 5 days` remaining before expiration (`daysRemaining <= 5`), the badge highlights with an amber warning icon and text: `"Термін спливає через X дн."` (or `"Термін спливає сьогодні!"`).
   * Directly displays the prominent button `[ 🔄 Продовжити на 25 днів ]` alongside a compact edit button `[ ✏️ ]` on the active card in user profile (`ProfileListingCard.vue`).

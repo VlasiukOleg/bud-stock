@@ -171,8 +171,20 @@ export const useListings = () => {
   }
 
   const deleteListing = async (listingId: string) => {
-    // Soft Delete: не видаляємо з бази, а просто ставимо статус deleted
-    return await updateListingState(listingId, 'deleted')
+    // Soft Delete: встановлюємо listing_state = 'deleted'.
+    // НЕ оновлюємо updated_at або expires_at, щоб зберегти вже розпочатий відлік 45 днів
+    // (наприклад, якщо залишалося 35 днів — видалення відбудеться саме через 35 днів, а не заново через 45)!
+    const { error } = await client
+      .from('listings')
+      .update({ listing_state: 'deleted' })
+      .eq('id', listingId)
+
+    if (error) {
+      console.error('Помилка видалення оголошення:', error)
+      throw error
+    }
+
+    return true
   }
 
   const updateListing = async (listingId: string, payload: Record<string, any>) => {
