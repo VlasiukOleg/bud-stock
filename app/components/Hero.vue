@@ -4,6 +4,17 @@ import { BUYER_STEPS } from "~/constants/sliders/sliders";
 
 const router = useRouter();
 
+const isSellerPaused = ref(false);
+const isBuyerPaused = ref(false);
+
+const toggleSellerPause = () => {
+  isSellerPaused.value = !isSellerPaused.value;
+};
+
+const toggleBuyerPause = () => {
+  isBuyerPaused.value = !isBuyerPaused.value;
+};
+
 // Вибір категорії на головній одразу веде в каталог з відповідним фільтром
 const goToCategory = (categoryId: string) => {
   router.push({
@@ -149,32 +160,24 @@ const goToCategory = (categoryId: string) => {
               </UMarquee>
             </div>
 
-            <div class="block lg:hidden">
-              <!-- <UCarousel
-                v-slot="{ item }"
-                loop
-                :auto-scroll="{ speed: 0.7 }"
-                :items="SELLER_STEPS"
-                orientation="horizontal"
-                :ui="{
-                  container: 'h-[180px] w-full',
-                  item: 'basis-1/2 sm:basis-1/3 py-2',
-                  viewport: 'bg-blue-100',
-                }"
-              >
-                <CommonSliderCard :item="item" />
-              </UCarousel> -->
+            <div
+              class="block lg:hidden cursor-pointer select-none"
+              @click="toggleSellerPause"
+            >
               <UMarquee
                 pause-on-hover
                 :overlay="false"
                 :ui="{
                   root: '[--gap:--spacing(4)] bg-blue-100 py-2',
-                  content: 'w-[auto] py-1',
+                  content: [
+                    'w-[auto] py-1 active:[animation-play-state:paused] group-active:[animation-play-state:paused]',
+                    isSellerPaused ? '![animation-play-state:paused]' : ''
+                  ].join(' '),
                 }"
               >
                 <div
                   v-for="sellerStep in SELLER_STEPS"
-                  class="w-45 sm:w-50 md:w-60 h-45"
+                  class="w-50 sm:w-56 md:w-60 h-47 sm:h-52 md:h-60"
                 >
                   <CommonSliderCard :item="sellerStep" />
                 </div>
@@ -188,20 +191,6 @@ const goToCategory = (categoryId: string) => {
               {{ $t("hero.sliderBuyer.label") }}
             </div>
             <div class="hidden lg:block">
-              <!-- <UCarousel
-                v-slot="{ item, index }"
-                loop
-                :auto-scroll="{ speed: 0.7, direction: 'backward' }"
-                :items="BUYER_STEPS"
-                :ui="{
-                  container: 'h-[550px] w-[230px]',
-                  item: 'basis-1/2 px-2',
-                  viewport: 'bg-red-100',
-                }"
-                orientation="vertical"
-              >
-                <CommonSliderCard :item="item" />
-              </UCarousel> -->
               <UMarquee
                 pause-on-hover
                 :overlay="false"
@@ -217,33 +206,25 @@ const goToCategory = (categoryId: string) => {
                 </div>
               </UMarquee>
             </div>
-            <div class="block lg:hidden">
-              <!-- <UCarousel
-                v-slot="{ item }"
-                loop
-                :auto-scroll="{ speed: 0.7, direction: 'backward' }"
-                :items="BUYER_STEPS"
-                orientation="horizontal"
-                :ui="{
-                  container: 'h-[180px] w-full',
-                  item: 'basis-1/2 sm:basis-1/3 py-2',
-                  viewport: 'bg-red-100',
-                }"
-              >
-                <CommonSliderCard :item="item" />
-              </UCarousel> -->
+            <div
+              class="block lg:hidden cursor-pointer select-none"
+              @click="toggleBuyerPause"
+            >
               <UMarquee
                 pause-on-hover
                 reverse
                 :overlay="false"
                 :ui="{
                   root: '[--gap:--spacing(4)] bg-red-100 py-2',
-                  content: 'w-[auto] py-1',
+                  content: [
+                    'w-[auto] py-1 active:[animation-play-state:paused] group-active:[animation-play-state:paused]',
+                    isBuyerPaused ? '![animation-play-state:paused]' : ''
+                  ].join(' '),
                 }"
               >
                 <div
                   v-for="buyerStep in BUYER_STEPS"
-                  class="w-45 sm:w-50 md:w-60 h-45"
+                  class="w-50 sm:w-56 md:w-60 h-47 sm:h-52 md:h-60"
                 >
                   <CommonSliderCard :item="buyerStep" />
                 </div>
