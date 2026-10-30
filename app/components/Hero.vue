@@ -28,7 +28,11 @@ const goToCategory = (categoryId: string) => {
               <span class="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 xl:w-2.5 xl:h-2.5 rounded-full bg-neutral-700 mx-1.5 sm:mx-2.5 align-middle -mt-0.5"></span>
               <span class="whitespace-nowrap">{{ $t("hero.title.nearby") }}</span>
             </span>
-            <span class="block text-brand-500 text-3xl sm:text-5xl md:text-4xl xl:text-5xl">{{ $t("hero.title.line2") }}</span>
+            <span class="block text-brand-500 text-3xl sm:text-5xl md:text-4xl xl:text-5xl">
+              <span class="whitespace-nowrap">{{ $t("hero.title.sell") }}</span>
+              <span class="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 xl:w-3 xl:h-3 rounded-full bg-brand-500 mx-2 sm:mx-3 align-middle -mt-1"></span>
+              <span class="whitespace-nowrap">{{ $t("hero.title.buy") }}</span>
+            </span>
             <span class="block">{{ $t("hero.title.line3") }}</span>
           </h1>
 

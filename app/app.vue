@@ -2,7 +2,13 @@
 // Імпортуємо ВСІ локалі Nuxt UI, щоб вони автоматично підставлялися
 import * as locales from "@nuxt/ui/locale";
 
-const { locale } = useI18n();
+const { locale, setLocale } = useI18n();
+
+// Якщо користувач раніше особисто обрав мову в перемикачі, застосовуємо її
+const savedLocale = useCookie<string | null>('user_selected_locale', { default: () => null });
+if (savedLocale.value && ['uk', 'en', 'ru'].includes(savedLocale.value) && savedLocale.value !== locale.value) {
+  setLocale(savedLocale.value as any);
+}
 
 // Вибираємо потрібний об'єкт локалі для Nuxt UI залежно від вибраної мови
 const currentUiLocale = computed(

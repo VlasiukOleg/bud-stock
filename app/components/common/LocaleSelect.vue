@@ -30,7 +30,12 @@ const supportedLocales = [
   { ...ru, avatar: { src: flagUrls.ru } },
 ];
 
+const savedLocale = useCookie<string | null>('user_selected_locale', {
+  maxAge: 60 * 60 * 24 * 365, // 1 рік
+});
+
 const onLocaleChange = (value: string) => {
+  savedLocale.value = value;
   setLocale(value as "uk" | "en" | "ru");
 };
 

@@ -1,6 +1,14 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config - reload: 2026-10-12
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
+  app: {
+    head: {
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/logo.png' },
+      ],
+    },
+  },
   devtools: { enabled: true },
   modules: [
     "@nuxt/ui",
@@ -35,6 +43,7 @@ export default defineNuxtConfig({
     ],
     defaultLocale: "uk",
     strategy: "no_prefix",
+    detectBrowserLanguage: false,
   },
   routeRules: {
     "/catalog": { ssr: false },
