@@ -33,37 +33,37 @@
       "seller": {
         "1": {
           "title": "Take a photo",
-          "desc": "Photograph the leftover materials in good lighting."
+          "desc": "Simply photograph the material or its label."
         },
         "2": {
-          "title": "Add description",
-          "desc": "Specify characteristics, quantity, and a fair price."
+          "title": "We'll fill it in",
+          "desc": "Title, category, description, and price are generated from your photo — just review them."
         },
         "3": {
           "title": "Set location",
-          "desc": "Buyers will find you on the map right in their neighborhood."
+          "desc": "Nearby buyers will see your listing right on the map."
         },
         "4": {
           "title": "Sell and earn",
-          "desc": "Clear your space and get funds for new ideas."
+          "desc": "Clear space after renovation and get part of your money back."
         }
       },
       "buyer": {
         "1": {
           "title": "Search on the map",
-          "desc": "Find the materials you need right in your area."
+          "desc": "Find the building materials you need right in your neighborhood."
         },
         "2": {
-          "title": "Save money",
-          "desc": "Buy quality items significantly cheaper than in stores."
+          "title": "Buy smart",
+          "desc": "Save budget on materials and delivery by buying everything you need in your area."
         },
         "3": {
-          "title": "Chat to agree",
-          "desc": "Discuss details and meeting time with the seller."
+          "title": "Contact directly",
+          "desc": "Message in chat or call the seller directly with no middlemen."
         },
         "4": {
           "title": "Choose the best",
-          "desc": "Compare prices and item conditions among listings."
+          "desc": "Compare prices, real photos, and distance to the item."
         }
       }
     }

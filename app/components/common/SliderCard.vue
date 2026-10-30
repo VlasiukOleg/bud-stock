@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative h-full w-full p-3.5 sm:p-5 lg:p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex flex-col justify-center items-center text-center gap-1.5 sm:gap-2 group hover:border-brand-500 transition-all duration-300 select-none"
+    class="relative h-full w-full p-3.5 sm:p-4 lg:px-4 lg:py-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex flex-col justify-center items-center text-center gap-1.5 sm:gap-2 group hover:border-brand-500 transition-all duration-300 select-none"
   >
     <div class="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex items-center gap-1 sm:gap-1.5">
       <span
@@ -24,7 +24,7 @@
       {{ $t(item.title) }}
     </div>
     <div
-      class="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 leading-snug line-clamp-3 sm:line-clamp-2"
+      class="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 leading-snug line-clamp-3"
     >
       {{ $t(item.desc) }}
     </div>

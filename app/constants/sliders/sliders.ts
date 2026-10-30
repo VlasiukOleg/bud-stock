@@ -36,7 +36,7 @@ export const BUYER_STEPS: SliderItem[] = [
   },
   {
     id: 4,
-    icon: "i-heroicons-magnifying-glass",
+    icon: "i-heroicons-tag",
     title: "hero.steps.buyer.2.title",
     desc: "hero.steps.buyer.2.desc",
   },

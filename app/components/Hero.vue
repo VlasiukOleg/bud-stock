@@ -34,9 +34,9 @@ const goToCategory = (categoryId: string) => {
           >
             <span class="block">
               <span class="whitespace-nowrap">{{ $t("hero.title.fast") }}</span>
-              <span class="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 xl:w-2.5 xl:h-2.5 rounded-full bg-neutral-700 mx-1.5 sm:mx-2.5 align-middle -mt-0.5"></span>
+              <span class="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 xl:w-2.5 xl:w-2.5 rounded-full bg-neutral-700 mx-1.5 sm:mx-2.5 align-middle -mt-0.5"></span>
               <span class="whitespace-nowrap">{{ $t("hero.title.convenient") }}</span>
-              <span class="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 xl:w-2.5 xl:h-2.5 rounded-full bg-neutral-700 mx-1.5 sm:mx-2.5 align-middle -mt-0.5"></span>
+              <span class="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 xl:w-2.5 xl:w-2.5 rounded-full bg-neutral-700 mx-1.5 sm:mx-2.5 align-middle -mt-0.5"></span>
               <span class="whitespace-nowrap">{{ $t("hero.title.nearby") }}</span>
             </span>
             <span class="block text-brand-500 text-3xl sm:text-5xl md:text-4xl xl:text-5xl">

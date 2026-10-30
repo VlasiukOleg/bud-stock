@@ -31,7 +31,59 @@ useSeoMeta({
 const toast = useToast();
 const colorMode = useColorMode();
 const { isAdmin } = useAdmin();
-const activeTab = ref<'borders' | 'dots'>('borders');
+const activeTab = ref<'hero' | 'borders' | 'dots'>('hero');
+const previewLang = ref<'uk' | 'ru'>('uk');
+
+const heroTexts = computed(() => {
+  if (previewLang.value === 'ru') {
+    return {
+      fast: 'БЫСТРО',
+      convenient: 'УДОБНО',
+      nearby: 'РЯДОМ',
+      fastCap: 'Быстро',
+      convCap: 'Удобно',
+      nearCap: 'Рядом',
+      sell: 'ПРОДАВАЙ',
+      buy: 'ПОКУПАЙ',
+      sellAndBuy: 'ПРОДАВАЙ И ПОКУПАЙ',
+      materials: 'СТРОЙМАТЕРИАЛЫ',
+      materialsNearby: 'СТРОЙМАТЕРИАЛЫ РЯДОМ',
+      leftoversTag: 'Остатки после ремонта',
+      warehousesTag: 'Склады и магазины рядом',
+      leftoversShort: 'Частные остатки',
+      warehousesShort: 'Стройбазы и магазины',
+      districtBadge: 'Маркетплейс твоего района',
+      buyProfit: 'ПОКУПАЙ ВЫГОДНО.',
+      sellFast: 'ПРОДАВАЙ БЫСТРО.',
+      sellLeftovers: 'ПРОДАВАЙ ОСТАТКИ.',
+      buyMaterials: 'ПОКУПАЙ СТРОЙМАТЕРИАЛЫ.',
+      subLine: 'От остатков после ремонта — до строительных баз и магазинов рядом'
+    };
+  }
+  return {
+    fast: 'ШВИДКО',
+    convenient: 'ЗРУЧНО',
+    nearby: 'ПОРУЧ',
+    fastCap: 'Швидко',
+    convCap: 'Зручно',
+    nearCap: 'Поруч',
+    sell: 'ПРОДАВАЙ',
+    buy: 'КУПУЙ',
+    sellAndBuy: 'ПРОДАВАЙ ТА КУПУЙ',
+    materials: 'БУДМАТЕРІАЛИ',
+    materialsNearby: 'БУДМАТЕРІАЛИ ПОРУЧ',
+    leftoversTag: 'Залишки після ремонту',
+    warehousesTag: 'Склади та магазини поруч',
+    leftoversShort: 'Приватні залишки',
+    warehousesShort: 'Будбази та магазини',
+    districtBadge: 'Маркетплейс твого району',
+    buyProfit: 'КУПУЙ ВИГІДНО.',
+    sellFast: 'ПРОДАВАЙ ШВИДКО.',
+    sellLeftovers: 'ПРОДАВАЙ ЗАЛИШКИ.',
+    buyMaterials: 'КУПУЙ БУДМАТЕРІАЛИ.',
+    subLine: 'Від залишків після ремонту — до будівельних баз та магазинів поруч'
+  };
+});
 
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark';
@@ -212,30 +264,543 @@ const dotsVariants = [
       </div>
 
       <!-- Вкладки вибору теми тесту -->
-      <div class="max-w-7xl mx-auto flex gap-2 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-        <button
-          type="button"
-          class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5"
-          :class="activeTab === 'borders' ? 'bg-brand-500 text-white shadow-xs' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200'"
-          @click="activeTab = 'borders'"
-        >
-          <UIcon name="i-heroicons-square-3-stack-3d" class="w-4 h-4" />
-          <span>1. Межі та контраст карток (5 варіантів)</span>
-        </button>
-        <button
-          type="button"
-          class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5"
-          :class="activeTab === 'dots' ? 'bg-brand-500 text-white shadow-xs' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200'"
-          @click="activeTab = 'dots'"
-        >
-          <UIcon name="i-heroicons-ellipsis-vertical" class="w-4 h-4" />
-          <span>2. Меню «Три крапки»</span>
-        </button>
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5"
+            :class="activeTab === 'hero' ? 'bg-brand-500 text-white shadow-xs' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200'"
+            @click="activeTab = 'hero'"
+          >
+            <UIcon name="i-heroicons-sparkles" class="w-4 h-4" />
+            <span>🔥 Герой (10 концептів заголовка)</span>
+          </button>
+          <button
+            type="button"
+            class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5"
+            :class="activeTab === 'borders' ? 'bg-brand-500 text-white shadow-xs' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200'"
+            @click="activeTab = 'borders'"
+          >
+            <UIcon name="i-heroicons-square-3-stack-3d" class="w-4 h-4" />
+            <span>Межі карток</span>
+          </button>
+          <button
+            type="button"
+            class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5"
+            :class="activeTab === 'dots' ? 'bg-brand-500 text-white shadow-xs' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200'"
+            @click="activeTab = 'dots'"
+          >
+            <UIcon name="i-heroicons-ellipsis-vertical" class="w-4 h-4" />
+            <span>Меню «Три крапки»</span>
+          </button>
+        </div>
+
+        <!-- Перемикач мови прев'ю (УКР / РУС) -->
+        <div v-if="activeTab === 'hero'" class="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-800 p-1 rounded-xl">
+          <button
+            type="button"
+            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer"
+            :class="previewLang === 'uk' ? 'bg-white dark:bg-neutral-900 text-brand-600 shadow-2xs' : 'text-neutral-500'"
+            @click="previewLang = 'uk'"
+          >
+            🇺🇦 УКР
+          </button>
+          <button
+            type="button"
+            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer"
+            :class="previewLang === 'ru' ? 'bg-white dark:bg-neutral-900 text-brand-600 shadow-2xs' : 'text-neutral-500'"
+            @click="previewLang = 'ru'"
+          >
+            🌐 РУС (тест ширини)
+          </button>
+        </div>
       </div>
     </header>
 
+    <!-- СЕКЦІЯ 0: 10 КОНЦЕПТІВ ЗАГОЛОВКА HERO -->
+    <main v-if="activeTab === 'hero'" class="max-w-7xl mx-auto px-4 sm:px-8 mt-8">
+      <div class="mb-6 p-4 rounded-2xl bg-brand-50 dark:bg-brand-950/30 border border-brand-200/80 dark:border-brand-900/40 text-neutral-800 dark:text-neutral-200 text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <UIcon name="i-heroicons-light-bulb" class="w-5 h-5 text-brand-500 shrink-0 mt-0.5" />
+          <div>
+            <span class="font-bold">Як тестувати:</span>
+            Можна комбінувати ідеї! Наприклад: «Верхня плашка з Концепту 1 + Заголовок з Концепту 3 + Нижні бейджі складів з Концепту 7». Перемикай мову зверху (УКР/РУС), щоб перевірити довжину слів на мобілці.
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- КОНЦЕПТ 1 -->
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center">1</span>
+                <span class="font-bold text-sm text-neutral-900 dark:text-white">SaaS Капсула + Міні-чіпи джерел</span>
+              </div>
+              <UBadge color="primary" variant="subtle" size="sm" class="font-bold text-[10px]">⭐ Фаворит</UBadge>
+            </div>
+
+            <!-- Прев'ю заголовка -->
+            <div class="py-3 text-center sm:text-left font-raleway">
+              <!-- Верхня плашка -->
+              <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-50 dark:bg-brand-950/60 border border-brand-200/80 dark:border-brand-800/60 text-brand-700 dark:text-brand-300 text-xs font-bold uppercase tracking-wider mb-4">
+                <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+                <span>{{ heroTexts.fast }}</span>
+                <span class="text-brand-300 dark:text-brand-700">•</span>
+                <span>{{ heroTexts.convenient }}</span>
+                <span class="text-brand-300 dark:text-brand-700">•</span>
+                <span>{{ heroTexts.nearby }}</span>
+              </div>
+
+              <!-- Головний заголовок -->
+              <div class="space-y-1.5 uppercase font-extrabold tracking-tight">
+                <div class="text-2xl sm:text-4xl text-neutral-900 dark:text-white leading-none">
+                  {{ heroTexts.sell }} <span class="text-brand-500">•</span> {{ heroTexts.buy }}
+                </div>
+                <div class="text-3xl sm:text-5xl bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 bg-clip-text text-transparent leading-none pb-1">
+                  {{ heroTexts.materials }}
+                </div>
+              </div>
+
+              <!-- Непримітні бейджі про залишки та склади -->
+              <div class="mt-4 flex flex-wrap items-center justify-center sm:justify-start gap-2 font-public">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs font-semibold">
+                  <UIcon name="i-heroicons-home-modern" class="w-3.5 h-3.5 text-brand-500" />
+                  {{ heroTexts.leftoversTag }}
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs font-semibold">
+                  <UIcon name="i-heroicons-building-storefront" class="w-3.5 h-3.5 text-blue-500" />
+                  {{ heroTexts.warehousesTag }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-neutral-400 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            💡 Верхній рядок схований в акуратну капсулу і більше не сперечається з головним заголовком. Знизу дві стильні плашки про залишки і склади.
+          </p>
+        </div>
+
+        <!-- КОНЦЕПТ 2 -->
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center">2</span>
+                <span class="font-bold text-sm text-neutral-900 dark:text-white">Акцентна плашка (Highlight Sticker)</span>
+              </div>
+              <UBadge color="warning" variant="subtle" size="sm" class="font-bold text-[10px]">🔥 Яскравий</UBadge>
+            </div>
+
+            <div class="py-3 text-center sm:text-left font-raleway">
+              <!-- Верхній бейдж -->
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-[11px] font-extrabold uppercase tracking-widest mb-4">
+                <UIcon name="i-heroicons-bolt-solid" class="w-3.5 h-3.5 text-brand-400 dark:text-brand-500" />
+                <span>{{ heroTexts.fast }} • {{ heroTexts.convenient }} • {{ heroTexts.nearby }}</span>
+              </div>
+
+              <!-- Заголовок із виділеним стікером -->
+              <div class="space-y-2 uppercase font-extrabold tracking-tight">
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-2xl sm:text-4xl leading-none">
+                  <span class="px-3 py-1 rounded-xl bg-brand-500 text-white shadow-sm -rotate-1 inline-block">
+                    {{ heroTexts.sell }}
+                  </span>
+                  <span class="text-neutral-400 font-light">/</span>
+                  <span class="text-neutral-900 dark:text-white">
+                    {{ heroTexts.buy }}
+                  </span>
+                </div>
+                <div class="text-2xl sm:text-4xl text-neutral-800 dark:text-neutral-100 leading-none pt-1">
+                  {{ heroTexts.materials }}
+                </div>
+              </div>
+
+              <!-- Тонка елегантна стрічка знизу -->
+              <div class="mt-4 pt-3 border-t border-dashed border-neutral-200 dark:border-neutral-800 flex items-center justify-center sm:justify-start gap-2 text-xs text-neutral-500 dark:text-neutral-400 font-public font-medium">
+                <UIcon name="i-heroicons-map-pin" class="w-4 h-4 text-brand-500 shrink-0" />
+                <span>{{ heroTexts.leftoversShort }} + {{ heroTexts.warehousesShort }} на одній мапі</span>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-neutral-400 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            💡 Слово «ПРОДАВАЙ» на соковитій помаранчевій плашці з легким нахилом одразу чіпляє погляд.
+          </p>
+        </div>
+
+        <!-- КОНЦЕПТ 3 -->
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center">3</span>
+                <span class="font-bold text-sm text-neutral-900 dark:text-white">Дві дії у 2 рядки (Split Action)</span>
+              </div>
+              <UBadge color="neutral" variant="subtle" size="sm" class="font-bold text-[10px]">💎 Преміум ритм</UBadge>
+            </div>
+
+            <div class="py-3 text-center sm:text-left font-raleway">
+              <!-- Верхня плашка з двома тегами -->
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-[11px] font-bold uppercase tracking-wider mb-3">
+                <span>⚡ {{ heroTexts.fast }}</span>
+                <span>•</span>
+                <span>👍 {{ heroTexts.convenient }}</span>
+                <span>•</span>
+                <span>📍 {{ heroTexts.nearby }}</span>
+              </div>
+
+              <!-- Дворядковий слоган -->
+              <div class="space-y-1 uppercase font-black tracking-tight">
+                <div class="text-2xl sm:text-4xl text-neutral-900 dark:text-white leading-tight">
+                  {{ heroTexts.buyProfit }}
+                </div>
+                <div class="text-2xl sm:text-4xl text-brand-500 leading-tight">
+                  {{ heroTexts.sellFast }}
+                </div>
+              </div>
+
+              <!-- Блок будматеріалів + склади -->
+              <div class="mt-3 inline-flex flex-wrap items-center justify-center sm:justify-start gap-2 px-3.5 py-2 rounded-xl bg-brand-500/8 dark:bg-brand-500/15 border border-brand-500/20 font-public">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                  {{ heroTexts.materials }}:
+                </span>
+                <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                  {{ heroTexts.leftoversShort.toLowerCase() }} та {{ heroTexts.warehousesShort.toLowerCase() }} поруч
+                </span>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-neutral-400 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            💡 Замість просто переліку слів — два сильні заклики в окремих рядках, які ніколи не ламаються на мобілці.
+          </p>
+        </div>
+
+        <!-- КОНЦЕПТ 4 -->
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center">4</span>
+                <span class="font-bold text-sm text-neutral-900 dark:text-white">Архітектурна лінія зліва (Blueprint)</span>
+              </div>
+              <UBadge color="neutral" variant="subtle" size="sm" class="font-bold text-[10px]">📐 Строгий стиль</UBadge>
+            </div>
+
+            <div class="py-3 font-raleway">
+              <div class="border-l-4 border-brand-500 pl-4 sm:pl-5 text-left space-y-2">
+                <div class="text-xs font-extrabold uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500">
+                  {{ heroTexts.fast }} • {{ heroTexts.convenient }} • {{ heroTexts.nearby }}
+                </div>
+
+                <div class="text-2xl sm:text-4xl font-extrabold uppercase text-brand-500 leading-none">
+                  {{ heroTexts.sell }} • {{ heroTexts.buy }}
+                </div>
+
+                <div class="text-2xl sm:text-4xl font-extrabold uppercase text-neutral-900 dark:text-white leading-none">
+                  {{ heroTexts.materials }}
+                </div>
+
+                <div class="pt-1 flex flex-wrap items-center gap-2 font-public text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                  <span class="flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
+                    {{ heroTexts.leftoversTag }}
+                  </span>
+                  <span>•</span>
+                  <span class="flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    {{ heroTexts.warehousesTag }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-neutral-400 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            💡 Ліва помаранчева лінія тримає весь текст як єдиний монолітний блок. Верхній рядок зменшений і розряджений (`tracking-[0.2em]`).
+          </p>
+        </div>
+
+        <!-- КОНЦЕПТ 5 -->
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center">5</span>
+                <span class="font-bold text-sm text-neutral-900 dark:text-white">Дві кнопки-плашки дій (Bento Pills)</span>
+              </div>
+              <UBadge color="primary" variant="subtle" size="sm" class="font-bold text-[10px]">🧱 Інтерактивний вигляд</UBadge>
+            </div>
+
+            <div class="py-3 text-center sm:text-left font-raleway">
+              <!-- Верхній рядок -->
+              <div class="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 mb-3 flex items-center justify-center sm:justify-start gap-2">
+                <span class="h-px w-6 bg-brand-500"></span>
+                <span>{{ heroTexts.fast }} • {{ heroTexts.convenient }} • {{ heroTexts.nearby }}</span>
+                <span class="h-px w-6 bg-brand-500 sm:hidden"></span>
+              </div>
+
+              <!-- ПРОДАВАЙ та КУПУЙ у власних блоках -->
+              <div class="inline-grid grid-cols-2 gap-2.5 mb-2.5 w-full sm:w-auto">
+                <div class="px-4 py-2 rounded-2xl bg-brand-500 text-white font-extrabold text-lg sm:text-2xl uppercase tracking-tight flex items-center justify-center gap-1.5 shadow-xs">
+                  <UIcon name="i-heroicons-arrow-up-tray" class="w-5 h-5 shrink-0" />
+                  <span>{{ heroTexts.sell }}</span>
+                </div>
+                <div class="px-4 py-2 rounded-2xl bg-neutral-900 dark:bg-neutral-800 text-white font-extrabold text-lg sm:text-2xl uppercase tracking-tight flex items-center justify-center gap-1.5 shadow-xs">
+                  <UIcon name="i-heroicons-shopping-bag" class="w-5 h-5 text-brand-400 shrink-0" />
+                  <span>{{ heroTexts.buy }}</span>
+                </div>
+              </div>
+
+              <!-- БУДМАТЕРІАЛИ -->
+              <div class="text-2xl sm:text-4xl font-extrabold uppercase text-neutral-900 dark:text-white tracking-tight">
+                {{ heroTexts.materialsNearby }}
+              </div>
+
+              <!-- Підпис про склади -->
+              <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400 font-public">
+                {{ heroTexts.subLine }}
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-neutral-400 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            💡 Слова «ПРОДАВАЙ» і «КУПУЙ» оформлені як два симетричні блоки-плитки в один ряд (50/50 на мобілці).
+          </p>
+        </div>
+
+        <!-- КОНЦЕПТ 6 -->
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center">6</span>
+                <span class="font-bold text-sm text-neutral-900 dark:text-white">Фокус на слові «БУДМАТЕРІАЛИ» зверху</span>
+              </div>
+              <UBadge color="neutral" variant="subtle" size="sm" class="font-bold text-[10px]">🎯 Інверсія ієрархії</UBadge>
+            </div>
+
+            <div class="py-3 text-center sm:text-left font-raleway">
+              <!-- Дві капсули джерел зверху -->
+              <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 mb-3 font-public">
+                <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 text-[11px] font-bold">
+                  🏠 {{ heroTexts.leftoversShort }}
+                </span>
+                <span class="text-neutral-300 dark:text-neutral-700 font-bold">+</span>
+                <span class="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 text-[11px] font-bold">
+                  🏢 {{ heroTexts.warehousesShort }}
+                </span>
+              </div>
+
+              <!-- Спочатку БУДМАТЕРІАЛИ, потім ПРОДАВАЙ • КУПУЙ -->
+              <div class="space-y-1.5 uppercase font-extrabold tracking-tight">
+                <div class="text-2xl sm:text-4xl text-neutral-900 dark:text-white leading-none">
+                  {{ heroTexts.materials }}
+                </div>
+                <div class="text-3xl sm:text-5xl text-brand-500 leading-none">
+                  {{ heroTexts.sell }} • {{ heroTexts.buy }}
+                </div>
+              </div>
+
+              <!-- Швидко Зручно Поруч знизу з галочками -->
+              <div class="mt-4 flex items-center justify-center sm:justify-start gap-4 text-xs font-bold text-neutral-600 dark:text-neutral-400 font-public">
+                <span class="flex items-center gap-1">
+                  <UIcon name="i-heroicons-check-circle-solid" class="w-4 h-4 text-emerald-500" />
+                  {{ heroTexts.fastCap }}
+                </span>
+                <span class="flex items-center gap-1">
+                  <UIcon name="i-heroicons-check-circle-solid" class="w-4 h-4 text-emerald-500" />
+                  {{ heroTexts.convCap }}
+                </span>
+                <span class="flex items-center gap-1">
+                  <UIcon name="i-heroicons-check-circle-solid" class="w-4 h-4 text-emerald-500" />
+                  {{ heroTexts.nearCap }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-neutral-400 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            💡 Зверху одразу дві кольорові капсули («Приватні залишки + Будбази»), а «Швидко • Зручно • Поруч» перенесені вниз із зеленими галочками.
+          </p>
+        </div>
+
+        <!-- КОНЦЕПТ 7 -->
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center">7</span>
+                <span class="font-bold text-sm text-neutral-900 dark:text-white">Подвійна капсула Stripe-style + Маркер</span>
+              </div>
+              <UBadge color="primary" variant="subtle" size="sm" class="font-bold text-[10px]">✨ Європейський SaaS</UBadge>
+            </div>
+
+            <div class="py-3 text-center sm:text-left font-raleway">
+              <!-- Stripe-style badge -->
+              <div class="inline-flex items-center gap-2 p-1 pr-3 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 mb-4 font-public">
+                <span class="px-2 py-0.5 rounded-full bg-brand-500 text-white text-[10px] font-extrabold uppercase">
+                  2 в 1
+                </span>
+                <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-200">
+                  {{ heroTexts.leftoversShort }} та {{ heroTexts.warehousesShort.toLowerCase() }}
+                </span>
+              </div>
+
+              <!-- Заголовок -->
+              <div class="space-y-2 uppercase font-extrabold tracking-tight">
+                <div class="text-2xl sm:text-4xl text-brand-500 leading-none">
+                  {{ heroTexts.sell }} <span class="text-neutral-300 dark:text-neutral-700">•</span> {{ heroTexts.buy }}
+                </div>
+                <div class="inline-block relative text-2xl sm:text-4xl text-neutral-900 dark:text-white leading-none">
+                  <span class="relative z-10">{{ heroTexts.materialsNearby }}</span>
+                  <span class="absolute bottom-0.5 left-0 right-0 h-2.5 bg-brand-500/20 dark:bg-brand-500/30 -z-0 rounded-sm"></span>
+                </div>
+              </div>
+
+              <div class="mt-3 text-[11px] font-bold uppercase tracking-widest text-neutral-400">
+                ⚡ {{ heroTexts.fast }} &nbsp;•&nbsp; 👍 {{ heroTexts.convenient }} &nbsp;•&nbsp; 📍 {{ heroTexts.nearby }}
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-neutral-400 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            💡 Стильний бейдж «[2 в 1] Приватні залишки та будбази» одразу пояснює концепцію платформи без жодних зайвих слів.
+          </p>
+        </div>
+
+        <!-- КОНЦЕПТ 8 -->
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center">8</span>
+                <span class="font-bold text-sm text-neutral-900 dark:text-white">Дворядковий змістовий (Залишки / Матеріали)</span>
+              </div>
+              <UBadge color="neutral" variant="subtle" size="sm" class="font-bold text-[10px]">📖 Максимальна ясність</UBadge>
+            </div>
+
+            <div class="py-3 text-center sm:text-left font-raleway">
+              <!-- Верхня плашка -->
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs font-bold uppercase tracking-wider mb-3">
+                <UIcon name="i-heroicons-map-pin-solid" class="w-3.5 h-3.5 text-brand-500" />
+                <span>{{ heroTexts.fast }} • {{ heroTexts.convenient }} • {{ heroTexts.nearby }}</span>
+              </div>
+
+              <!-- Чіткий розподіл що продаємо і що купуємо -->
+              <div class="space-y-1.5 uppercase font-extrabold tracking-tight">
+                <div class="text-xl sm:text-3xl text-brand-500 leading-tight">
+                  {{ heroTexts.sellLeftovers }}
+                </div>
+                <div class="text-xl sm:text-3xl text-neutral-900 dark:text-white leading-tight">
+                  {{ heroTexts.buyMaterials }}
+                </div>
+              </div>
+
+              <!-- Плашка знизу -->
+              <div class="mt-3.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/70 border border-neutral-200/80 dark:border-neutral-700 text-xs text-neutral-600 dark:text-neutral-300 font-public">
+                <span>🤝 У сусідів після ремонту</span>
+                <span class="text-neutral-300 dark:text-neutral-600">|</span>
+                <span>🏬 На складах і в магазинах</span>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-neutral-400 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            💡 Розділяє дії по суті: «ПРОДАВАЙ ЗАЛИШКИ. КУПУЙ БУДМАТЕРІАЛИ.» — і відразу розшифровує де саме (у сусідів або на складах).
+          </p>
+        </div>
+
+        <!-- КОНЦЕПТ 9 -->
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center">9</span>
+                <span class="font-bold text-sm text-neutral-900 dark:text-white">Три окремі міні-капсули зверху + Рамка</span>
+              </div>
+              <UBadge color="neutral" variant="subtle" size="sm" class="font-bold text-[10px]">✨ Повітряний</UBadge>
+            </div>
+
+            <div class="py-3 text-center sm:text-left font-raleway">
+              <!-- Три окремі міні-капсули -->
+              <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 mb-3.5">
+                <span class="px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-[11px] font-extrabold uppercase tracking-wider">
+                  ⚡ {{ heroTexts.fast }}
+                </span>
+                <span class="px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-[11px] font-extrabold uppercase tracking-wider">
+                  👍 {{ heroTexts.convenient }}
+                </span>
+                <span class="px-2.5 py-1 rounded-lg bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-800 text-[11px] font-extrabold uppercase tracking-wider">
+                  📍 {{ heroTexts.nearby }}
+                </span>
+              </div>
+
+              <!-- Заголовок -->
+              <div class="space-y-1.5 uppercase font-extrabold tracking-tight">
+                <div class="text-2xl sm:text-4xl text-brand-500 leading-none">
+                  {{ heroTexts.sell }} • {{ heroTexts.buy }}
+                </div>
+                <div class="text-2xl sm:text-4xl text-neutral-900 dark:text-white leading-none">
+                  {{ heroTexts.materials }}
+                </div>
+              </div>
+
+              <!-- Непримітний бейдж внизу -->
+              <div class="mt-3.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 font-public flex items-center justify-center sm:justify-start gap-1.5">
+                <UIcon name="i-heroicons-sparkles" class="w-4 h-4 text-brand-500" />
+                <span>Об'єднуємо приватні залишки та будівельні бази міста</span>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-neutral-400 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            💡 Слова «Швидко», «Зручно», «Поруч» рознесені в 3 окремі міні-плашки (де «Поруч» підсвічено фірмовим кольором).
+          </p>
+        </div>
+
+        <!-- КОНЦЕПТ 10 -->
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center">10</span>
+                <span class="font-bold text-sm text-neutral-900 dark:text-white">Фірмова Картка-Контейнер (Hero Card)</span>
+              </div>
+              <UBadge color="warning" variant="subtle" size="sm" class="font-bold text-[10px]">🛡️ Монолітний</UBadge>
+            </div>
+
+            <!-- Весь заголовок у м'якому градієнтному контейнері -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-brand-500/8 via-transparent to-neutral-100/80 dark:from-brand-500/15 dark:to-neutral-800/50 border border-brand-500/20 text-center sm:text-left font-raleway">
+              <div class="flex items-center justify-center sm:justify-between gap-2 mb-2.5">
+                <span class="text-[11px] font-extrabold uppercase tracking-widest text-brand-600 dark:text-brand-400">
+                  {{ heroTexts.fast }} • {{ heroTexts.convenient }} • {{ heroTexts.nearby }}
+                </span>
+                <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white dark:bg-neutral-900 text-[10px] font-bold text-neutral-500 shadow-2xs">
+                  📍 На мапі
+                </span>
+              </div>
+
+              <div class="text-2xl sm:text-4xl font-black uppercase text-neutral-900 dark:text-white leading-none mb-1.5">
+                {{ heroTexts.sell }} <span class="inline-block w-2.5 h-2.5 rounded-full bg-brand-500 mx-1.5 align-middle -mt-1"></span> {{ heroTexts.buy }}
+              </div>
+              <div class="text-2xl sm:text-4xl font-black uppercase bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 bg-clip-text text-transparent leading-none pb-0.5">
+                {{ heroTexts.materials }}
+              </div>
+
+              <div class="mt-3.5 pt-2.5 border-t border-brand-500/15 flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs font-semibold text-neutral-700 dark:text-neutral-300 font-public">
+                <span class="flex items-center gap-1">
+                  <UIcon name="i-heroicons-check-badge-solid" class="w-4 h-4 text-brand-500" />
+                  {{ heroTexts.leftovers }}
+                </span>
+                <span class="flex items-center gap-1">
+                  <UIcon name="i-heroicons-check-badge-solid" class="w-4 h-4 text-blue-500" />
+                  {{ heroTexts.warehouses }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-neutral-400 mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            💡 Заголовок оформлений у легку брендову рамку з градієнтним фоном і нижнім рядком верифікованих категорій.
+          </p>
+        </div>
+      </div>
+    </main>
+
     <!-- СЕКЦІЯ 1: КОНТРАСТ ТА МЕЖІ КАРТОК (5 ВАРІАНТІВ) -->
-    <main v-if="activeTab === 'borders'" class="max-w-7xl mx-auto px-4 sm:px-8 mt-8">
+    <main v-else-if="activeTab === 'borders'" class="max-w-7xl mx-auto px-4 sm:px-8 mt-8">
       <div class="mb-6 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 text-amber-900 dark:text-amber-200 text-xs sm:text-sm flex items-start gap-3">
         <UIcon name="i-heroicons-device-phone-mobile" class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
         <div>
