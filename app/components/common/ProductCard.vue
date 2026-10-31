@@ -239,7 +239,6 @@ const actionItems = computed(() => {
   <div class="relative group flex flex-col bg-white dark:bg-neutral-900 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-neutral-200 dark:border-neutral-800 h-full">
     <NuxtLink
       :to="`/catalog/${product.id}`"
-      :id="`product-${product.id}`"
       class="flex flex-col flex-1"
       :class="{ 'opacity-60 grayscale-30': isSold || isDeactivated || isExpired || isRejected }"
     >

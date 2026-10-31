@@ -116,7 +116,7 @@
             variant="ghost"
             icon="i-heroicons-x-mark"
             class="hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60 shrink-0 -my-1 -mr-1"
-            @click="() => { searchQuery = '' }"
+            @click="clearSearchQuery"
           />
         </div>
 
@@ -191,6 +191,7 @@
               :id="`product-${product.id}`"
               :product="product"
               :show-map-button="true"
+              @click="selectedProductOnMap = product.id"
               @map-click="handleZoomToProduct"
               :class="[
                 'transition-all duration-300 rounded-xl scroll-mt-4',
@@ -238,8 +239,8 @@
           :max-zoom="18"
           :use-global-leaflet="true"
           ref="map"
-          @update:zoom="zoom = $event"
-          @update:center="center = $event"
+          @update:zoom="(val) => { if (!isLeavingCatalog) zoom = val }"
+          @update:center="(val) => { if (!isLeavingCatalog) center = val }"
           @update:bounds="mapBounds = $event"
           @click="() => { selectedProductOnMap = null }"
           @ready="onMapReady"
@@ -470,7 +471,7 @@
               variant="ghost"
               icon="i-heroicons-x-mark"
               class="hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60 shrink-0 -my-1 -mr-1"
-              @click="() => { searchQuery = '' }"
+              @click="clearSearchQuery"
             />
           </div>
 
@@ -525,6 +526,7 @@
                 :id="`mobile-product-${product.id}`"
                 :product="product"
                 :show-map-button="true"
+                @click="selectedProductOnMap = product.id"
                 @map-click="handleZoomToProduct"
                 :class="[
                   'transition-all duration-300 rounded-xl scroll-mt-2',
@@ -625,10 +627,17 @@ const route = useRoute();
 const router = useRouter();
 
 const isSearchFiltersOpen = ref(false);
-const searchQuery = ref<string>((route.query.q as string) || (route.query.search as string) || "");
-const searchInDescription = ref(false);
-const selectedCategory = ref<string>((route.query.category as string) || "");
-const selectedStatus = ref<string>("all");
+const keepCatalogSession = useState<boolean>("catalog-keep-session", () => false);
+const searchQuery = useState<string>(
+  "catalog-search-query",
+  () => (route.query.q as string) || ""
+);
+const searchInDescription = useState<boolean>("catalog-search-in-desc", () => false);
+const selectedCategory = useState<string>(
+  "catalog-selected-cat",
+  () => (route.query.category as string) || ""
+);
+const selectedStatus = useState<string>("catalog-selected-status", () => "all");
 
 // Синхронізація вибраної категорії та пошуку з query в URL
 watch(
@@ -646,6 +655,16 @@ watch(
     }
   }
 );
+
+const clearSearchQuery = () => {
+  searchQuery.value = "";
+  router.replace({
+    query: {
+      ...route.query,
+      q: undefined,
+    },
+  });
+};
 
 const updateCategoryFilter = (catId: string) => {
   selectedCategory.value = catId;
@@ -707,9 +726,6 @@ const activeCategoryInfo = computed(() => {
 
 // 1. РОЗДІЛЯЄМО ЛОКАЦІЮ І ЦЕНТР КАРТИ
 
-const center = ref<PointTuple>([50.4501, 30.5234]); // Куди дивиться камера
-// const initialUserLocation = ref<PointTuple | null>(null);
-
 const initialUserLocation = useStorage<PointTuple | null>(
   "budstock-user-location",
   null,
@@ -721,7 +737,13 @@ const initialUserLocation = useStorage<PointTuple | null>(
     },
   },
 );
-const zoom = ref(12);
+const isLeavingCatalog = ref(false);
+const center = useState<PointTuple>(
+  "catalog-map-center",
+  () => (initialUserLocation.value ? [...initialUserLocation.value] : [50.4501, 30.5234])
+); // Куди дивиться камера
+const zoom = useState<number>("catalog-map-zoom", () => 12);
+const hasInitializedMapCamera = useState<boolean>("catalog-map-camera-init", () => false);
 const searchRadius = useStorage<number>("search-radius", 5000);
 const debouncedRadius = refDebounced(searchRadius, 500);
 const searchRadiusKm = computed(() => {
@@ -729,12 +751,12 @@ const searchRadiusKm = computed(() => {
   return isNaN(r) || r <= 0 ? 5 : Math.round(r / 1000);
 });
 
-const isProductsSliderOpen = ref(false);
+const isProductsSliderOpen = useState<boolean>("catalog-drawer-open", () => false);
 const map = ref<any>(null);
 const mapBounds = ref<any>(null);
 const mapClusterGroup = ref<any>(null);
 const mapMarkers = ref<any[]>([]);
-const selectedProductOnMap = ref<string | number | null>(null);
+const selectedProductOnMap = useState<string | number | null>("catalog-selected-product", () => null);
 const isMapReady = ref<boolean>(false);
 const showDragHint = ref<boolean>(false);
 const isGeolocationErrorPopoverOpen = ref(false);
@@ -747,9 +769,9 @@ const isManualLocationRequest = ref(false);
 // Якщо користувач закрив модалку без вибору міста, беремо визначені по IP або дефолтні координати
 watch(isCityModalOpen, (isOpen) => {
   if (!isOpen && !initialUserLocation.value && !isManualLocationRequest.value) {
-    const fallback = detectedCityCoords.value || [...center.value];
-    initialUserLocation.value = fallback;
-    center.value = fallback;
+    const fallback: PointTuple = detectedCityCoords.value || [50.4501, 30.5234];
+    initialUserLocation.value = [...fallback];
+    center.value = [...fallback];
     if (map.value?.leafletObject) {
       map.value.leafletObject.flyTo(fallback, 12);
     }
@@ -762,6 +784,8 @@ const { coords, error, pause, resume } = useGeolocation();
 const onCitySelect = (city: { lat: number, lng: number, name: string }) => {
   initialUserLocation.value = [city.lat, city.lng];
   center.value = [city.lat, city.lng];
+  zoom.value = 12;
+  hasInitializedMapCamera.value = true;
   showDragHint.value = true;
   if (map.value?.leafletObject) {
     map.value.leafletObject.flyTo([city.lat, city.lng], 12);
@@ -920,13 +944,38 @@ const isLocating = computed(() =>
 );
 
 // 1. Легкі маркери для карти (тільки id, title, price, lat, lng, is_exact, category_id)
-const rawProductsInRadius = ref<any[]>([]);
+const rawProductsInRadius = useState<any[]>("catalog-raw-products", () => []);
 
 // 2. Повноцінні картки товарів (по 20 штук за раз з фото та описами)
-const cardListings = ref<Product[]>([]);
+const cardListings = useState<Product[]>("catalog-card-listings", () => []);
 const isLoadingMoreCards = ref(false);
 
-let lastFetchKey = "";
+const lastFetchKey = useState<string>("catalog-last-fetch-key", () => "");
+
+const resetCatalogSessionState = () => {
+  searchQuery.value = (route.query.q as string) || "";
+  searchInDescription.value = false;
+  selectedCategory.value = (route.query.category as string) || "";
+  selectedStatus.value = "all";
+  zoom.value = 12;
+  if (initialUserLocation.value) {
+    center.value = [...initialUserLocation.value];
+  }
+  hasInitializedMapCamera.value = false;
+  isProductsSliderOpen.value = false;
+  selectedProductOnMap.value = null;
+  rawProductsInRadius.value = [];
+  cardListings.value = [];
+  lastFetchKey.value = "";
+};
+
+// Якщо ми зайшли в каталог НЕ з картки оголошення (/catalog/[id]),
+// а з іншого розділу (Головна, Кабінет, Чати тощо) — скидаємо сесію каталогу в нуль
+if (!keepCatalogSession.value) {
+  resetCatalogSessionState();
+} else {
+  keepCatalogSession.value = false;
+}
 
 const fetchRadiusProducts = async () => {
   // Не завантажуємо товари завчасно за дефолтними координатами,
@@ -946,8 +995,8 @@ const fetchRadiusProducts = async () => {
     searchInDescription.value,
     useMockTable.value,
   ]);
-  if (fetchKey === lastFetchKey) return;
-  lastFetchKey = fetchKey;
+  if (fetchKey === lastFetchKey.value && rawProductsInRadius.value.length > 0) return;
+  lastFetchKey.value = fetchKey;
 
   isLoadingBackendListings.value = true;
   try {
@@ -990,7 +1039,7 @@ const fetchRadiusProducts = async () => {
     cardListings.value = (cardsData as any[]) || [];
   } catch (err) {
     console.error("Помилка під час завантаження товарів у радіусі:", err);
-    lastFetchKey = "";
+    lastFetchKey.value = "";
   } finally {
     isLoadingBackendListings.value = false;
   }
@@ -1179,13 +1228,44 @@ const clusterMarkersData = computed(() => {
 const onMapReady = async () => {
   isMapReady.value = true;
 
-  // Якщо координати вже прийшли раніше, ніж карта була готова
-  if (initialUserLocation.value) {
-    map.value?.leafletObject?.flyTo(initialUserLocation.value, 12);
+  // Центруємо карту на локації користувача лише при першому запуску.
+  // При поверненні зі сторінки товару зберігаємо поточні center та zoom.
+  if (initialUserLocation.value && !hasInitializedMapCamera.value) {
+    hasInitializedMapCamera.value = true;
+    center.value = initialUserLocation.value;
+    map.value?.leafletObject?.setView(initialUserLocation.value, zoom.value);
   }
 
   refreshClusters();
 };
+
+// При поверненні зі сторінки деталей товару прокручуємо список (десктоп або мобільну шторку) до переглянутої картки
+onMounted(async () => {
+  if (!selectedProductOnMap.value) return;
+
+  await nextTick();
+  const isMobile = window.innerWidth < 1024;
+
+  if (isMobile) {
+    if (isProductsSliderOpen.value) {
+      setTimeout(() => {
+        const el = document.getElementById(`mobile-product-${selectedProductOnMap.value}`);
+        el?.scrollIntoView({ behavior: "instant", block: "center" });
+      }, 200);
+    }
+  } else {
+    const el = document.getElementById(`product-${selectedProductOnMap.value}`);
+    el?.scrollIntoView({ behavior: "instant", block: "center" });
+  }
+});
+
+// Зберігаємо стан каталогу ТІЛЬКИ при переході в деталі оголошення (/catalog/[id]).
+// Скидання (resetCatalogSessionState) виконується вже при наступному вході в каталог,
+// щоб під час виходу зі сторінки карта і список не смикалися в останню частку секунди.
+onBeforeRouteLeave((to) => {
+  isLeavingCatalog.value = true;
+  keepCatalogSession.value = to.path.startsWith(`${APP_ROUTES.CATALOG}/`);
+});
 
 watch(
   () => [productsInRadius.value, selectedProductOnMap.value],
@@ -1207,8 +1287,10 @@ watch(
 
       const latLng: PointTuple = [newCoords.latitude, newCoords.longitude];
 
-      initialUserLocation.value = latLng;
+      initialUserLocation.value = [...latLng];
       center.value = latLng;
+      zoom.value = 12;
+      hasInitializedMapCamera.value = true;
       showDragHint.value = true;
       isManualLocationRequest.value = false;
 

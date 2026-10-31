@@ -599,6 +599,14 @@ const nuxtApp = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
 const supabase = useSupabaseClient<any>();
+const keepCatalogSession = useState<boolean>("catalog-keep-session", () => false);
+
+// Якщо зі сторінки деталей оголошення користувач іде НЕ назад у каталог, а в інший розділ — скидаємо сесію каталогу
+onBeforeRouteLeave((to) => {
+  if (to.path !== APP_ROUTES.CATALOG && !to.path.startsWith(`${APP_ROUTES.CATALOG}/`)) {
+    keepCatalogSession.value = false;
+  }
+});
 
 const handleBack = () => {
   if (import.meta.client) {
